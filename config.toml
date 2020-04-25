@@ -1,0 +1,40 @@
+baseurl = "https://wabbitspunch.netlify.app/"
+languageCode = "ja"
+title = "Rでもにょる自然言語処理"
+theme = "hugo-lithium"
+googleAnalytics = "UA-73417314-20"
+disqusShortname = "wabbitspunch"
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+hasCJKLanguage = true
+
+[permalinks]
+    post = "/:year/:month/:day/:slug/"
+
+[[menu.main]]
+    name = "About"
+    url = "/about/"
+[[menu.main]]
+    name = "GitHub"
+    url = "https://github.com/paithiov909/wabbitspunch"
+
+[params]
+    description = "Rでテキストマイニング的な何か"
+
+    # options for highlight.js (version, additional languages, and theme)
+    highlightjsVersion = "9.12.0"
+    highlightjsCDN = "//cdnjs.cloudflare.com/ajax/libs"
+    highlightjsLang = ["r", "yaml"]
+    highlightjsTheme = "github"
+
+    MathJaxCDN = "//cdnjs.cloudflare.com/ajax/libs"
+    MathJaxVersion = "2.7.5"
+
+    # path to the favicon, under "static"
+    favicon = "favicon.ico"
+
+    [params.logo]
+    url = "logo.png"
+    width = 50
+    height = 50
+    alt = "Logo"
+
