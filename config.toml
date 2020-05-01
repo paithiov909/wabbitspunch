@@ -17,6 +17,7 @@ rssLimit = 10
 [params]
     subTitle = "Rでもにょる自然言語処理"
     description = "Rでテキストマイニング的な何か"
+    author = "paithiov909"
 
     images = ["img/wabbits.jpg"]
 

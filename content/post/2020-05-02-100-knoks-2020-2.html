@@ -1,0 +1,213 @@
+---
+title: Rで言語処理100本ノックを解くわけがない（２）
+author: paithiov909
+date: '2020-05-02'
+slug: 100-knoks-2020-2
+categories: []
+tags:
+  - NLP
+description: '...'
+---
+
+
+
+<div id="section" class="section level2">
+<h2>形態素解析</h2>
+<p>気をきかせて{readtext}で読みこんでおきます。</p>
+<pre class="r"><code>temp &lt;- tempfile(fileext = &quot;.txt&quot;)
+download.file(&quot;https://nlp100.github.io/data/neko.txt&quot;, temp)
+neko &lt;- readtext::readtext(temp, encoding = &quot;UTF-8&quot;)
+neko$text[1] %&gt;%
+  readr::read_lines(skip_empty_rows = TRUE) %&gt;%
+  length()
+#&gt; [1] 9210</code></pre>
+<div id="section-1" class="section level3">
+<h3>30. 形態素解析結果の読み込み</h3>
+<p>{RMeCab}はtaggerをラップしていて必要な情報を取れないので、<a href="https://paithiov909.github.io/rjavacmecab/">オレオレパッケージ</a>を使います。動くはずです（ただし、{RMeCab}などに比べて5~10倍程度は遅い）。{RcppMeCab}でもできますが、公式のリポジトリのソースはWindows環境だとビルドにコケるのでUNIX系の環境が必要です（2020年5月現在）。</p>
+<p>データフレームで持ちたいのですが、すべて変換すると死ぬほど時間がかかるのでここでは一部の解析結果だけ使います。</p>
+<pre class="r"><code>neko_txt_mecab &lt;- rjavacmecab::cmecab_c(neko$text[1])[1:900] %&gt;%
+  purrr::map_dfr(function(line) {
+    row &lt;- stringr::str_split(line, &quot; &quot;, simplify = TRUE)
+    attr &lt;- rjavacmecab::tokenize(row[1, 2]) %&gt;%
+      t() %&gt;%
+      as.data.frame(stringsAsFactors = FALSE)
+    res &lt;- row[1, 1] %&gt;%
+      as.data.frame(stringsAsFactors = FALSE) %&gt;%
+      dplyr::bind_cols(attr)
+    return(res)
+  })
+colnames(neko_txt_mecab) &lt;- c(
+  &quot;Surface&quot;,
+  &quot;POS1&quot;,
+  &quot;POS2&quot;,
+  &quot;POS3&quot;,
+  &quot;POS4&quot;,
+  &quot;X5StageUse1&quot;,
+  &quot;X5StageUse2&quot;,
+  &quot;Base&quot;,
+  &quot;Reading&quot;,
+  &quot;Pronunciation&quot;
+)
+head(neko_txt_mecab)
+#&gt;   Surface   POS1   POS2 POS3 POS4 X5StageUse1 X5StageUse2 Base  Reading
+#&gt; 1      一   名詞     数    *    *           *           *   一     イチ
+#&gt; 2      　   記号   空白    *    *           *           *   　       　
+#&gt; 3    吾輩   名詞 代名詞 一般    *           *           * 吾輩 ワガハイ
+#&gt; 4      は   助詞 係助詞    *    *           *           *   は       ハ
+#&gt; 5      猫   名詞   一般    *    *           *           *   猫     ネコ
+#&gt; 6      で 助動詞      *    *    *    特殊・ダ      連用形   だ       デ
+#&gt;   Pronunciation
+#&gt; 1          イチ
+#&gt; 2            　
+#&gt; 3      ワガハイ
+#&gt; 4            ワ
+#&gt; 5          ネコ
+#&gt; 6            デ</code></pre>
+</div>
+<div id="section-2" class="section level3">
+<h3>31. 動詞</h3>
+<pre class="r"><code>neko_txt_mecab %&gt;%
+  dplyr::filter(POS1 == &quot;動詞&quot;) %&gt;%
+  dplyr::select(Surface) %&gt;%
+  head()
+#&gt;   Surface
+#&gt; 1    生れ
+#&gt; 2    つか
+#&gt; 3      し
+#&gt; 4    泣い
+#&gt; 5      し
+#&gt; 6    いる</code></pre>
+</div>
+<div id="section-3" class="section level3">
+<h3>32. 動詞の原形</h3>
+<pre class="r"><code>neko_txt_mecab %&gt;%
+  dplyr::filter(POS1 == &quot;動詞&quot;) %&gt;%
+  dplyr::select(Base) %&gt;%
+  head()
+#&gt;     Base
+#&gt; 1 生れる
+#&gt; 2   つく
+#&gt; 3   する
+#&gt; 4   泣く
+#&gt; 5   する
+#&gt; 6   いる</code></pre>
+</div>
+<div id="ab" class="section level3">
+<h3>33. 「AのB」</h3>
+<pre class="r"><code>neko_txt_mecab %&gt;%
+  tibble::rowid_to_column() %&gt;%
+  dplyr::filter(Surface == &quot;の&quot;) %&gt;%
+  dplyr::pull(rowid) %&gt;%
+  purrr::keep(~ neko_txt_mecab$POS1[. - 1] == &quot;名詞&quot; &amp;&amp; neko_txt_mecab$POS1[. + 1] == &quot;名詞&quot;) %&gt;%
+  purrr::map_chr(~ stringr::str_c(
+    neko_txt_mecab$Surface[. - 1],
+    neko_txt_mecab$Surface[.],
+    neko_txt_mecab$Surface[. + 1],
+    collapse = &quot;&quot;
+  ))
+#&gt;  [1] &quot;彼の掌&quot;     &quot;掌の上&quot;     &quot;書生の顔&quot;   &quot;はずの顔&quot;   &quot;顔の真中&quot;  
+#&gt;  [6] &quot;穴の中&quot;     &quot;書生の掌&quot;   &quot;掌の裏&quot;     &quot;何の事&quot;     &quot;肝心の母親&quot;
+#&gt; [11] &quot;藁の上&quot;     &quot;笹原の中&quot;   &quot;池の前&quot;     &quot;池の上&quot;     &quot;一樹の蔭&quot;  
+#&gt; [16] &quot;垣根の穴&quot;   &quot;隣家の三&quot;   &quot;時の通路&quot;   &quot;一刻の猶予&quot; &quot;家の内&quot;    
+#&gt; [21] &quot;彼の書生&quot;   &quot;以外の人間&quot; &quot;前の書生&quot;</code></pre>
+</div>
+<div id="section-4" class="section level3">
+<h3>34. 名詞の連接</h3>
+<p>（これよくわからない）</p>
+<pre class="r"><code>idx &lt;- neko_txt_mecab %&gt;%
+  tibble::rowid_to_column() %&gt;%
+  dplyr::filter(POS1 == &quot;名詞&quot;) %&gt;%
+  dplyr::pull(rowid) %&gt;%
+  purrr::discard(~ neko_txt_mecab$POS1[. + 1] != &quot;名詞&quot;)
+
+search_in &lt;- idx
+
+purrr::map_chr(search_in, function(idx) {
+  itr &lt;- idx
+  res &lt;- stringr::str_c(neko_txt_mecab$Surface[idx])
+  while (neko_txt_mecab$POS1[itr + 1] == &quot;名詞&quot;) {
+    res &lt;- stringr::str_c(res, neko_txt_mecab$Surface[itr + 1])
+    search_in &lt;&lt;- purrr::discard(search_in, ~ . == itr + 1)
+    itr &lt;- itr + 1
+  }
+  return(res)
+})
+#&gt;  [1] &quot;人間中&quot;       &quot;一番獰悪&quot;     &quot;時妙&quot;         &quot;一毛&quot;        
+#&gt;  [5] &quot;その後猫&quot;     &quot;一度&quot;         &quot;ぷうぷうと煙&quot; &quot;邸内&quot;        
+#&gt;  [9] &quot;三毛&quot;         &quot;書生以外&quot;</code></pre>
+</div>
+<div id="section-5" class="section level3">
+<h3>35. 単語の出現頻度</h3>
+<pre class="r"><code>neko_txt_mecab %&gt;%
+  dplyr::group_by(Base) %&gt;%
+  dplyr::count(Base, sort = TRUE) %&gt;%
+  head()
+#&gt; # A tibble: 6 x 2
+#&gt; # Groups:   Base [6]
+#&gt;   Base      n
+#&gt;   &lt;chr&gt; &lt;int&gt;
+#&gt; 1 。       51
+#&gt; 2 た       40
+#&gt; 3 て       39
+#&gt; 4 の       39
+#&gt; 5 が       35
+#&gt; 6 だ       27</code></pre>
+</div>
+<div id="section-6" class="section level3">
+<h3>36. 頻度上位10語</h3>
+<pre class="r"><code>neko_txt_mecab %&gt;%
+  dplyr::group_by(Base) %&gt;%
+  dplyr::count(Base, sort = TRUE) %&gt;%
+  head(10) %&gt;%
+  ggplot(aes(x = reorder(Base, -n), y = n)) +
+  geom_col() +
+  labs(x = &quot;Surface form&quot;) +
+  theme_light()</code></pre>
+<p><img src="/post/2020-05-02-100-knoks-2020-2_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="section-7" class="section level3">
+<h3>37. 「猫」と共起頻度の高い上位10語</h3>
+<p>解釈のしかたが複数あるけれど、はじめに形態素解析する段階で文区切りを無視してしまったので、ここではbi-gramを数えてお茶をにごします。</p>
+<pre class="r"><code>neko_txt_mecab %&gt;%
+  tibble::rowid_to_column() %&gt;%
+  dplyr::filter(Surface == &quot;猫&quot;) %&gt;%
+  dplyr::mutate(Colocation = stringr::str_c(Surface, neko_txt_mecab$Surface[rowid + 1], sep = &quot; - &quot;)) %&gt;%
+  dplyr::group_by(Colocation) %&gt;%
+  dplyr::count(Colocation, sort = TRUE) %&gt;%
+  head(10) %&gt;%
+  ggplot(aes(x = reorder(Colocation, -n), y = n)) +
+  geom_col() +
+  labs(x = &quot;Colocation&quot;, y = &quot;Freq&quot;) +
+  theme_light()</code></pre>
+<p><img src="/post/2020-05-02-100-knoks-2020-2_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="section-8" class="section level3">
+<h3>38. ヒストグラム</h3>
+<pre class="r"><code>neko_txt_mecab %&gt;%
+  dplyr::group_by(Base) %&gt;%
+  dplyr::count(Base) %&gt;%
+  ggplot(aes(x = reorder(Base, -n), y = n)) +
+  geom_col() +
+  labs(x = &quot;&quot;, y = &quot;Freq&quot;) +
+  theme_light()</code></pre>
+<p><img src="/post/2020-05-02-100-knoks-2020-2_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+<div id="zipf" class="section level3">
+<h3>39. Zipfの法則</h3>
+<p><del>ずっと雰囲気で書いている ggplot2なんもわからん</del></p>
+<pre class="r"><code>count &lt;- neko_txt_mecab %&gt;%
+  dplyr::group_by(Base) %&gt;%
+  dplyr::count(Base) %&gt;%
+  dplyr::ungroup()
+count %&gt;%
+  tibble::rowid_to_column() %&gt;%
+  dplyr::mutate(rank = nrow(count) + 1 - dplyr::min_rank(count$n)[rowid]) %&gt;%
+  ggplot(aes(x = rank, y = n)) +
+  geom_point() +
+  labs(x = &quot;Rank of Freq&quot;, y = &quot;Freq&quot;) +
+  scale_x_log10() +
+  scale_y_log10() +
+  theme_light()</code></pre>
+<p><img src="/post/2020-05-02-100-knoks-2020-2_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+</div>
