@@ -39,7 +39,7 @@ stopifnot(require(tidyverse))
 
 コーディングの方針として、値はなるべくリストのまま持っておいて最後に`unlist`する感じにしています。あと、`paste`ではなくて`stringr::str_c`で統一しています。
 
-### 00.文字列の逆順
+### 00. 文字列の逆順
 
 ```{r}
 stringr::str_split("stressed", pattern = "") %>%
@@ -48,7 +48,7 @@ stringr::str_split("stressed", pattern = "") %>%
     stringr::str_c(collapse = "")
 ```
 
-### 01.「パタトクカシーー」
+### 01. 「パタトクカシーー」
 
 ```{r}
 stringr::str_split("パタトクカシーー", pattern = "") %>%
@@ -57,7 +57,7 @@ stringr::str_split("パタトクカシーー", pattern = "") %>%
     stringr::str_c(collapse = "")
 ```
 
-### 02.「パトカー」＋「タクシー」＝「パタトクカシーー」
+### 02. 「パトカー」＋「タクシー」＝「パタトクカシーー」
 
 ```{r}
 list("パトカー", "タクシー") %>%
@@ -68,7 +68,7 @@ list("パトカー", "タクシー") %>%
     stringr::str_c(collapse = "")
 ```
 
-### 03.円周率
+### 03. 円周率
 
 ```{r}
 stringr::str_split("Now I need a drink, alcoholic of course, after the heavy lectures involving quantum mechanics.", pattern = " ") %>%
@@ -77,7 +77,7 @@ stringr::str_split("Now I need a drink, alcoholic of course, after the heavy lec
     unlist()
 ```
 
-### 04.元素記号
+### 04. 元素記号
 
 ```{r}
 stringr::str_split("Hi He Lied Because Boron Could Not Oxidize Fluorine. New Nations Might Also Sign Peace Security Clause. Arthur King Can.", pattern = " ") %>%
@@ -95,7 +95,7 @@ stringr::str_split("Hi He Lied Because Boron Could Not Oxidize Fluorine. New Nat
   unlist()
 ```
 
-### 05.n-gram
+### 05. n-gram
 
 ```{r}
 ngram <- function(x, n = 2, sep = " "){
@@ -119,15 +119,15 @@ ngram <- function(x, n = 2, sep = " "){
 ngram("I am an NLPer")
 ```
 
-### 06.集合
+### 06. 集合
 
 回答略
 
-### 07.テンプレートによる文生成
+### 07. テンプレートによる文生成
 
 回答略
 
-### 08.暗号文
+### 08. 暗号文
 
 ```{r}
 cipher <- function(str){
@@ -149,12 +149,12 @@ cipher <- function(str){
 cipher("I couldn't believe that I could actually understand what I was reading : the phenomenal power of the human mind.")
 ```
 
-### 09.Typoglycemia
+### 09. Typoglycemia
 
 ```{r}
 typoglycemia <- function(str){
   f <- function(char){
-    subset <- str_sub(char, 2, nchar(char) - 1) %>%
+    subset <- stringr::str_sub(char, 2, nchar(char) - 1) %>%
       stringr::str_split(pattern = "") %>%
       purrr::flatten() %>%
       sample()
@@ -189,16 +189,16 @@ typoglycemia("I couldn't believe that I could actually understand what I was rea
 
 自然言語処理とはいったい
 
-### 20.JSONデータの読み込み
+### 20. JSONデータの読み込み
 
 ```{r}
 temp <- tempfile(fileext = ".gz")
 download.file("https://nlp100.github.io/data/jawiki-country.json.gz", temp)
 con <- gzfile(description = temp, open = "rb", encoding = "UTF-8")
 jsonfile <- readr::read_lines(con) %>%
-  purrr::map_dfr(function(line){
-    return(jsonlite::fromJSON(line))
-  })
+  purrr::map_dfr(~
+    jsonlite::fromJSON(.)
+  )
 close(con)
 
 jsonfile %>%
@@ -207,7 +207,7 @@ jsonfile %>%
   glimpse() ## 長いので
 ```
 
-### 21.カテゴリ名を含む行を抽出
+### 21. カテゴリ名を含む行を抽出
 
 ```{r}
 lines <- jsonfile %>%
@@ -219,5 +219,4 @@ lines
 ```
 
 以下、回答略
-
 
