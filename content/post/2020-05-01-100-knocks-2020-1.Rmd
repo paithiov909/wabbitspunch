@@ -183,7 +183,79 @@ typoglycemia("I couldn't believe that I could actually understand what I was rea
 
 ## UNIXコマンド
 
-やりません。~~だってWindowsだもん~~
+確認はやりません。~~だってWindowsだもん~~
+
+### 10~15
+
+素のテキストとして読んでもしょうがないので、以下のようなこと雰囲気でやります。
+
+- 10. 行数のカウント
+- 11. タブをスペースに置換
+- 14. 先頭からN行を出力
+- 15. 末尾のN行を出力
+
+以下の２つはやりませんが、たぶん`fread(temp, select = c(1, 2))`みたいな感じで取れます。
+
+- 12. 1列目をcol1.txtに，2列目をcol2.txtに保存
+- 13. col1.txtとcol2.txtをマージ
+
+```{r}
+temp <- tempfile(fileext = ".txt")
+download.file("https://nlp100.github.io/data/popular-names.txt", temp)
+txt <- temp %>%
+  data.table::fread(
+    sep = "\t",
+    quote = "",
+    header = FALSE,
+    col.names = c("name", "sex", "num_of_people", "year"),
+    colClasses = list("character" = 1, "character" = 2, "integer" = 3, "integer" = 4),
+    data.table = FALSE
+  )
+
+nrow(txt)
+```
+
+```{r}
+head(txt, 3)
+```
+
+```{r}
+tail(txt, 3)
+```
+
+### 16. ファイルをN分割する
+
+```{r}
+split(txt, sort(rank(row.names(txt)) %% 5)) %>%
+  purrr::map(~ head(.)) %>%
+  print()
+```
+
+### 17. １列目の文字列の異なり
+
+省略
+
+### 18. 各行を3コラム目の数値の降順にソート
+
+```{r}
+txt %>%
+  arrange(desc(num_of_people)) %>%
+  head()
+```
+
+### 19. 各行の1コラム目の文字列の出現頻度を求め，出現頻度の高い順に並べる
+
+```{r}
+purrr::map_dfr(txt$name, function(name){
+  stringr::str_split(name, pattern = "", simplify = TRUE) %>%
+    t() %>%
+    as.data.frame(stringsAsFactors = FALSE)
+}) %>%
+  dplyr::rename(string = V1) %>%
+  dplyr::group_by(string) %>%
+  dplyr::count(string, sort = TRUE) %>%
+  head()
+```
 
 ## 正規表現
 
