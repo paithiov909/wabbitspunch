@@ -3,7 +3,7 @@ languageCode = "ja"
 title = "Rでもにょる自然言語処理"
 theme = "hugo-lithium"
 googleAnalytics = "UA-73417314-20"
-disqusShortname = "wabbitspunch"
+disqusShortname = ""
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 hasCJKLanguage = true
 

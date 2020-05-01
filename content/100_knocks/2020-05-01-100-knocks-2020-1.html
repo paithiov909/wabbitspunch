@@ -1,0 +1,214 @@
+---
+title: Rで言語処理100本ノックを解くわけがない（１）
+author: paithiov909
+date: '2020-05-01'
+slug: 100-knocks-2020-1
+categories: []
+tags:
+  - NLP
+---
+
+
+
+<div id="section" class="section level2">
+<h2>全体の見通し</h2>
+<p>2020年版に触ってみますが、ぜんぶは解きません。無理です。</p>
+<ul>
+<li><a href="https://nlp100.github.io/ja/">言語処理100本ノック 2020</a></li>
+</ul>
+<p>ググって出てくる範囲では2015年版にはyamano375さんが取り組んでいます。RcppでMeCabとCaboChaのバインディングを自分で書いて解いている本格派です。</p>
+<ul>
+<li><a href="http://yamano357.hatenadiary.com/entry/2015/07/27/001728">Rによる言語処理100本ノック前半まとめ - バイアスと戯れる</a></li>
+<li><a href="http://yamano357.hatenadiary.com/entry/2015/10/22/193839">Rによる言語処理100本ノック後半まとめと全体での総括 - バイアスと戯れる</a></li>
+</ul>
+<p>2020年版もやろうとしている人がいるようです。</p>
+<ul>
+<li><a href="https://qiita.com/PiyoMoasa/items/7c1a6cca3f9cbcaf7773">言語処理100本ノック R - Qiita</a></li>
+</ul>
+<p>2020年版も7章の単語ベクトルあたりまではPure Rでいけそうですが、おそらく8章のディープ・ニューラルネットあたりからバックエンドにPythonを利用することになり、10章の最終題の翻訳デモの構築でふつうにPythonを利用しなければならなくなるはずなので詰みます。</p>
+</div>
+<div id="section-1" class="section level2">
+<h2>準備運動</h2>
+<p>コーディングの方針として、値はなるべくリストのまま持っておいて最後に<code>unlist</code>する感じにしています。あと、<code>paste</code>ではなくて<code>stringr::str_c</code>で統一しています。</p>
+<div id="section-2" class="section level3">
+<h3>00.文字列の逆順</h3>
+<pre class="r"><code>stringr::str_split(&quot;stressed&quot;, pattern = &quot;&quot;) %&gt;%
+  purrr::map(~ rev(.)) %&gt;%
+  unlist() %&gt;%
+  stringr::str_c(collapse = &quot;&quot;)
+#&gt; [1] &quot;desserts&quot;</code></pre>
+</div>
+<div id="section-3" class="section level3">
+<h3>01.「パタトクカシーー」</h3>
+<pre class="r"><code>stringr::str_split(&quot;パタトクカシーー&quot;, pattern = &quot;&quot;) %&gt;%
+  purrr::map(~ purrr::pluck(.[c(TRUE, FALSE)])) %&gt;%
+  unlist() %&gt;%
+  stringr::str_c(collapse = &quot;&quot;)
+#&gt; [1] &quot;パトカー&quot;</code></pre>
+</div>
+<div id="section-4" class="section level3">
+<h3>02.「パトカー」＋「タクシー」＝「パタトクカシーー」</h3>
+<pre class="r"><code>list(&quot;パトカー&quot;, &quot;タクシー&quot;) %&gt;%
+  purrr::map(~ stringr::str_split(., pattern = &quot;&quot;)) %&gt;%
+  purrr::flatten() %&gt;%
+  purrr::pmap(~ stringr::str_c(.x, .y, collapse = &quot;&quot;)) %&gt;%
+  unlist() %&gt;%
+  stringr::str_c(collapse = &quot;&quot;)
+#&gt; [1] &quot;パタトクカシーー&quot;</code></pre>
+</div>
+<div id="section-5" class="section level3">
+<h3>03.円周率</h3>
+<pre class="r"><code>stringr::str_split(&quot;Now I need a drink, alcoholic of course, after the heavy lectures involving quantum mechanics.&quot;, pattern = &quot; &quot;) %&gt;%
+  purrr::flatten() %&gt;%
+  purrr::map(~ stringr::str_count(., pattern = &quot;[:alpha:]&quot;)) %&gt;%
+  unlist()
+#&gt;  [1] 3 1 4 1 5 9 2 6 5 3 5 8 9 7 9</code></pre>
+</div>
+<div id="section-6" class="section level3">
+<h3>04.元素記号</h3>
+<pre class="r"><code>stringr::str_split(&quot;Hi He Lied Because Boron Could Not Oxidize Fluorine. New Nations Might Also Sign Peace Security Clause. Arthur King Can.&quot;, pattern = &quot; &quot;) %&gt;%
+  purrr::flatten() %&gt;%
+  purrr::imap(~
+  dplyr::if_else(
+    .y %in% c(1, 5, 6, 7, 8, 9, 15, 16, 19),
+    stringr::str_sub(.x, 1, 1),
+    stringr::str_sub(.x, 1, 2)
+  )) %&gt;%
+  purrr::imap(function(x, i) {
+    names(x) &lt;- i
+    return(x)
+  }) %&gt;%
+  unlist()
+#&gt;    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15 
+#&gt;  &quot;H&quot; &quot;He&quot; &quot;Li&quot; &quot;Be&quot;  &quot;B&quot;  &quot;C&quot;  &quot;N&quot;  &quot;O&quot;  &quot;F&quot; &quot;Ne&quot; &quot;Na&quot; &quot;Mi&quot; &quot;Al&quot; &quot;Si&quot;  &quot;P&quot; 
+#&gt;   16   17   18   19   20 
+#&gt;  &quot;S&quot; &quot;Cl&quot; &quot;Ar&quot;  &quot;K&quot; &quot;Ca&quot;</code></pre>
+</div>
+<div id="n-gram" class="section level3">
+<h3>05.n-gram</h3>
+<pre class="r"><code>ngram &lt;- function(x, n = 2, sep = &quot; &quot;) {
+  stopifnot(is.character(x))
+  #### 先例がみんな`embed`を使っているが、ここでは使わない ####
+
+  tokens &lt;- unlist(stringr::str_split(x, pattern = sep))
+  len &lt;- length(tokens)
+
+  if (len &lt; n) {
+    res &lt;- character(0)
+  } else {
+    res &lt;- sapply(1:max(1, len - n + 1), function(i) {
+      stringr::str_c(tokens[i:min(len, i + n - 1)], collapse = &quot; &quot;)
+    })
+  }
+
+  return(res)
+}
+ngram(&quot;I am an NLPer&quot;)
+#&gt; [1] &quot;I am&quot;     &quot;am an&quot;    &quot;an NLPer&quot;</code></pre>
+</div>
+<div id="section-7" class="section level3">
+<h3>06.集合</h3>
+<p>回答略</p>
+</div>
+<div id="section-8" class="section level3">
+<h3>07.テンプレートによる文生成</h3>
+<p>回答略</p>
+</div>
+<div id="section-9" class="section level3">
+<h3>08.暗号文</h3>
+<pre class="r"><code>cipher &lt;- function(str) {
+  f &lt;- purrr::as_mapper(~ 219 - .)
+  v &lt;- stringr::str_split(str, pattern = &quot;&quot;, simplify = TRUE)
+  res &lt;- sapply(v[1, ], function(char) {
+    dplyr::if_else(
+      stringr::str_detect(char, &quot;[:lower:]&quot;),
+      char %&gt;%
+        charToRaw() %&gt;%
+        as.integer() %&gt;%
+        f() %&gt;%
+        as.raw() %&gt;%
+        rawToChar(),
+      char
+    )
+  })
+  return(stringr::str_c(res, collapse = &quot;&quot;))
+}
+cipher(&quot;I couldn&#39;t believe that I could actually understand what I was reading : the phenomenal power of the human mind.&quot;)
+#&gt; [1] &quot;I xlfowm&#39;g yvorvev gszg I xlfow zxgfzoob fmwvihgzmw dszg I dzh ivzwrmt : gsv ksvmlnvmzo kldvi lu gsv sfnzm nrmw.&quot;</code></pre>
+</div>
+<div id="typoglycemia" class="section level3">
+<h3>09.Typoglycemia</h3>
+<pre class="r"><code>typoglycemia &lt;- function(str) {
+  f &lt;- function(char) {
+    subset &lt;- str_sub(char, 2, nchar(char) - 1) %&gt;%
+      stringr::str_split(pattern = &quot;&quot;) %&gt;%
+      purrr::flatten() %&gt;%
+      sample()
+    res &lt;- stringr::str_c(
+      c(
+        stringr::str_sub(char, 1, 1),
+        subset,
+        stringr::str_sub(char, nchar(char), nchar(char))
+      ),
+      collapse = &quot;&quot;
+    )
+    return(res)
+  }
+  res &lt;- stringr::str_split(str, pattern = &quot; &quot;) %&gt;%
+    purrr::flatten() %&gt;%
+    purrr::map(~
+    dplyr::if_else(
+      nchar(stringr::str_subset(., &quot;[:alpha:]|:&quot;)) &lt;= 4,
+      .,
+      f(.)
+    ))
+  return(stringr::str_c(res, collapse = &quot; &quot;))
+}
+typoglycemia(&quot;I couldn&#39;t believe that I could actually understand what I was reading : the phenomenal power of the human mind.&quot;)
+#&gt; [1] &quot;I cuo&#39;lndt bleveie that I could aucatlly uesnrdatnd what I was renadig : the pnnehomeal power of the hmaun mdin.&quot;</code></pre>
+</div>
+</div>
+<div id="unix" class="section level2">
+<h2>UNIXコマンド</h2>
+<p>やりません。<del>だってWindowsだもん</del></p>
+</div>
+<div id="section-10" class="section level2">
+<h2>正規表現</h2>
+<p>自然言語処理とはいったい</p>
+<div id="json" class="section level3">
+<h3>20.JSONデータの読み込み</h3>
+<pre class="r"><code>temp &lt;- tempfile(fileext = &quot;.gz&quot;)
+download.file(&quot;https://nlp100.github.io/data/jawiki-country.json.gz&quot;, temp)
+con &lt;- gzfile(description = temp, open = &quot;rb&quot;, encoding = &quot;UTF-8&quot;)
+jsonfile &lt;- readr::read_lines(con) %&gt;%
+  purrr::map_dfr(function(line) {
+    return(jsonlite::fromJSON(line))
+  })
+close(con)
+
+jsonfile %&gt;%
+  dplyr::filter(title == &quot;イギリス&quot;) %&gt;%
+  dplyr::pull(text) %&gt;%
+  glimpse() ## 長いので
+#&gt;  chr &quot;{{redirect|UK}}\n{{redirect|英国|春秋時代の諸侯国|英 (春秋)}}\n{{Otheruses|ヨーロッパの国|長崎県・熊本県の郷土&quot;| __truncated__</code></pre>
+</div>
+<div id="section-11" class="section level3">
+<h3>21.カテゴリ名を含む行を抽出</h3>
+<pre class="r"><code>lines &lt;- jsonfile %&gt;%
+  dplyr::filter(title == &quot;イギリス&quot;) %&gt;%
+  dplyr::pull(text) %&gt;%
+  readr::read_lines() %&gt;%
+  stringr::str_subset(stringr::fixed(&quot;[[Category:&quot;))
+lines
+#&gt; [1] &quot;[[Category:イギリス|*]]&quot;                
+#&gt; [2] &quot;[[Category:イギリス連邦加盟国]]&quot;        
+#&gt; [3] &quot;[[Category:英連邦王国|*]]&quot;              
+#&gt; [4] &quot;[[Category:G8加盟国]]&quot;                  
+#&gt; [5] &quot;[[Category:欧州連合加盟国|元]]&quot;         
+#&gt; [6] &quot;[[Category:海洋国家]]&quot;                  
+#&gt; [7] &quot;[[Category:現存する君主国]]&quot;            
+#&gt; [8] &quot;[[Category:島国]]&quot;                      
+#&gt; [9] &quot;[[Category:1801年に成立した国家・領域]]&quot;</code></pre>
+<p>以下、回答略</p>
+</div>
+</div>
