@@ -2,7 +2,7 @@
 title: Rで言語処理100本ノックを解くわけがない（２）
 author: paithiov909
 date: '2020-05-02'
-slug: 100-knoks-2020-2
+slug: 100-knocks-2020-2
 categories: []
 tags:
   - NLP
