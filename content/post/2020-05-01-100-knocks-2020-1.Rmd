@@ -3,7 +3,6 @@ title: Rで言語処理100本ノックを解くわけがない（１）
 author: paithiov909
 date: '2020-05-01'
 slug: 100-knocks-2020-1
-categories: []
 tags:
   - NLP
 ---

@@ -1,40 +1,53 @@
 baseurl = "https://wabbitspunch.netlify.app/"
 languageCode = "ja"
+defaultContentLanguage = "ja"
 title = "Rでもにょる自然言語処理"
-theme = "hugo-lithium"
-googleAnalytics = "UA-73417314-20"
-disqusShortname = ""
-ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+theme = "fuji"
 hasCJKLanguage = true
+enableEmoji = true
+enableGitInfo = true
+googleAnalytics = "UA-73417314-20"
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+
+rssLimit = 10
 
 [permalinks]
     post = "/:year/:month/:day/:slug/"
 
-[[menu.main]]
-    name = "About"
-    url = "/about/"
-[[menu.main]]
-    name = "GitHub"
-    url = "https://github.com/paithiov909/wabbitspunch"
-
 [params]
     description = "Rでテキストマイニング的な何か"
 
-    # options for highlight.js (version, additional languages, and theme)
-    highlightjsVersion = "9.12.0"
-    highlightjsCDN = "//cdnjs.cloudflare.com/ajax/libs"
-    highlightjsLang = ["r", "yaml"]
-    highlightjsTheme = "github"
+    images = ["img/wabbits.png"]
 
-    MathJaxCDN = "//cdnjs.cloudflare.com/ajax/libs"
-    MathJaxVersion = "2.7.5"
+    mainSections = ["post"]
+    license = "MIT license"
+    licenseLink = "https://github.com/paithiov909/wabbitspunch/blob/master/LICENSE"
 
-    # path to the favicon, under "static"
-    favicon = "favicon.ico"
+[taxonomies]
+    tag = "tags"
 
-    [params.logo]
-    url = "logo.png"
-    width = 50
-    height = 50
-    alt = "Logo"
+[markup]
+    [markup.highlight]
+        style = "monokailight"
+    [markup.tableOfContents]
+        startLevel = 2
+        endLevel = 2
 
+[menu]
+    [[menu.nav]]
+        name = "Home"
+        url = "/"
+        weight = 1
+    [[menu.nav]]
+        name = "About"
+        url = "/about/"
+        weight = 2
+
+    [[menu.link]]
+        name = "GitHub"
+        url = "https://github.com/paithiov909/wabbitspunch"
+        weight = 1
+    [[menu.link]]
+        name = "Twitter"
+        url = "https://twitter.com/paithiov909"
+        weight = 2
