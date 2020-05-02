@@ -23,7 +23,7 @@ neko$text[1] %&gt;%
 #&gt; [1] 9210</code></pre>
 <div id="section-1" class="section level3">
 <h3>30. 形態素解析結果の読み込み</h3>
-<p>{RMeCab}はtaggerをラップしていて必要な情報を取れないので、<a href="https://paithiov909.github.io/rjavacmecab/">オレオレパッケージ</a>を使います。動くはずです（ただし、{RMeCab}などに比べて5~10倍程度は遅い）。{RcppMeCab}でもできますが、公式のリポジトリのソースはWindows環境だとビルドにコケるのでUNIX系の環境が必要です（2020年5月現在）。</p>
+<p>{RMeCab}はtaggerをラップしていて必要な情報を取りづらいので、<a href="https://paithiov909.github.io/rjavacmecab/">オレオレパッケージ</a>を使います。動くはずです（ただし、{RMeCab}などに比べて5~10倍程度は遅い）。{RcppMeCab}でもできますが、公式のリポジトリのソースはWindows環境だとビルドにコケるのでUNIX系の環境が必要です（2020年5月現在）。</p>
 <p>データフレームで持ちたいのですが、すべて変換すると死ぬほど時間がかかるのでここでは一部の解析結果だけ使います。</p>
 <pre class="r"><code>neko_txt_mecab &lt;- rjavacmecab::cmecab_c(neko$text[1])[1:900] %&gt;%
   purrr::map_dfr(function(line) {
