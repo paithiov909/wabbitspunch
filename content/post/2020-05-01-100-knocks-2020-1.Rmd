@@ -6,10 +6,10 @@ slug: 100-knocks-2020-1
 categories: []
 tags:
   - NLP
-description: '...'
+description: 'Rでもにょる自然言語処理'
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   tidy = "styler",
   collapse = TRUE,
@@ -19,13 +19,15 @@ knitr::opts_chunk$set(
 stopifnot(require(tidyverse))
 ```
 
+<!--more-->
+
 ## 全体の見通し
 
 2020年版に触ってみますが、ぜんぶは解きません。無理です。
 
 - [言語処理100本ノック 2020](https://nlp100.github.io/ja/)
 
-ググって出てくる範囲では2015年版にはyamano375さんが取り組んでいます。RcppでMeCabとCaboChaのバインディングを自分で書いて解いている本格派です。
+ググって出てくる範囲では2015年版にはyamano357さんが取り組んでいます。RcppでMeCabとCaboChaのバインディングを自分で書いて解いている本格派です。
 
 - [Rによる言語処理100本ノック前半まとめ - バイアスと戯れる](http://yamano357.hatenadiary.com/entry/2015/07/27/001728)
 - [Rによる言語処理100本ノック後半まとめと全体での総括 - バイアスと戯れる](http://yamano357.hatenadiary.com/entry/2015/10/22/193839)
@@ -293,4 +295,10 @@ lines
 ```
 
 以下、回答略
+
+## セッション情報
+
+```{r}
+devtools::session_info()
+```
 
