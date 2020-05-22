@@ -1,0 +1,539 @@
+---
+title: 短歌時評のテキスト解析（２）
+author: paithiov909
+date: '2020-05-20'
+slug: analysis-tanka-jihyo
+categories: []
+tags:
+  - NLP
+description: 'Rでもにょる自然言語処理'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  tidy = "styler",
+  collapse = TRUE,
+  comment = "#>"
+)
+
+stopifnot(require(tidyverse))
+googledrive::drive_auth(cache = ".secrets")
+```
+
+```{r include=FALSE}
+cache <- googledrive::drive_find("jihyo_corp", type = "spreadsheet")
+
+if (nrow(cache) >= 1) {
+  df <- cache %>%
+    dplyr::slice(1) %>%
+    dplyr::rowwise() %>%
+    dplyr::do(
+      googledrive::drive_download(
+        googledrive::as_id(.$id),
+        path = file.path(tempdir(), .$name),
+        overwrite = TRUE,
+        verbose = FALSE
+      )
+    ) %>%
+    dplyr::select(name, local_path) %>%
+    tibble::rowid_to_column() %>%
+    tidyr::nest(li = c(name, local_path)) %>%
+    dplyr::pull(li) %>%
+    purrr::map_dfr(function(el) {
+      tbl <- readxl::read_xlsx(el$local_path)
+      return(tbl)
+    })
+}
+```
+
+## 解説
+
+> [短歌時評のテキスト解析｜さちこ｜note](https://note.com/shinabitanori/n/nfbcb659d6134)
+
+<!--more-->
+
+## スプレッドシートの読み込み
+
+```{r}
+if (nrow(cache) <= 0) {
+
+  # キャッシュがない場合のみ
+  # 同名のファイルが複数あると重複して読み込んでしまうので注意のこと
+  
+  jihyo_mirai <- googledrive::drive_find("jihyo_mirai", type = "spreadsheet") %>%
+    dplyr::rowwise() %>%
+    dplyr::do(
+      googledrive::drive_download(
+        googledrive::as_id(.$id),
+        path = file.path(tempdir(), .$name),
+        overwrite = TRUE,
+        verbose = FALSE
+      )
+    )
+  jihyo_tou <- googledrive::drive_find("jihyo_tou", type = "spreadsheet") %>%
+    dplyr::rowwise() %>%
+    dplyr::do(
+      googledrive::drive_download(
+        googledrive::as_id(.$id),
+        path = file.path(tempdir(), .$name),
+        overwrite = TRUE,
+        verbose = FALSE
+      )
+    )
+  
+  df <- tibble::tibble(source = c("mirai", "tou")) %>%
+    dplyr::bind_cols(dplyr::bind_rows(jihyo_mirai, jihyo_tou)) %>%
+    dplyr::select(source, name, local_path) %>%
+    tibble::rowid_to_column()
+}
+
+head(df)
+```
+
+```{r}
+normalize <- function(str) {
+  str %>%
+    stringr::str_replace_all("\u2019", "\'") %>%
+    stringr::str_replace_all("\u201d", "\"") %>%
+    stringr::str_replace_all("[\u02d7\u058a\u2010\u2011\u2012\u2013\u2043\u207b\u208b\u2212]", "-") %>%
+    stringr::str_replace_all("[\ufe63\uff0d\uff70\u2014\u2015\u2500\u2501\u30fc]", enc2utf8("\u30fc")) %>%
+    stringr::str_replace_all("[~\u223c\u223e\u301c\u3030\uff5e]", "~") %>%
+    stringr::str_remove_all("[:punct:]") %>%
+    stringr::str_remove_all("[:blank:]") %>%
+    stringr::str_remove_all("[:cntrl:]") %>%
+    return()
+}
+
+if (nrow(cache) <= 0) {
+  df <- df %>%
+    mutate(source = dplyr::if_else(
+      .data$source == "tou",
+      stringi::stri_enc_toutf8("\u5854"),
+      stringi::stri_enc_toutf8("\u672a\u6765")
+    )) %>%
+    tidyr::nest(li = c(source, local_path)) %>%
+    dplyr::pull(li) %>%
+    purrr::map_dfr(function(el) {
+      tbl <- readxl::read_xlsx(el$local_path)
+      return(
+        dplyr::bind_cols(
+          tbl,
+          tibble::tibble(source = rep(el$source, nrow(tbl)))
+      ))
+    }) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(text = normalize(text)) %>%
+    dplyr::mutate(tokens = stringr::str_c(
+      purrr::map_chr(
+        tangela::kuromoji(text), ~ purrr::pluck(., "surface")
+      ),
+      collapse = " "
+    )) %>%
+    dplyr::ungroup()
+}
+
+corp <- df %>%
+  quanteda::corpus(text_field = "tokens")
+```
+
+```{r include=FALSE}
+if (nrow(cache) <= 0) {
+  readr::write_csv(df, file.path(getwd(), "cache/jihyo_corp.csv"))
+  googledrive::drive_upload(
+    file.path(getwd(), "cache/jihyo_corp.csv"),
+    "Documents/jihyo_corp",
+    type = "spreadsheet",
+    verbose = FALSE
+  )
+}
+```
+
+## ワードクラウド
+
+ストップワードとして`rtweet::stopwordslangs`を利用しています。
+
+```{r}
+stopwords <- rtweet::stopwordslangs %>%
+  dplyr::filter(lang == "ja") %>%
+  dplyr::filter(p >= .98) %>%
+  dplyr::pull(word)
+
+corp %>%
+  quanteda::tokens(what = "fastestword") %>%
+  quanteda::tokens_remove(stopwords, valuetype = "fixed") %>%
+  quanteda::dfm(groups = "source") %>%
+  quanteda::dfm_trim(min_termfreq = 12L) %>%
+  quanteda::textplot_wordcloud(comparison = TRUE, color = viridis::cividis(2))
+```
+
+## 出現頻度の集計
+
+```{r}
+corp %>%
+  quanteda::tokens(what = "fastestword") %>%
+  quanteda::tokens_remove(stopwords, valuetype = "fixed") %>%
+  quanteda::dfm() %>%
+  quanteda::dfm_weight("prop") %>%
+  quanteda::textstat_frequency(groups = "source") %>%
+  dplyr::top_n(-16L, rank) %>%
+  ggpubr::ggdotchart(
+    x = "feature",
+    y = "frequency",
+    group = "group",
+    color = "group",
+    rotate = TRUE
+  ) +
+  theme_bw()
+```
+
+## Keyness
+
+```{r}
+corp %>%
+  quanteda::tokens(what = "fastestword") %>%
+  quanteda::tokens_remove(stopwords, valuetype = "fixed") %>%
+  quanteda::dfm(groups = "source") %>%
+  quanteda::textstat_keyness() %>%
+  quanteda::textplot_keyness(n = 16L)
+```
+
+## 共起ネットワーク
+
+### 塔
+
+```{r}
+corp %>%
+  quanteda::corpus_subset(source == stringi::stri_enc_toutf8("\u5854")) %>%
+  quanteda::tokens(what = "fastestword") %>%
+  quanteda::tokens_remove(stopwords, valuetype = "fixed") %>%
+  quanteda::dfm() %>%
+  quanteda::dfm_trim(min_termfreq = 50L) %>%
+  quanteda::fcm() %>%
+  quanteda::textplot_network(min_freq = .8)
+```
+
+### 未来
+
+```{r}
+corp %>%
+  quanteda::corpus_subset(source == stringi::stri_enc_toutf8("\u672a\u6765")) %>%
+  quanteda::tokens(what = "fastestword") %>%
+  quanteda::tokens_remove(stopwords, valuetype = "fixed") %>%
+  quanteda::dfm() %>%
+  quanteda::dfm_trim(min_termfreq = 20L) %>%
+  quanteda::fcm() %>%
+  quanteda::textplot_network(min_freq = .8)
+```
+
+## クラスタリング
+
+マンハッタン距離、ward法（ward.D2）です。
+
+```{r fig.height=12, fig.width=14}
+d <- corp %>%
+  quanteda::tokens(what = "fastestword") %>%
+  quanteda::tokens_remove(stopwords, valuetype = "fixed") %>%
+  quanteda::dfm() %>%
+  quanteda::dfm_weight(scheme = "prop") %>%
+  quanteda::textstat_dist(method = "manhattan", diag = TRUE) %>%
+  as.dist() %>%
+  hclust(method = "ward.D2") %>%
+  ggdendro::dendro_data(type = "rectangle") %>%
+  purrr::list_modify(labels = dplyr::bind_cols(
+    .$labels,
+    names = quanteda::docvars(corp, "title"),
+    doc = quanteda::docvars(corp, "source")
+  ))
+
+ggplot(ggdendro::segment(d)) +
+  geom_segment(aes(
+    x = x,
+    y = y,
+    xend = xend,
+    yend = yend
+  )) +
+  ggrepel::geom_label_repel(
+    ggdendro::label(d),
+    mapping = aes(x, y, label = names, colour = doc),
+    size = 2.5
+  ) +
+  coord_flip() +
+  scale_y_reverse(expand = c(.2, 0)) +
+  ggdendro::theme_dendro()
+```
+
+## LDA（Latent Dirichlet Allocation）
+
+```{r}
+dtm <- corp %>%
+  quanteda::tokens(what = "fastestword") %>%
+  quanteda::tokens_remove(stopwords, valuetype = "fixed") %>%
+  quanteda::dfm() %>%
+  quanteda::dfm_tfidf()
+
+features <- corp %>%
+  quanteda::tokens(what = "fastestword") %>%
+  quanteda::tokens_remove(stopwords, valuetype = "fixed") %>%
+  quanteda::dfm(groups = "title") %>%
+  quanteda::ntoken()
+
+m <- dtm %>%
+  as("dgCMatrix") %>%
+  textmineR::FitLdaModel(k = 6, iterations = 200, burnin = 175)
+
+m$phi %>%
+  textmineR::GetTopTerms(30L) %>%
+  DT::datatable()
+```
+
+```{r}
+LDAvis::createJSON(
+  phi = m$phi,
+  theta = m$theta,
+  doc.length = features,
+  vocab = stringi::stri_enc_toutf8(dtm@Dimnames$features),
+  term.frequency = quanteda::colSums(dtm)
+) %>%
+  LDAvis::serVis(open.browser = FALSE, out.dir = file.path(getwd(), "cache"))
+
+readr::read_lines_raw(file.path(getwd(), "cache", "lda.json")) %>%
+  iconv(from = "CP932", to = "UTF-8") %>%
+  jsonlite::parse_json(simplifyVector = TRUE) %>%
+  jsonlite::write_json(
+    file.path(getwd(), "cache", "lda.json"),
+    dataframe = "columns",
+    auto_unbox = TRUE
+  )
+```
+
+```{r include=FALSE}
+targets <-
+  list.files(
+    path = file.path(getwd(), "cache"),
+    all.files = TRUE,
+    full.names = TRUE,
+    no.. = TRUE
+  )
+
+unlink(list.files(
+  path = file.path(getwd(), "../../", "static", "ldavis", "analysis-tanka-jihyo"),
+  all.files = TRUE,
+  full.names = TRUE,
+  no.. = TRUE
+))
+
+sapply(targets, function(file) {
+  file.copy(
+    from = file,
+    to = file.path(
+      getwd(),
+      "../../",
+      "static",
+      "ldavis",
+      "analysis-tanka-jihyo"
+    )
+  )
+})
+
+remove(targets)
+```
+
+> [LDAvis](/ldavis/analysis-tanka-jihyo)
+
+## GloVe
+
+### 全体
+
+```{r}
+toks <- corp %>%
+  quanteda::tokens(what = "fastestword") %>%
+  as.list() %>%
+  text2vec::itoken()
+
+vocab <- toks %>%
+  text2vec::create_vocabulary() %>%
+  text2vec::prune_vocabulary(term_count_min = 5L)
+
+vect <- text2vec::vocab_vectorizer(vocab)
+
+tcm <- text2vec::create_tcm(
+  it = toks,
+  vectorizer = vect,
+  skip_grams_window = 5L
+)
+
+glove <- text2vec::GlobalVectors$new(
+  rank = 50,
+  x_max = 15L
+)
+
+wv <- glove$fit_transform(x = tcm, n_iter = 10L) %>%
+  as.data.frame(stringsAsFactors = FALSE) %>%
+  tibble::as_tibble(.name_repair = "minimal", rownames = NA)
+```
+
+```{r}
+getRtsneAsTbl <- function(tbl, dim = 2, perp = 30) {
+  tsn <- tbl %>% Rtsne::Rtsne(dim = dim, perplexity = perp)
+  tsny <- tsn$Y
+  rownames(tsny) <- row.names(tbl)
+  tsny <- as.data.frame(tsny, stringsAsFactors = FALSE)
+  return(tibble::as_tibble(tsny, .name_repair = "minimal", rownames = NA))
+}
+
+vec <- vocab %>%
+  dplyr::anti_join(
+    y = tibble::tibble(words = stopwords),
+    by = c("term" = "words")
+  ) %>%
+  dplyr::arrange(desc(term_count)) %>%
+  head(150) %>%
+  dplyr::left_join(tibble::rownames_to_column(wv), by = c("term" = "rowname")) %>%
+  tibble::column_to_rownames("term") %>%
+  dplyr::select(V1, V2)
+
+dist <- proxy::dist(
+  x = vec,
+  y = vec,
+  method = "Euclidean",
+  diag = TRUE
+)
+clust <- kmeans(x = dist, centers = 5)
+vec <- getRtsneAsTbl(vec, perp = 2) %>%
+  tibble::rownames_to_column() %>%
+  dplyr::mutate(cluster = as.factor(clust$cluster))
+
+vec %>%
+  ggplot(aes(x = V1, y = V2, colour = cluster)) +
+  geom_point() +
+  ggrepel::geom_text_repel(aes(label = rowname)) +
+  theme_light()
+```
+
+### 塔のみ
+
+```{r}
+toks <- corp %>%
+  quanteda::corpus_subset(source == stringi::stri_enc_toutf8("\u5854")) %>%
+  quanteda::tokens(what = "fastestword") %>%
+  as.list() %>%
+  text2vec::itoken()
+
+vocab <- toks %>%
+  text2vec::create_vocabulary() %>%
+  text2vec::prune_vocabulary(term_count_min = 5L)
+
+vect <- text2vec::vocab_vectorizer(vocab)
+
+tcm <- text2vec::create_tcm(
+  it = toks,
+  vectorizer = vect,
+  skip_grams_window = 5L
+)
+
+glove <- text2vec::GlobalVectors$new(
+  rank = 50,
+  x_max = 15L
+)
+
+wv <- glove$fit_transform(x = tcm, n_iter = 10L) %>%
+  as.data.frame(stringsAsFactors = FALSE) %>%
+  tibble::as_tibble(.name_repair = "minimal", rownames = NA)
+```
+
+```{r}
+vec <- vocab %>%
+  dplyr::anti_join(
+    y = tibble::tibble(words = stopwords),
+    by = c("term" = "words")
+  ) %>%
+  dplyr::arrange(desc(term_count)) %>%
+  head(150) %>%
+  dplyr::left_join(tibble::rownames_to_column(wv), by = c("term" = "rowname")) %>%
+  tibble::column_to_rownames("term") %>%
+  dplyr::select(V1, V2)
+
+dist <- proxy::dist(
+  x = vec,
+  y = vec,
+  method = "Euclidean",
+  diag = TRUE
+)
+clust <- kmeans(x = dist, centers = 5)
+vec <- getRtsneAsTbl(vec, perp = 2) %>%
+  tibble::rownames_to_column() %>%
+  dplyr::mutate(cluster = as.factor(clust$cluster))
+
+vec %>%
+  ggplot(aes(x = V1, y = V2, colour = cluster)) +
+  geom_point() +
+  ggrepel::geom_text_repel(aes(label = rowname)) +
+  theme_light()
+```
+
+### 未来のみ
+
+```{r}
+toks <- corp %>%
+  quanteda::corpus_subset(source == stringi::stri_enc_toutf8("\u672a\u6765")) %>%
+  quanteda::tokens(what = "fastestword") %>%
+  as.list() %>%
+  text2vec::itoken()
+
+vocab <- toks %>%
+  text2vec::create_vocabulary() %>%
+  text2vec::prune_vocabulary(term_count_min = 5L)
+
+vect <- text2vec::vocab_vectorizer(vocab)
+
+tcm <- text2vec::create_tcm(
+  it = toks,
+  vectorizer = vect,
+  skip_grams_window = 5L
+)
+
+glove <- text2vec::GlobalVectors$new(
+  rank = 50,
+  x_max = 15L
+)
+
+wv <- glove$fit_transform(x = tcm, n_iter = 10L) %>%
+  as.data.frame(stringsAsFactors = FALSE) %>%
+  tibble::as_tibble(.name_repair = "minimal", rownames = NA)
+```
+
+```{r}
+vec <- vocab %>%
+  dplyr::anti_join(
+    y = tibble::tibble(words = stopwords),
+    by = c("term" = "words")
+  ) %>%
+  dplyr::arrange(desc(term_count)) %>%
+  head(150) %>%
+  dplyr::left_join(tibble::rownames_to_column(wv), by = c("term" = "rowname")) %>%
+  tibble::column_to_rownames("term") %>%
+  dplyr::select(V1, V2)
+
+dist <- proxy::dist(
+  x = vec,
+  y = vec,
+  method = "Euclidean",
+  diag = TRUE
+)
+clust <- kmeans(x = dist, centers = 5)
+vec <- getRtsneAsTbl(vec, perp = 2) %>%
+  tibble::rownames_to_column() %>%
+  dplyr::mutate(cluster = as.factor(clust$cluster))
+
+vec %>%
+  ggplot(aes(x = V1, y = V2, colour = cluster)) +
+  geom_point() +
+  ggrepel::geom_text_repel(aes(label = rowname)) +
+  theme_light()
+```
+
+## セッション情報
+
+```{r}
+devtools::session_info()
+```

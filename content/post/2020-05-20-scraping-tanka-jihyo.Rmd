@@ -1,0 +1,283 @@
+---
+title: 短歌時評のテキスト解析（１）
+author: paithiov909
+date: '2020-05-20'
+slug: scraping-tanka-jihyo
+categories: []
+tags:
+  - Preprocessing
+description: 'Rでもにょる自然言語処理'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  tidy = "styler",
+  collapse = TRUE,
+  comment = "#>"
+)
+
+stopifnot(require(tidyverse))
+googledrive::drive_auth(cache = ".secrets")
+```
+
+## 解説
+
+> [短歌時評のテキスト解析｜さちこ｜note](https://note.com/shinabitanori/n/nfbcb659d6134)
+
+<!--more-->
+
+## 短歌結社誌サイトの時評のスクレイピング
+
+以下の２誌のサイトからネットに公開済みの時評を収集します。
+
+- [未来　時評](http://www.miraitankakai.com/comments.html)
+- [短歌時評 | カテゴリ | 塔短歌会](http://toutankakai.com/magazine/category/tanka_jihyo/)
+
+## 未来
+
+### 未来のサイトのHTML構造
+
+ホームページ・ビルダー製で、昔ながらのtableタグで組まれたペライチのページ内に時評がまとめて掲載されています。ページ遷移をする必要がない点では楽に収集できますが、記事単位をマークアップしている構造がないため、文書を分けるのに一工夫必要です。
+
+``` html
+
+<!-- ...省略... -->
+
+<DIV align="center">
+  <table width="798">
+    <col span="2" width="10">
+    <col span="1" width="780">
+    <TBODY>
+      <TR>
+        <td align="left" colspan="8" width="792">
+        <P class="MsoNormal" align="left"><b><font size="3" face="ＭＳ Ｐゴシック">時評<br>
+        </font></b></font></P>
+        </td>
+      </TR>
+      <TR>
+        <td align="left" colspan="8"><b><span lang="EN-US" >2020</span><span >年<span lang="EN-US"></span>5月号</span></b></td>
+      </TR>
+      <TR>
+        <td align="left" colspan="8"><b><span lang="EN-US"><span>『乱反射する「母」と「ラブ」』　　　山崎聡子</span></span></b></td>
+      </TR>
+      <TR>
+        <td align="left" colspan="8">
+        <!--
+            <p class="MsoNormal" align="left"></p>
+        -->
+        </td>
+      </TR>
+
+<!-- ...省略... -->
+
+```
+
+### スクレイピング
+
+```{r}
+session <- rvest::html_session("http://www.miraitankakai.com/comments.html")
+
+table <- session %>%
+    rvest::html_node("body") %>%
+    rvest::html_node("div") %>%
+    rvest::html_node("table") %>%
+    rvest::html_table(fill = TRUE)
+
+headings <- session %>%
+    rvest::html_node("body") %>%
+    rvest::html_node("div") %>%
+    rvest::html_node("table") %>%
+    rvest::html_node("tbody") %>%
+    rvest::html_nodes("td > b") %>%
+    rvest::html_text() %>%
+    stringr::str_remove_all(regex("([0-9]+年[0-9]+月号)")) %>%
+    stringr::str_remove_all(fixed("ページトップへ")) %>%
+    stringr::str_remove_all("[:cntrl:]") %>%
+    stringr::str_remove_all("[:blank:]") %>%
+    purrr::discard(. == "")
+
+head(headings)
+```
+
+### 整形
+
+```{r}
+normalize <- function(str){
+    str %>%
+        stringr::str_remove_all(regex("([0-9]+年[0-9]+月号)")) %>%
+        stringr::str_remove_all(fixed("ページトップへ")) %>%
+        stringr::str_remove_all("[:cntrl:]") %>%
+        stringr::str_remove_all("[:blank:]") %>%
+        return()
+}
+
+doc_headings <- table %>%
+    tibble::rowid_to_column() %>%
+    dplyr::mutate(
+        normalized = normalize(X1)
+    ) %>%
+    dplyr::filter(normalized %in% headings) %>%
+    dplyr::pull(rowid)
+
+df <- imap_dfr(doc_headings, function(idx, i){
+
+    doc_heading <- table %>%
+        tibble::rowid_to_column() %>%
+        dplyr::filter(rowid == idx) %>%
+        dplyr::pull(X1)
+
+    head <- doc_headings[i] + 1
+    tail <- dplyr::if_else(
+        i == length(doc_headings),
+        nrow(table),
+        as.integer(doc_headings[i+1] - 1)
+    )
+    
+    doc_body <- table %>%
+        tibble::rowid_to_column() %>%
+        dplyr::filter(rowid %in% head:tail) %>%
+        dplyr::mutate(
+            normalized = normalize(X1)
+        ) %>%
+        dplyr::pull(normalized) %>%
+        stringr::str_c(sep = "", collapse = "")
+
+    return(
+        tibble::tibble(
+            title = doc_heading,
+            text = doc_body
+        )
+    )
+}) %>%
+    tidyr::separate(title, c("title", "author"), sep = "[:blank:]+")
+```
+
+{googledrive}でドライブに保存しておきます。
+
+```{r include=FALSE}
+readr::write_csv(df, file.path(getwd(), "cache/jihyo_mirai.csv"))
+googledrive::drive_upload(file.path(getwd(), "cache/jihyo_mirai.csv"), "Documents/jihyo_mirai", type = "spreadsheet", verbose = FALSE)
+```
+
+## 塔
+
+### 塔のサイトのHTML構造
+
+一覧ページはこのような構造をしています。
+
+``` html
+
+<!-- ...省略... -->
+
+<div id="contents_wrapper" class="w900 mt40 mb80">
+<article id="content" class="main">
+      <header class="mb50">
+        <h1 class="page_title">短歌時評</h1>
+      </header>
+      <div class="content_box">
+
+            <article>
+              <section>
+                <ul class="magazine_list magazine_archive_list cf">
+
+                  
+                    
+                      <li class="magazine_list_li">
+                          <p class="date">2020年4月号</p>
+                          <h2><a href="http://toutankakai.com/magazine/post/11133/" class="opacity">運用と手順・杉原一司  /  吉田 恭大</a></h2>
+                      </li>
+
+<!-- ...省略... -->
+
+```
+
+それぞれの投稿は以下のような構造です。
+
+``` html
+
+<!-- ...省略... -->
+
+<div id="contents_wrapper" class="w900 mt40 mb80">
+  <h1 class="page_title mb60">短歌時評</h1>
+
+  <div class="main_wrapper w540 fl_l">
+
+
+    
+      <article id="content" class="main">
+        <header class="entry_header">
+
+          
+            <h1 class="title01 mb10">運用と手順・杉原一司  /  吉田 恭大</h1>
+            <p class="date mb60">2020年4月号</p>
+
+          
+        </header>
+        <div class="entry_content">
+          <!-- ...ここに本文...  -->
+        </div>
+      </article>
+      
+<!-- ...省略... -->
+
+```
+
+### クローリング
+
+クローリングというほどはないですが、各投稿のURLのリストが必要なので、つくります。
+
+```{r}
+session <- rvest::html_session("http://toutankakai.com/magazine/category/tanka_jihyo/")
+
+links <- session %>%
+    rvest::html_node("div#contents_wrapper") %>%
+    rvest::html_node("article#content") %>%
+    rvest::html_node("div.content_box") %>%
+    rvest::html_node("article > section > ul.magazine_list") %>%
+    rvest::html_nodes("li.magazine_list_li > h2 > a") %>%
+    rvest::html_attr("href")
+```
+
+### スクレイピング
+
+とくにスクレイピングしづらい構造ではないので、はじめから整形されたかたちに格納します。同様に{googledrive}でドライブに保存しておきます。
+
+```{r}
+df <- purrr::map_dfr(links, function(url){
+
+    main <- session %>%
+        rvest::jump_to(url) %>%
+        rvest::html_node("div#contents_wrapper") %>%
+        rvest::html_node("article#content")
+    
+    heading <- main %>%
+        rvest::html_node("header") %>%
+        rvest::html_node("h1") %>%
+        rvest::html_text()
+    
+    content <- main %>%
+        rvest::html_node("div.entry_content") %>%
+        rvest::html_text()
+    
+    Sys.sleep(1)
+    
+    return(
+        tibble::tibble(
+            title = heading,
+            text = normalize(content)
+        )
+    )
+}) %>%
+    tidyr::separate(title, c("title", "author"), sep = fixed("  /  "))
+```
+
+```{r include=FALSE}
+readr::write_csv(df, file.path(getwd(), "cache/jihyo_tou.csv"))
+googledrive::drive_upload(file.path(getwd(), "cache/jihyo_tou.csv"), "Documents/jihyo_tou", type = "spreadsheet", verbose = FALSE)
+```
+
+## セッション情報
+
+```{r}
+devtools::session_info()
+```
