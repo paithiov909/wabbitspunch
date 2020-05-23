@@ -38,7 +38,6 @@ description: 'Rでもにょる自然言語処理'
     overwrite = TRUE,
     verbose = FALSE
   ))
-#&gt; Auto-refreshing stale OAuth token.
 lyrical &lt;- googledrive::drive_ls(&quot;Documents/lyrical/&quot;) %&gt;%
   dplyr::rowwise() %&gt;%
   dplyr::do(googledrive::drive_download(
@@ -69,7 +68,7 @@ df[1, ]
 #&gt; # A tibble: 1 x 4
 #&gt;   rowid doc      name       local_path                                          
 #&gt;   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;                                               
-#&gt; 1     1 aquarium nd8e25452~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\RtmpuGbSLr/~</code></pre>
+#&gt; 1     1 aquarium nd8e25452~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\RtmpSq4kZg/~</code></pre>
 </div>
 <div id="形態素解析" class="section level2">
 <h2>形態素解析</h2>
@@ -119,7 +118,7 @@ corp %&gt;%
   quanteda::dfm(groups = &quot;doc&quot;) %&gt;%
   quanteda::dfm_trim(min_termfreq = 3L) %&gt;%
   quanteda::textplot_wordcloud(comparison = TRUE, color = viridis::cividis(3))</code></pre>
-<p><img src="/posts/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="/post/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 </div>
 <div id="出現頻度の集計" class="section level2">
 <h2>出現頻度の集計</h2>
@@ -138,7 +137,7 @@ corp %&gt;%
     rotate = TRUE
   ) +
   theme_bw()</code></pre>
-<p><img src="/posts/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="/post/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 </div>
 <div id="keyness" class="section level2">
 <h2>Keyness</h2>
@@ -149,7 +148,7 @@ corp %&gt;%
   quanteda::dfm(groups = &quot;doc&quot;) %&gt;%
   quanteda::textstat_keyness(target = &quot;lyrical&quot;) %&gt;%
   quanteda::textplot_keyness()</code></pre>
-<p><img src="/posts/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="/post/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 </div>
 <div id="対応分析" class="section level2">
 <h2>対応分析</h2>
@@ -163,7 +162,7 @@ corp %&gt;%
     margin = &quot;documents&quot;,
     groups = quanteda::docvars(corp, &quot;doc&quot;)
   )</code></pre>
-<p><img src="/posts/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="/post/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>
 <div id="共起ネットワーク" class="section level2">
 <h2>共起ネットワーク</h2>
@@ -177,7 +176,7 @@ corp %&gt;%
 #&gt; Registered S3 method overwritten by &#39;network&#39;:
 #&gt;   method            from    
 #&gt;   summary.character quanteda</code></pre>
-<p><img src="/posts/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="/post/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 </div>
 <div id="クラスタリング" class="section level2">
 <h2>クラスタリング</h2>
@@ -206,7 +205,7 @@ ggplot(ggdendro::segment(d)) +
   coord_flip() +
   scale_y_reverse(expand = c(.2, 0)) +
   ggdendro::theme_dendro()</code></pre>
-<p><img src="/posts/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="/post/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 </div>
 <div id="ldalatent-dirichlet-allocation" class="section level2">
 <h2>LDA（Latent Dirichlet Allocation）</h2>
@@ -230,7 +229,7 @@ m$phi %&gt;%
   textmineR::GetTopTerms(15L) %&gt;%
   DT::datatable()</code></pre>
 <div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["ゴリラ","ポエジー","行間","文体","研究","孤独","詩的","加藤","さよなら","役割","治郎","あかね","言説","韻律","倫理"],["グループ","条例","x","因子","文","運動会","中止","文節","前件","花水木","天気","対","並列","v","q"],["価値","テクスト","感情","批評","語り","主義","意図","ルール","物語","評","脅迫","演技","自己","硬派","行為"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>t_1<\/th>\n      <th>t_2<\/th>\n      <th>t_3<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["グループ","条例","x","文","ポエジー","運動会","中止","文節","前件","行間","花水木","天気","解釈","並列","v"],["価値","因子","批評","テクスト","主義","研究","ルール","意図","対","評","エンゲージメント","脅迫","硬派","効果","作者"],["ゴリラ","感情","物語","語り","孤独","加藤","さよなら","演技","自己","役割","文体","治郎","共同","あかね","言説"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>t_1<\/th>\n      <th>t_2<\/th>\n      <th>t_3<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <p>{LDAvis}で可視化してみます。ただ、{LDAvis}はもうしばらくメンテナンスされていないパッケージで、ちょっと挙動があやしいところがあります。たとえば、デフォルトロケールがCP932であるWindows環境の場合、<code>LDAvis::createJSON</code>で書き出されるラベル（vocab）のエンコーディングがそっちに引きずられてCP932になってしまうため、ブラウザで表示したときにラベルが文字化けします。書き出されたlda.jsonをUTF-8に変換すれば文字化けは解消されるので、とりあえずあとから変換して上書きするとよいです。</p>
 <pre class="r"><code>LDAvis::createJSON(
   phi = m$phi,
@@ -241,8 +240,7 @@ m$phi %&gt;%
 ) %&gt;%
   LDAvis::serVis(open.browser = FALSE, out.dir = file.path(getwd(), &quot;cache&quot;))
 #&gt; Warning in dir.create(out.dir): &#39;C:
-#&gt; \Users\user\Documents\GitHub\wabbitspunch\content\posts\cache&#39; はすでに存在しま
-#&gt; す
+#&gt; \Users\user\Documents\GitHub\wabbitspunch\content\post\cache&#39; はすでに存在します
 #&gt;  要求されたパッケージ servr をロード中です
 
 readr::read_lines_raw(file.path(getwd(), &quot;cache&quot;, &quot;lda.json&quot;)) %&gt;%
@@ -283,16 +281,16 @@ wv &lt;- glove$fit_transform(
 ) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [11:49:05.334] epoch 1, loss 0.1961 
-#&gt; INFO  [11:49:05.504] epoch 2, loss 0.0979 
-#&gt; INFO  [11:49:05.616] epoch 3, loss 0.0775 
-#&gt; INFO  [11:49:05.726] epoch 4, loss 0.0655 
-#&gt; INFO  [11:49:05.817] epoch 5, loss 0.0568 
-#&gt; INFO  [11:49:05.921] epoch 6, loss 0.0502 
-#&gt; INFO  [11:49:06.002] epoch 7, loss 0.0449 
-#&gt; INFO  [11:49:06.109] epoch 8, loss 0.0406 
-#&gt; INFO  [11:49:06.225] epoch 9, loss 0.0371 
-#&gt; INFO  [11:49:06.334] epoch 10, loss 0.0341</code></pre>
+#&gt; INFO  [02:44:10.905] epoch 1, loss 0.1985 
+#&gt; INFO  [02:44:11.032] epoch 2, loss 0.0984 
+#&gt; INFO  [02:44:11.137] epoch 3, loss 0.0778 
+#&gt; INFO  [02:44:11.239] epoch 4, loss 0.0656 
+#&gt; INFO  [02:44:11.328] epoch 5, loss 0.0569 
+#&gt; INFO  [02:44:11.409] epoch 6, loss 0.0502 
+#&gt; INFO  [02:44:11.486] epoch 7, loss 0.0448 
+#&gt; INFO  [02:44:11.564] epoch 8, loss 0.0405 
+#&gt; INFO  [02:44:11.650] epoch 9, loss 0.0369 
+#&gt; INFO  [02:44:11.725] epoch 10, loss 0.0339</code></pre>
 <p>{Rtsne}で次元を減らして可視化します。</p>
 <pre class="r"><code>getRtsneAsTbl &lt;- function(tbl, dim = 2, perp = 30) {
   tsn &lt;- tbl %&gt;% Rtsne::Rtsne(dim = dim, perplexity = perp)
@@ -324,7 +322,7 @@ vec %&gt;%
   geom_point() +
   ggrepel::geom_text_repel(aes(label = rowname)) +
   theme_light()</code></pre>
-<p><img src="/posts/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p><img src="/post/2020-05-18-shinabitanori-google-docs_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 </div>
 <div id="セッション情報" class="section level2">
 <h2>セッション情報</h2>

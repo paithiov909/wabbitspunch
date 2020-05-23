@@ -130,8 +130,10 @@ corp %&gt;%
   quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
   quanteda::dfm(groups = &quot;source&quot;) %&gt;%
   quanteda::dfm_trim(min_termfreq = 12L) %&gt;%
-  quanteda::textplot_wordcloud(comparison = TRUE, color = viridis::cividis(2))</code></pre>
-<p><img src="/posts/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+  quanteda::textplot_wordcloud(comparison = TRUE, color = viridis::cividis(2))
+#&gt; Warning in wordcloud_comparison(x, min_size, max_size, min_count, max_words, :
+#&gt; 受け入れ could not be fit on page. It will not be plotted.</code></pre>
+<p><img src="/post/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 </div>
 <div id="出現頻度の集計" class="section level2">
 <h2>出現頻度の集計</h2>
@@ -150,7 +152,7 @@ corp %&gt;%
     rotate = TRUE
   ) +
   theme_bw()</code></pre>
-<p><img src="/posts/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="/post/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 </div>
 <div id="keyness" class="section level2">
 <h2>Keyness</h2>
@@ -160,7 +162,7 @@ corp %&gt;%
   quanteda::dfm(groups = &quot;source&quot;) %&gt;%
   quanteda::textstat_keyness() %&gt;%
   quanteda::textplot_keyness(n = 16L)</code></pre>
-<p><img src="/posts/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="/post/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>
 <div id="共起ネットワーク" class="section level2">
 <h2>共起ネットワーク</h2>
@@ -177,7 +179,7 @@ corp %&gt;%
 #&gt; Registered S3 method overwritten by &#39;network&#39;:
 #&gt;   method            from    
 #&gt;   summary.character quanteda</code></pre>
-<p><img src="/posts/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="/post/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 </div>
 <div id="未来" class="section level3">
 <h3>未来</h3>
@@ -189,7 +191,7 @@ corp %&gt;%
   quanteda::dfm_trim(min_termfreq = 20L) %&gt;%
   quanteda::fcm() %&gt;%
   quanteda::textplot_network(min_freq = .8)</code></pre>
-<p><img src="/posts/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="/post/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 </div>
 </div>
 <div id="クラスタリング" class="section level2">
@@ -226,7 +228,7 @@ ggplot(ggdendro::segment(d)) +
   coord_flip() +
   scale_y_reverse(expand = c(.2, 0)) +
   ggdendro::theme_dendro()</code></pre>
-<p><img src="/posts/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-10-1.png" width="1344" /></p>
+<p><img src="/post/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-10-1.png" width="1344" /></p>
 </div>
 <div id="ldalatent-dirichlet-allocation" class="section level2">
 <h2>LDA（Latent Dirichlet Allocation）</h2>
@@ -250,7 +252,7 @@ m$phi %&gt;%
   textmineR::GetTopTerms(30L) %&gt;%
   DT::datatable()</code></pre>
 <div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["母","塚本","安永","老い","モノ","妊娠","自然","仲田","内山","鳥","喩","歌集","妻","岡部","永井","裡","わが","小池","母親","岡井","中澤","男性","ゆく","韻律","渡辺","きみ","扇風機","夕闇","ひと","創作"],["口語","ニューウェーブ","文語","ｉ","ａ","批評","竹山","前衛","原爆","時評","書きことば","富山","梯","史","永田","中村","狂歌","議論","塚","白鳥","悲歌","|","政治","岡野","白熱","俳句","ａｉ","意見","公田","対談"],["震災","当事者","子規","文語","語","白秋","韓国","茂吉","詩歌","原発","言語","辞","現実","田中","要請","読者","旧","書籍","電子","被災","基準","折","事件","日本人","認め","外部","枡","万葉","著作","メディア"],["穂","戦後","村","ノスタルジー","杉原","近代","山田","大森","歌集","評伝","葛原","学生","川野","吉川","過去","アンソロジー","両義","認識","評論","塚","和歌","批評","馬場","森岡","アイディア","時代","場","記録","侃","戦争"],["服部","名詞","瀬戸","不能","教育","阿木","万葉集","構造","連作","文法","賞","新人","国語","津","批判","石井","論理","虚構","時評","記号","身銭","父","斉藤","水仙","●","現象","令","元号","多様","園"],["づら","沖縄","表記","川野","暴力","写生","日系","桜","テクスト","天皇","渡辺","海外","殺し","皇后","牛尾","ふみ子","磯江","〇","他者","漢字","陛下","刊","震災","島内","区分","座談","御歌","物語","明治","田中"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>t_1<\/th>\n      <th>t_2<\/th>\n      <th>t_3<\/th>\n      <th>t_4<\/th>\n      <th>t_5<\/th>\n      <th>t_6<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["韓国","安永","渡辺","妊娠","表記","小池","沖縄","天皇","韻律","子規","男性","言語","老い","●","桜","音声","河野","塚本","妻","皇后","牛尾","朝鮮","詩歌","展示","陛下","語","御歌","島田","元号","セクハラ"],["口語","評論","批評","川野","文語","座談","〇","時評","論","特集","近代","発言","戦後","大辻","和歌","葛原","子規","詠","永田","資料","永井","書きことば","経済","総合","書籍","客観","著作","梯","森岡","出版"],["ノスタルジー","名詞","穂","村","文法","過去","染野","内山","辞","仲田","日系","白鳥","悲歌","暴力","喩","戦争","モノ","海外","父","戦後","異化","歌集","物語","中澤","ディストピア","量","志向","太朗","岡野","内藤"],["震災","づら","杉原","白秋","当事者","被災","母","自然","評伝","原発","写生","学生","要請","歌集","野","折","枡","母親","１","復興","処分","創作","岡部","大震災","大口","赤彦","磯江","句","光","塚"],["文語","賞","連作","山田","塚","俳句","アンソロジー","当事者","基準","岡井","外部","史","前衛","痛み","旧","香川","現実","事件","万葉","大会","目黒","きみ","両義","受賞","なき","吉田","略","佐藤","仮名","殺し"],["ニューウェーブ","ｉ","ａ","瀬戸","不能","竹山","園","作者","堂","阿木","構造","津","加藤","服部","原爆","荻原","虚構","新人","批判","富山","石井","賞","記号","世代","裡","身銭","水仙","読者","山田","塚本"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>t_1<\/th>\n      <th>t_2<\/th>\n      <th>t_3<\/th>\n      <th>t_4<\/th>\n      <th>t_5<\/th>\n      <th>t_6<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>LDAvis::createJSON(
   phi = m$phi,
   theta = m$theta,
@@ -260,8 +262,7 @@ m$phi %&gt;%
 ) %&gt;%
   LDAvis::serVis(open.browser = FALSE, out.dir = file.path(getwd(), &quot;cache&quot;))
 #&gt; Warning in dir.create(out.dir): &#39;C:
-#&gt; \Users\user\Documents\GitHub\wabbitspunch\content\posts\cache&#39; はすでに存在しま
-#&gt; す
+#&gt; \Users\user\Documents\GitHub\wabbitspunch\content\post\cache&#39; はすでに存在します
 #&gt;  要求されたパッケージ servr をロード中です
 
 readr::read_lines_raw(file.path(getwd(), &quot;cache&quot;, &quot;lda.json&quot;)) %&gt;%
@@ -305,16 +306,16 @@ glove &lt;- text2vec::GlobalVectors$new(
 wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [11:51:50.897] epoch 1, loss 0.1625 
-#&gt; INFO  [11:51:51.503] epoch 2, loss 0.0870 
-#&gt; INFO  [11:51:52.063] epoch 3, loss 0.0712 
-#&gt; INFO  [11:51:52.660] epoch 4, loss 0.0616 
-#&gt; INFO  [11:51:53.224] epoch 5, loss 0.0548 
-#&gt; INFO  [11:51:53.771] epoch 6, loss 0.0496 
-#&gt; INFO  [11:51:54.336] epoch 7, loss 0.0455 
-#&gt; INFO  [11:51:54.896] epoch 8, loss 0.0422 
-#&gt; INFO  [11:51:55.464] epoch 9, loss 0.0394 
-#&gt; INFO  [11:51:56.057] epoch 10, loss 0.0371</code></pre>
+#&gt; INFO  [02:50:32.114] epoch 1, loss 0.1604 
+#&gt; INFO  [02:50:32.769] epoch 2, loss 0.0861 
+#&gt; INFO  [02:50:33.346] epoch 3, loss 0.0706 
+#&gt; INFO  [02:50:33.928] epoch 4, loss 0.0613 
+#&gt; INFO  [02:50:34.525] epoch 5, loss 0.0547 
+#&gt; INFO  [02:50:35.107] epoch 6, loss 0.0495 
+#&gt; INFO  [02:50:35.677] epoch 7, loss 0.0455 
+#&gt; INFO  [02:50:36.199] epoch 8, loss 0.0421 
+#&gt; INFO  [02:50:36.768] epoch 9, loss 0.0393 
+#&gt; INFO  [02:50:37.322] epoch 10, loss 0.0370</code></pre>
 <pre class="r"><code>getRtsneAsTbl &lt;- function(tbl, dim = 2, perp = 30) {
   tsn &lt;- tbl %&gt;% Rtsne::Rtsne(dim = dim, perplexity = perp)
   tsny &lt;- tsn$Y
@@ -350,7 +351,7 @@ vec %&gt;%
   geom_point() +
   ggrepel::geom_text_repel(aes(label = rowname)) +
   theme_light()</code></pre>
-<p><img src="/posts/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p><img src="/post/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 </div>
 <div id="塔のみ" class="section level3">
 <h3>塔のみ</h3>
@@ -380,16 +381,16 @@ glove &lt;- text2vec::GlobalVectors$new(
 wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [11:52:02.641] epoch 1, loss 0.1626 
-#&gt; INFO  [11:52:03.003] epoch 2, loss 0.0874 
-#&gt; INFO  [11:52:03.368] epoch 3, loss 0.0710 
-#&gt; INFO  [11:52:03.772] epoch 4, loss 0.0613 
-#&gt; INFO  [11:52:04.124] epoch 5, loss 0.0544 
-#&gt; INFO  [11:52:04.458] epoch 6, loss 0.0491 
-#&gt; INFO  [11:52:04.786] epoch 7, loss 0.0449 
-#&gt; INFO  [11:52:05.159] epoch 8, loss 0.0415 
-#&gt; INFO  [11:52:05.519] epoch 9, loss 0.0386 
-#&gt; INFO  [11:52:05.848] epoch 10, loss 0.0361</code></pre>
+#&gt; INFO  [02:50:44.626] epoch 1, loss 0.1644 
+#&gt; INFO  [02:50:44.978] epoch 2, loss 0.0869 
+#&gt; INFO  [02:50:45.299] epoch 3, loss 0.0705 
+#&gt; INFO  [02:50:45.610] epoch 4, loss 0.0608 
+#&gt; INFO  [02:50:45.953] epoch 5, loss 0.0539 
+#&gt; INFO  [02:50:46.310] epoch 6, loss 0.0487 
+#&gt; INFO  [02:50:46.613] epoch 7, loss 0.0445 
+#&gt; INFO  [02:50:46.926] epoch 8, loss 0.0411 
+#&gt; INFO  [02:50:47.274] epoch 9, loss 0.0383 
+#&gt; INFO  [02:50:47.637] epoch 10, loss 0.0359</code></pre>
 <pre class="r"><code>vec &lt;- vocab %&gt;%
   dplyr::anti_join(
     y = tibble::tibble(words = stopwords),
@@ -417,7 +418,7 @@ vec %&gt;%
   geom_point() +
   ggrepel::geom_text_repel(aes(label = rowname)) +
   theme_light()</code></pre>
-<p><img src="/posts/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p><img src="/post/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 </div>
 <div id="未来のみ" class="section level3">
 <h3>未来のみ</h3>
@@ -447,16 +448,16 @@ glove &lt;- text2vec::GlobalVectors$new(
 wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [11:52:11.371] epoch 1, loss 0.1763 
-#&gt; INFO  [11:52:11.487] epoch 2, loss 0.0883 
-#&gt; INFO  [11:52:11.610] epoch 3, loss 0.0697 
-#&gt; INFO  [11:52:11.742] epoch 4, loss 0.0591 
-#&gt; INFO  [11:52:11.850] epoch 5, loss 0.0517 
-#&gt; INFO  [11:52:11.955] epoch 6, loss 0.0459 
-#&gt; INFO  [11:52:12.078] epoch 7, loss 0.0414 
-#&gt; INFO  [11:52:12.183] epoch 8, loss 0.0377 
-#&gt; INFO  [11:52:12.289] epoch 9, loss 0.0346 
-#&gt; INFO  [11:52:12.402] epoch 10, loss 0.0319</code></pre>
+#&gt; INFO  [02:50:53.306] epoch 1, loss 0.1764 
+#&gt; INFO  [02:50:53.421] epoch 2, loss 0.0868 
+#&gt; INFO  [02:50:53.522] epoch 3, loss 0.0684 
+#&gt; INFO  [02:50:53.644] epoch 4, loss 0.0581 
+#&gt; INFO  [02:50:53.743] epoch 5, loss 0.0509 
+#&gt; INFO  [02:50:53.877] epoch 6, loss 0.0453 
+#&gt; INFO  [02:50:53.978] epoch 7, loss 0.0409 
+#&gt; INFO  [02:50:54.078] epoch 8, loss 0.0373 
+#&gt; INFO  [02:50:54.198] epoch 9, loss 0.0343 
+#&gt; INFO  [02:50:54.330] epoch 10, loss 0.0317</code></pre>
 <pre class="r"><code>vec &lt;- vocab %&gt;%
   dplyr::anti_join(
     y = tibble::tibble(words = stopwords),
@@ -484,7 +485,7 @@ vec %&gt;%
   geom_point() +
   ggrepel::geom_text_repel(aes(label = rowname)) +
   theme_light()</code></pre>
-<p><img src="/posts/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p><img src="/post/2020-05-21-analysis-tanka-jihyo_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 </div>
 </div>
 <div id="セッション情報" class="section level2">
