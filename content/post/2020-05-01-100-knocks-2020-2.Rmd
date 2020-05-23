@@ -6,10 +6,10 @@ slug: 100-knocks-2020-2
 categories: []
 tags:
   - NLP
-description: '...'
+description: 'Rでもにょる自然言語処理'
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   tidy = "styler",
   collapse = TRUE,
@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
 
 stopifnot(require(tidyverse))
 ```
+
+<!--more-->
 
 ## 形態素解析
 
@@ -196,3 +198,8 @@ count %>%
         theme_light()
 ```
 
+## セッション情報
+
+```{r}
+devtools::session_info()
+```

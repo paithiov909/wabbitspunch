@@ -6,10 +6,10 @@ slug: 100-knocks-2020-3
 categories: []
 tags:
   - NLP
-description: '...'
+description: 'Rでもにょる自然言語処理'
 ---
 
-```{r setup, include = FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   tidy = "styler",
   collapse = TRUE,
@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
 
 stopifnot(require(tidyverse))
 ```
+
+<!--more-->
 
 ## 係り受け解析
 
@@ -87,13 +89,13 @@ memo <- res %>%
 memo %>%
   dplyr::filter(D2 != -1) %>%
   dplyr::group_by(sid, chunk_id, D1) %>%
-  dplyr::mutate(colocation = stringr::str_c(
+  dplyr::mutate(collocation = stringr::str_c(
     chunk,
     memo$chunk[memo$sid == .data$sid & memo$D1 == .data$D2],
     sep = " "
   )) %>%
   dplyr::ungroup() %>%
-  dplyr::select(chunk, colocation) %>%
+  dplyr::select(chunk, collocation) %>%
   head()
 ```
 
@@ -117,14 +119,14 @@ memo %>%
   dplyr::filter(POS1 == "名詞") %>%
   dplyr::filter(D2 != -1) %>%
   dplyr::group_by(sid, chunk_id, D1) %>%
-  dplyr::mutate(colocation = stringr::str_c(
+  dplyr::mutate(collocation = stringr::str_c(
     chunk,
     memo$chunk[memo$sid == .data$sid & memo$D1 == .data$D2 & memo$tag == TRUE],
     sep = " "
   )) %>%
   dplyr::ungroup() %>%
-  dplyr::select(chunk, colocation) %>%
-  dplyr::filter(chunk != colocation) %>%
+  dplyr::select(chunk, collocation) %>%
+  dplyr::filter(chunk != collocation) %>%
   head()
 ```
 
@@ -145,19 +147,18 @@ tbl$plot()
 
 ```{r}
 memo <- res %>%
-  dplyr::select(sid, chunk_id, D1, D2, POS1, Original) %>%
-  dplyr::distinct()
+  dplyr::select(sid, chunk_id, D1, D2, POS1, Original)
 
 pattern <- memo %>%
   dplyr::filter(POS1 == "動詞") %>%
   dplyr::group_by(sid, chunk_id, D1) %>%
-  dplyr::mutate(colocation = stringr::str_c(
+  dplyr::mutate(collocation = stringr::str_c(
     "",
     memo$Original[memo$sid == .data$sid & memo$D2 == .data$D1 & memo$POS1 == "助詞"],
     collapse = " "
   )) %>%
   dplyr::ungroup() %>%
-  dplyr::select(Original, colocation)
+  dplyr::select(Original, collocation)
 
 pattern
 ```
@@ -167,7 +168,7 @@ pattern
 ```{r}
 pattern %>%
   dplyr::filter(Original %in% c("する", "見る", "与える")) %>%
-  dplyr::group_by(Original, colocation) %>%
+  dplyr::group_by(Original, collocation) %>%
   dplyr::count()
 ```
 
@@ -184,27 +185,32 @@ memo <- res %>%
       collapse = ""
   )) %>%
   dplyr::ungroup() %>%
-  dplyr::select(sid, chunk_id, D1, D2, POS1, Original, chunk) %>%
-  dplyr::distinct()
+  dplyr::select(sid, chunk_id, D1, D2, POS1, Original, chunk)
 
 pattern <- memo %>%
   dplyr::filter(POS1 == "動詞") %>%
   dplyr::group_by(sid, chunk_id, D1) %>%
-  dplyr::mutate(colocation = stringr::str_c(
+  dplyr::mutate(collocation = stringr::str_c(
     "",
     memo$Original[memo$sid == .data$sid & memo$D2 == .data$D1 & memo$POS1 == "助詞"],
     collapse = " "
   )) %>%
-  mutate(chunk = stringr::str_c(
+  dplyr::mutate(chunk = stringr::str_c(
     "",
     memo$chunk[memo$sid == .data$sid & memo$D2 == .data$D1 & memo$POS1 == "助詞"],
     collapse = " "
   )) %>%
   dplyr::ungroup() %>%
-  dplyr::select(Original, colocation, chunk)
+  dplyr::select(Original, collocation, chunk)
 
 pattern
 ```
 
 以下略
+
+## セッション情報
+
+```{r}
+devtools::session_info()
+```
 

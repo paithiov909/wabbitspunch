@@ -1,8 +1,10 @@
 ---
-date: "2020-04-21"
 title: このサイトについて（ポエム）
+author: paithiov909
+date: '2020-04-21'
 tags:
   - Concepts
+description: 'Rでもにょる自然言語処理'
 ---
 
 ## このサイトでやりたいこと
