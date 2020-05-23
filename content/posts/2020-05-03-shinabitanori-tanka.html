@@ -133,7 +133,7 @@ dtm &lt;- textmineR::CreateDtm( ## この関数はそれなりに重いです
   geom_col() +
   labs(x = &quot;word&quot;) +
   theme_light()</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 </div>
 <div id="語彙の集計２" class="section level2">
 <h2>語彙の集計（２）</h2>
@@ -167,7 +167,7 @@ toks %&gt;%
     random_order = FALSE,
     color = viridisLite::cividis(8)
   )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <p>このプロット内にたぶん「玉」という語がありますが、ただの「玉」なんて単語が出てくるような覚えはありません。おそらく分かち書きに失敗している単語でしょう。詳細を見てみるためにコロケーションの一部を確認してみます。</p>
 <pre class="r"><code>toks %&gt;%
   quanteda::textstat_collocations(size = 2, min_count = 2) %&gt;%
@@ -210,7 +210,7 @@ toks %&gt;%
     random_order = FALSE,
     color = viridisLite::cividis(8)
   )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 </div>
 <div id="aのbの出現位置" class="section level2">
 <h2>「AのB」の出現位置</h2>
@@ -264,7 +264,7 @@ head(a_b)
   geom_col() +
   labs(x = &quot;AのB&quot;) +
   theme_light()</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 <p>「AのB」に相当する表現だけ「NのN」（Nはモーラ数）というかたちになるように分かち書きされた文字列ベクトルを作って、{quanteda}のコーパスに格納します。</p>
 <pre class="r"><code>`%without%` &lt;- purrr::negate(`%in%`)
 
@@ -324,7 +324,7 @@ quanteda::ndoc(corp)
 quanteda::textplot_xray(
   quanteda::kwic(toks, pattern = &quot;3の2&quot;, valuetype = &quot;regex&quot;)
 )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <pre class="r"><code>a_b %&gt;%
   purrr::keep(. == &quot;3の2&quot;)
 #&gt;     僕らの夢 こどものまま   プールの後     今宵の僕     理想の恋     少女の夢 
@@ -347,7 +347,7 @@ quanteda::textplot_xray(
 <pre class="r"><code>quanteda::textplot_xray(
   quanteda::kwic(toks, pattern = &quot;2の3&quot;, valuetype = &quot;regex&quot;)
 )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
 <pre class="r"><code>a_b %&gt;%
   purrr::keep(. == &quot;2の3&quot;)
 #&gt;       夢の末路   ためのレース       駅の付近       線の車体     ビルの谷間 
@@ -370,7 +370,7 @@ quanteda::textplot_xray(
 <pre class="r"><code>quanteda::textplot_xray(
   quanteda::kwic(toks, pattern = &quot;2の2&quot;, valuetype = &quot;regex&quot;)
 )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 <pre class="r"><code>a_b %&gt;%
   purrr::keep(. == &quot;2の2&quot;)
 #&gt;     天の声   夢のなか   僕のもの     西の空     夏の風     春の夜 茶屋の富士 
@@ -390,7 +390,7 @@ quanteda::textplot_xray(
 <pre class="r"><code>quanteda::textplot_xray(
   quanteda::kwic(toks, pattern = &quot;4の3&quot;, valuetype = &quot;fixed&quot;)
 )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 <pre class="r"><code>a_b %&gt;%
   purrr::keep(. == &quot;4の3&quot;)
 #&gt;     ビックロの袋     全国のユカイ       青春の不在       八月の野球 
@@ -414,7 +414,7 @@ quanteda::textplot_xray(
 <pre class="r"><code>quanteda::textplot_xray(
   quanteda::kwic(toks, pattern = &quot;4の2&quot;, valuetype = &quot;fixed&quot;)
 )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
 <pre class="r"><code>a_b %&gt;%
   purrr::keep(. == &quot;4の2&quot;)
 #&gt;         運命の人       伊勢丹の角     メレンゲの角         隆聖の声 
@@ -438,7 +438,7 @@ quanteda::textplot_xray(
 <pre class="r"><code>quanteda::textplot_xray(
   quanteda::kwic(toks, pattern = &quot;2の4&quot;, valuetype = &quot;fixed&quot;)
 )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
 <pre class="r"><code>a_b %&gt;%
   purrr::keep(. == &quot;2の4&quot;)
 #&gt;         冬の足音         棚の最奥     色のハムカツ         状の物体 
@@ -457,7 +457,7 @@ quanteda::textplot_xray(
 <pre class="r"><code>quanteda::textplot_xray(
   quanteda::kwic(toks, pattern = &quot;3の3&quot;, valuetype = &quot;fixed&quot;)
 )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
 <pre class="r"><code>a_b %&gt;%
   purrr::keep(. == &quot;3の3&quot;)
 #&gt; ゼリーのにおい   理想のトマト       宇宙の渚   胃酸のにおい   ビーチの作法 
@@ -474,7 +474,7 @@ quanteda::textplot_xray(
 <pre class="r"><code>quanteda::textplot_xray(
   quanteda::kwic(toks, pattern = &quot;4の4&quot;, valuetype = &quot;fixed&quot;)
 )</code></pre>
-<p><img src="/post/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<p><img src="/posts/2020-05-03-shinabitanori-tanka_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
 <pre class="r"><code>a_b %&gt;%
   purrr::keep(. == &quot;4の4&quot;)
 #&gt;     ロボットの篠原     ロボットの篠原     ロボットの篠原       自転車の重心 
