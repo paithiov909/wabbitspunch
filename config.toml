@@ -2,10 +2,11 @@ baseurl = "https://wabbitspunch.netlify.app/"
 languageCode = "ja"
 defaultContentLanguage = "ja"
 title = "WabbitsPunch"
-theme = "fuji"
+theme = "ramium"
 hasCJKLanguage = true
 enableEmoji = true
-enableGitInfo = true
+enableRobotsTXT = true
+pluralizeListTitles = false
 googleAnalytics = "UA-73417314-20"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
@@ -15,41 +16,39 @@ rssLimit = 10
     post = "/:year/:month/:day/:slug/"
 
 [params]
-    subTitle = "Rでもにょる自然言語処理"
-    description = "Rでテキストマイニング的な何か"
+    subtitle = "Rでもにょる自然言語処理"
+    description = "Rでもにょる自然言語処理"
     author = "paithiov909"
+    images = ["image/wabbits.jpg"]
 
-    images = ["img/wabbits.jpg"]
+    googleSearch = "000195935875495954044:0i-nojmdwds"
 
-    mainSections = ["post"]
-    license = "MIT license"
-    licenseLink = "https://github.com/paithiov909/wabbitspunch/blob/master/LICENSE"
+    showDate = true # make false if dont want to show date for evergeen articles
+    math = false # best to enable this in the front matter of a page
+
+    githubProfile = "paithiov909/wabbitspunch/"
+
+    tagsInHome = 0  # set zero to not show in home page
+    sectionsInHome = 10  # set zero to not show in home page
+    paginatePostsPerPage = 5
+    paginateTagsPerPage = 5
 
 [taxonomies]
     tag = "tags"
 
-[markup]
-    [markup.highlight]
-        style = "monokailight"
-    [markup.tableOfContents]
-        startLevel = 2
-        endLevel = 2
+[markup.goldmark.renderer]
+    unsafe = true
 
 [menu]
-    [[menu.nav]]
+    [[menu.main]]
         name = "Home"
         url = "/"
         weight = 1
-    [[menu.nav]]
+    [[menu.main]]
         name = "About"
         url = "/about/"
         weight = 2
-
-    [[menu.link]]
-        name = "GitHub"
-        url = "https://github.com/paithiov909/wabbitspunch"
-        weight = 1
-    [[menu.link]]
+    [[menu.main]]
         name = "Twitter"
         url = "https://twitter.com/paithiov909"
-        weight = 2
+        weight = 3
