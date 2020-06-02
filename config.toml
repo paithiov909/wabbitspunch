@@ -2,43 +2,37 @@ baseurl = "https://wabbitspunch.netlify.app/"
 languageCode = "ja"
 defaultContentLanguage = "ja"
 title = "WabbitsPunch"
-theme = "ramium"
+theme = "hugo-lithium"
 hasCJKLanguage = true
 enableEmoji = true
 enableRobotsTXT = true
 pluralizeListTitles = false
-disqusShortname = "wabbitspunch"
 googleAnalytics = "UA-73417314-20"
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 rssLimit = 10
 
 [permalinks]
-    post = "/:year/:month/:day/:slug/"
+    posts = "/posts/:slug/"
 
 [params]
-    subtitle = "Rでもにょる自然言語処理"
     description = "Rでもにょる自然言語処理"
-    author = "paithiov909"
-    images = ["image/wabbits.jpg"]
 
-    googleSearch = "000195935875495954044:0i-nojmdwds"
+    highlightjsVersion = "9.18.0"
+    highlightjsCDN = "https://cdnjs.cloudflare.com/ajax/libs"
+    highlightjsLang = ["r", "js"]
+    highlightjsTheme = "github"
 
-    showDate = true # make false if dont want to show date for evergeen articles
-    math = false # best to enable this in the front matter of a page
+    favicon = "images/favicon.ico"
 
-    githubProfile = "paithiov909/wabbitspunch/"
-
-    tagsInHome = 0  # set zero to not show in home page
-    sectionsInHome = 10  # set zero to not show in home page
-    paginatePostsPerPage = 5
-    paginateTagsPerPage = 5
+    [params.logo]
+    url = "logo.png"
+    width = 50
+    height = 50
+    alt = "Logo"
 
 [taxonomies]
     tag = "tags"
-
-[markup.goldmark.renderer]
-    unsafe = true
 
 [menu]
     [[menu.main]]
