@@ -1,24 +1,15 @@
 ---
 title: Rによるテキスト解析
 author: paithiov909
-date: '2020-05-18'
+date: "2020-06-03"
 slug: shinabitanori-google-docs
 categories: []
 tags:
   - NLP
-description: 'Rでもにょる自然言語処理'
+description: 'Rでテキストマイニング'
 ---
 
 <script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
-<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
-<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
-<link href="/rmarkdown-libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
-<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
-<link href="/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
 
 
 <div id="googleドキュメントの読み込み" class="section level2">
@@ -62,13 +53,11 @@ shinabitanori &lt;- googledrive::drive_ls(&quot;Documents/shinabitanori/&quot;) 
   tibble::rowid_to_column()
 
 df[1, ]
-#&gt; Source: local data frame [1 x 4]
-#&gt; Groups: &lt;by row&gt;
-#&gt; 
 #&gt; # A tibble: 1 x 4
+#&gt; # Rowwise: 
 #&gt;   rowid doc      name       local_path                                          
 #&gt;   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;                                               
-#&gt; 1     1 aquarium nd8e25452~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\RtmpyIXaMw/~</code></pre>
+#&gt; 1     1 aquarium nd8e25452~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\RtmpS4NSoP/~</code></pre>
 </div>
 <div id="形態素解析" class="section level2">
 <h2>形態素解析</h2>
@@ -227,9 +216,93 @@ m &lt;- dtm %&gt;%
 
 m$phi %&gt;%
   textmineR::GetTopTerms(15L) %&gt;%
-  DT::datatable()</code></pre>
-<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["ゴリラ","価値","因子","感情","物語","語り","孤独","対","エンゲージメント","自己","役割","演技","共同","テクスト","文体"],["x","運動会","中止","文","前件","花水木","研究","天気","並列","告げ","q","含意","加藤","事態","治郎"],["グループ","条例","ポエジー","文節","批評","詩的","行間","テクスト","ルール","主義","効果","v","評","さよなら","脅迫"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>t_1<\/th>\n      <th>t_2<\/th>\n      <th>t_3<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">t_1</th>
+<th align="left">t_2</th>
+<th align="left">t_3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">テクスト</td>
+<td align="left">ゴリラ</td>
+<td align="left">グループ</td>
+</tr>
+<tr class="even">
+<td align="left">感情</td>
+<td align="left">x</td>
+<td align="left">条例</td>
+</tr>
+<tr class="odd">
+<td align="left">物語</td>
+<td align="left">因子</td>
+<td align="left">価値</td>
+</tr>
+<tr class="even">
+<td align="left">語り</td>
+<td align="left">運動会</td>
+<td align="left">ポエジー</td>
+</tr>
+<tr class="odd">
+<td align="left">ルール</td>
+<td align="left">中止</td>
+<td align="left">文節</td>
+</tr>
+<tr class="even">
+<td align="left">加藤</td>
+<td align="left">文</td>
+<td align="left">批評</td>
+</tr>
+<tr class="odd">
+<td align="left">さよなら</td>
+<td align="left">前件</td>
+<td align="left">詩的</td>
+</tr>
+<tr class="even">
+<td align="left">脅迫</td>
+<td align="left">花水木</td>
+<td align="left">行間</td>
+</tr>
+<tr class="odd">
+<td align="left">演技</td>
+<td align="left">研究</td>
+<td align="left">主義</td>
+</tr>
+<tr class="even">
+<td align="left">役割</td>
+<td align="left">天気</td>
+<td align="left">効果</td>
+</tr>
+<tr class="odd">
+<td align="left">文体</td>
+<td align="left">孤独</td>
+<td align="left">意図</td>
+</tr>
+<tr class="even">
+<td align="left">自己</td>
+<td align="left">対</td>
+<td align="left">評</td>
+</tr>
+<tr class="odd">
+<td align="left">治郎</td>
+<td align="left">並列</td>
+<td align="left">v</td>
+</tr>
+<tr class="even">
+<td align="left">硬派</td>
+<td align="left">q</td>
+<td align="left">文書</td>
+</tr>
+<tr class="odd">
+<td align="left">あかね</td>
+<td align="left">含意</td>
+<td align="left">解釈</td>
+</tr>
+</tbody>
+</table>
 <p>{LDAvis}で可視化してみます。ただ、{LDAvis}はもうしばらくメンテナンスされていないパッケージで、ちょっと挙動があやしいところがあります。たとえば、デフォルトロケールがCP932であるWindows環境の場合、<code>LDAvis::createJSON</code>で書き出されるラベル（vocab）のエンコーディングがそっちに引きずられてCP932になってしまうため、ブラウザで表示したときにラベルが文字化けします。書き出されたlda.jsonをUTF-8に変換すれば文字化けは解消されるので、とりあえずあとから変換して上書きするとよいです。</p>
 <pre class="r"><code>LDAvis::createJSON(
   phi = m$phi,
@@ -282,16 +355,16 @@ wv &lt;- glove$fit_transform(
 ) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [08:02:29.852] epoch 1, loss 0.1996 
-#&gt; INFO  [08:02:30.017] epoch 2, loss 0.0980 
-#&gt; INFO  [08:02:30.149] epoch 3, loss 0.0774 
-#&gt; INFO  [08:02:30.240] epoch 4, loss 0.0653 
-#&gt; INFO  [08:02:30.344] epoch 5, loss 0.0567 
-#&gt; INFO  [08:02:30.435] epoch 6, loss 0.0501 
-#&gt; INFO  [08:02:30.563] epoch 7, loss 0.0449 
-#&gt; INFO  [08:02:30.680] epoch 8, loss 0.0407 
-#&gt; INFO  [08:02:30.785] epoch 9, loss 0.0371 
-#&gt; INFO  [08:02:30.905] epoch 10, loss 0.0342</code></pre>
+#&gt; INFO  [13:30:34.592] epoch 1, loss 0.1980 
+#&gt; INFO  [13:30:34.740] epoch 2, loss 0.0983 
+#&gt; INFO  [13:30:34.881] epoch 3, loss 0.0777 
+#&gt; INFO  [13:30:34.973] epoch 4, loss 0.0656 
+#&gt; INFO  [13:30:35.083] epoch 5, loss 0.0569 
+#&gt; INFO  [13:30:35.198] epoch 6, loss 0.0501 
+#&gt; INFO  [13:30:35.284] epoch 7, loss 0.0448 
+#&gt; INFO  [13:30:35.396] epoch 8, loss 0.0405 
+#&gt; INFO  [13:30:35.492] epoch 9, loss 0.0369 
+#&gt; INFO  [13:30:35.608] epoch 10, loss 0.0339</code></pre>
 <p>{Rtsne}で次元を減らして可視化します。</p>
 <pre class="r"><code>getRtsneAsTbl &lt;- function(tbl, dim = 2, perp = 30) {
   tsn &lt;- tbl %&gt;% Rtsne::Rtsne(dim = dim, perplexity = perp)
@@ -359,7 +432,6 @@ vec %&gt;%
 #&gt;    coda                  0.19-3    2019-07-05 [1]
 #&gt;    colorspace            1.4-1     2019-03-18 [1]
 #&gt;    crayon                1.3.4     2017-09-16 [1]
-#&gt;    crosstalk             1.1.0.1   2020-03-13 [1]
 #&gt;    curl                  4.3       2019-12-02 [1]
 #&gt;    data.table            1.12.8    2019-12-09 [1]
 #&gt;    DBI                   1.1.0     2019-12-15 [1]
@@ -367,8 +439,7 @@ vec %&gt;%
 #&gt;    desc                  1.2.0     2018-05-01 [1]
 #&gt;    devtools              2.3.0     2020-04-10 [1]
 #&gt;    digest                0.6.25    2020-02-23 [1]
-#&gt;    dplyr               * 0.8.5     2020-03-07 [1]
-#&gt;    DT                    0.13      2020-03-23 [1]
+#&gt;    dplyr               * 1.0.0     2020-05-29 [1]
 #&gt;    ellipsis              0.3.1     2020-05-15 [1]
 #&gt;    evaluate              0.14      2019-05-28 [1]
 #&gt;    fansi                 0.4.1     2020-01-08 [1]
@@ -381,7 +452,7 @@ vec %&gt;%
 #&gt;    gargle                0.5.0     2020-05-06 [1]
 #&gt;    generics              0.0.2     2018-11-29 [1]
 #&gt;    ggdendro              0.1-20    2016-04-27 [1]
-#&gt;    ggplot2             * 3.3.0     2020-03-05 [1]
+#&gt;    ggplot2             * 3.3.1     2020-05-28 [1]
 #&gt;    ggpubr                0.3.0     2020-05-04 [1]
 #&gt;    ggrepel               0.8.2     2020-03-08 [1]
 #&gt;    ggsignif              0.6.0     2019-08-08 [1]
@@ -389,10 +460,10 @@ vec %&gt;%
 #&gt;    googledrive           1.0.1     2020-05-05 [1]
 #&gt;    gridExtra             2.3       2017-09-09 [1]
 #&gt;    gtable                0.3.0     2019-03-25 [1]
-#&gt;    haven                 2.3.0     2020-05-24 [1]
+#&gt;    haven                 2.3.1     2020-06-01 [1]
+#&gt;    highr                 0.8       2019-03-20 [1]
 #&gt;    hms                   0.5.3     2020-01-08 [1]
 #&gt;    htmltools             0.4.0     2019-10-04 [1]
-#&gt;    htmlwidgets           1.5.1     2019-10-08 [1]
 #&gt;    httpuv                1.5.3.1   2020-05-26 [1]
 #&gt;    httr                  1.4.1     2019-08-05 [1]
 #&gt;    jsonlite              1.6.1     2020-02-02 [1]
@@ -420,7 +491,7 @@ vec %&gt;%
 #&gt;    pillar                1.4.4     2020-05-05 [1]
 #&gt;    pkgbuild              1.0.8     2020-05-07 [1]
 #&gt;    pkgconfig             2.0.3     2019-09-22 [1]
-#&gt;    pkgload               1.0.2     2018-10-29 [1]
+#&gt;    pkgload               1.1.0     2020-05-29 [1]
 #&gt;    plyr                  1.8.6     2020-03-03 [1]
 #&gt;    prettyunits           1.1.1     2020-01-24 [1]
 #&gt;    processx              3.4.2     2020-02-09 [1]
@@ -451,7 +522,7 @@ vec %&gt;%
 #&gt;  D rJava                 0.9-12    2020-03-24 [1]
 #&gt;    RJSONIO               1.3-1.4   2020-01-15 [1]
 #&gt;    rlang                 0.4.6     2020-05-02 [1]
-#&gt;    rmarkdown             2.1       2020-01-20 [1]
+#&gt;    rmarkdown             2.2       2020-05-31 [1]
 #&gt;    rprojroot             1.3-2     2018-01-03 [1]
 #&gt;    rsparse               0.4.0     2020-04-01 [1]
 #&gt;    RSpectra              0.16-0    2019-12-01 [1]
@@ -491,8 +562,6 @@ vec %&gt;%
 #&gt;    zip                   2.0.4     2019-09-01 [1]
 #&gt;  source                              
 #&gt;  CRAN (R 3.6.0)                      
-#&gt;  CRAN (R 3.6.3)                      
-#&gt;  CRAN (R 3.6.3)                      
 #&gt;  CRAN (R 3.6.3)                      
 #&gt;  CRAN (R 3.6.3)                      
 #&gt;  CRAN (R 3.6.3)                      

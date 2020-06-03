@@ -1,12 +1,12 @@
 ---
 title: Rで言語処理100本ノックを解くわけがない（３）
 author: paithiov909
-date: '2020-05-01'
+date: "`r Sys.Date()`"
 slug: 100-knocks-2020-3
 categories: []
 tags:
   - NLP
-description: 'Rでもにょる自然言語処理'
+description: 'Rで言語処理100本ノック 2020（３）'
 ---
 
 ```{r setup, include=FALSE}

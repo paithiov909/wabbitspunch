@@ -1,12 +1,12 @@
 ---
 title: 短歌時評のテキスト解析（１）
 author: paithiov909
-date: '2020-05-20'
+date: "`r Sys.Date()`"
 slug: scraping-tanka-jihyo
 categories: []
 tags:
   - Preprocessing
-description: 'Rでもにょる自然言語処理'
+description: '短歌時評のスクレイピング'
 ---
 
 ```{r setup, include=FALSE}
@@ -155,8 +155,11 @@ df <- imap_dfr(doc_headings, function(idx, i){
 {googledrive}でドライブに保存しておきます。
 
 ```{r include=FALSE}
-readr::write_csv(df, file.path(getwd(), "cache/jihyo_mirai.csv"))
-googledrive::drive_upload(file.path(getwd(), "cache/jihyo_mirai.csv"), "Documents/jihyo_mirai", type = "spreadsheet", verbose = FALSE)
+cache <- googledrive::drive_find("jihyo_mirai", type = "spreadsheet")
+if (nrow(cache) < 1) {
+  readr::write_csv(df, file.path(getwd(), "cache/jihyo_mirai.csv"))
+  googledrive::drive_upload(file.path(getwd(), "cache/jihyo_mirai.csv"), "Documents/jihyo_mirai", type = "spreadsheet", verbose = FALSE)
+}
 ```
 
 ## 塔
@@ -272,8 +275,12 @@ df <- purrr::map_dfr(links, function(url){
 ```
 
 ```{r include=FALSE}
-readr::write_csv(df, file.path(getwd(), "cache/jihyo_tou.csv"))
-googledrive::drive_upload(file.path(getwd(), "cache/jihyo_tou.csv"), "Documents/jihyo_tou", type = "spreadsheet", verbose = FALSE)
+cache <- googledrive::drive_find("jihyo_tou", type = "spreadsheet")
+if (nrow(cache) < 1) {
+  readr::write_csv(df, file.path(getwd(), "cache/jihyo_tou.csv"))
+  googledrive::drive_upload(file.path(getwd(), "cache/jihyo_tou.csv"), "Documents/jihyo_tou", type = "spreadsheet", verbose = FALSE)
+}
+
 ```
 
 ## セッション情報

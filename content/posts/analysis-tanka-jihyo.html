@@ -1,24 +1,15 @@
 ---
 title: 短歌時評のテキスト解析（２）
 author: paithiov909
-date: '2020-05-20'
+date: "2020-06-03"
 slug: analysis-tanka-jihyo
 categories: []
 tags:
   - NLP
-description: 'Rでもにょる自然言語処理'
+description: '短歌時評のテキストマイニング'
 ---
 
 <script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
-<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
-<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
-<link href="/rmarkdown-libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
-<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
-<link href="/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
 
 
 <div id="解説" class="section level2">
@@ -248,9 +239,261 @@ m &lt;- dtm %&gt;%
 
 m$phi %&gt;%
   textmineR::GetTopTerms(30L) %&gt;%
-  DT::datatable()</code></pre>
-<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["評論","子規","批評","永井","近代","田中","特集","史","韻律","結社","天皇","時評","資料","大衆","創作","大辻","辞","富山","著作","黒瀬","論","客観","〇","メディア","読者","担当","日系","議論","書籍","意見"],["名詞","ｉ","ａ","塚本","句","虚構","安永","服部","要請","小池","賞","●","連作","受賞","作者","折","枡","塚","水仙","喩","ａｉ","契約","俳句","前衛","邦雄","盗聴","野","岡井","セクハラ","むし"],["震災","ニューウェーブ","当事者","づら","白秋","不能","被災","父","評伝","原発","加藤","沖縄","内山","仲田","歌集","モノ","記号","修辞","亡くなっ","音読","新鋭","堂","処分","赤彦","在住","１","治郎","大震災","復興","大口"],["文語","口語","ノスタルジー","韓国","語","文法","言語","書きことば","表記","梯","中村","狂歌","|","日本語","詩歌","穂","異化","万葉","過去","永田","大会","古語","ミックス","音声","中澤","アマチュア","経済","ディストピア","公田","白熱"],["戦後","母","川野","自然","老い","竹山","葛原","原爆","妊娠","茂吉","花山","河野","森岡","写生","妻","戦争","男性","吉川","裡","香","光","渡辺","震災","母親","首","月刊","裕子","磯江","レトリック","〇"],["杉原","瀬戸","世代","教育","文語","桜","阿木","津","構造","価値","山田","社会","寺井","現実","穂","古典","塚","賞","基準","両義","国語","批判","万葉集","自由","旧","場","批評","染野","アイディア","現代"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>t_1<\/th>\n      <th>t_2<\/th>\n      <th>t_3<\/th>\n      <th>t_4<\/th>\n      <th>t_5<\/th>\n      <th>t_6<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">t_1</th>
+<th align="left">t_2</th>
+<th align="left">t_3</th>
+<th align="left">t_4</th>
+<th align="left">t_5</th>
+<th align="left">t_6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">山田</td>
+<td align="left">震災</td>
+<td align="left">ニューウェーブ</td>
+<td align="left">名詞</td>
+<td align="left">ｉ</td>
+<td align="left">批評</td>
+</tr>
+<tr class="even">
+<td align="left">渡辺</td>
+<td align="left">口語</td>
+<td align="left">瀬戸</td>
+<td align="left">不能</td>
+<td align="left">ノスタルジー</td>
+<td align="left">評論</td>
+</tr>
+<tr class="odd">
+<td align="left">安永</td>
+<td align="left">文語</td>
+<td align="left">白秋</td>
+<td align="left">虚構</td>
+<td align="left">母</td>
+<td align="left">子規</td>
+</tr>
+<tr class="even">
+<td align="left">自然</td>
+<td align="left">当事者</td>
+<td align="left">教育</td>
+<td align="left">服部</td>
+<td align="left">杉原</td>
+<td align="left">時評</td>
+</tr>
+<tr class="odd">
+<td align="left">森岡</td>
+<td align="left">語</td>
+<td align="left">阿木</td>
+<td align="left">賞</td>
+<td align="left">ａ</td>
+<td align="left">川野</td>
+</tr>
+<tr class="even">
+<td align="left">戦後</td>
+<td align="left">河野</td>
+<td align="left">構造</td>
+<td align="left">連作</td>
+<td align="left">塚本</td>
+<td align="left">近代</td>
+</tr>
+<tr class="odd">
+<td align="left">八</td>
+<td align="left">茂吉</td>
+<td align="left">妊娠</td>
+<td align="left">小池</td>
+<td align="left">竹山</td>
+<td align="left">づら</td>
+</tr>
+<tr class="even">
+<td align="left">桜</td>
+<td align="left">田中</td>
+<td align="left">津</td>
+<td align="left">沖縄</td>
+<td align="left">原爆</td>
+<td align="left">座談</td>
+</tr>
+<tr class="odd">
+<td align="left">〇</td>
+<td align="left">原発</td>
+<td align="left">国語</td>
+<td align="left">文法</td>
+<td align="left">歌集</td>
+<td align="left">和歌</td>
+</tr>
+<tr class="even">
+<td align="left">賞</td>
+<td align="left">大衆</td>
+<td align="left">富山</td>
+<td align="left">内山</td>
+<td align="left">戦後</td>
+<td align="left">塚</td>
+</tr>
+<tr class="odd">
+<td align="left">旧</td>
+<td align="left">メディア</td>
+<td align="left">男性</td>
+<td align="left">石井</td>
+<td align="left">岡井</td>
+<td align="left">前衛</td>
+</tr>
+<tr class="even">
+<td align="left">戦争</td>
+<td align="left">被災</td>
+<td align="left">荻原</td>
+<td align="left">仲田</td>
+<td align="left">過去</td>
+<td align="left">現代</td>
+</tr>
+<tr class="odd">
+<td align="left">中澤</td>
+<td align="left">辞</td>
+<td align="left">論理</td>
+<td align="left">● 異</td>
+<td align="left">化 吉</td>
+<td align="left">川</td>
+</tr>
+<tr class="even">
+<td align="left">殺し</td>
+<td align="left">書きことば</td>
+<td align="left">韓国</td>
+<td align="left">要請</td>
+<td align="left">ディストピア</td>
+<td align="left">詩歌</td>
+</tr>
+<tr class="odd">
+<td align="left">牛尾</td>
+<td align="left">梯</td>
+<td align="left">批判</td>
+<td align="left">句</td>
+<td align="left">量</td>
+<td align="left">大辻</td>
+</tr>
+<tr class="even">
+<td align="left">歌集</td>
+<td align="left">書籍</td>
+<td align="left">暴力</td>
+<td align="left">染野</td>
+<td align="left">穂</td>
+<td align="left">伝統</td>
+</tr>
+<tr class="odd">
+<td align="left">基準</td>
+<td align="left">電子</td>
+<td align="left">身銭</td>
+<td align="left">岡野</td>
+<td align="left">邦雄</td>
+<td align="left">特集</td>
+</tr>
+<tr class="even">
+<td align="left">目黒</td>
+<td align="left">〇</td>
+<td align="left">啄木</td>
+<td align="left">首</td>
+<td align="left">母親</td>
+<td align="left">韻律</td>
+</tr>
+<tr class="odd">
+<td align="left">月刊</td>
+<td align="left">詠</td>
+<td align="left">文学</td>
+<td align="left">受賞</td>
+<td align="left">韻文</td>
+<td align="left">大森</td>
+</tr>
+<tr class="even">
+<td align="left">公田</td>
+<td align="left">裕子</td>
+<td align="left">社会</td>
+<td align="left">新人</td>
+<td align="left">痛み</td>
+<td align="left">表記</td>
+</tr>
+<tr class="odd">
+<td align="left">岡部</td>
+<td align="left">中村</td>
+<td align="left">歴史</td>
+<td align="left">学生</td>
+<td align="left">一司</td>
+<td align="left">俳句</td>
+</tr>
+<tr class="even">
+<td align="left">事件</td>
+<td align="left">狂歌</td>
+<td align="left">寺井</td>
+<td align="left">父</td>
+<td align="left">ユートピア</td>
+<td align="left">評伝</td>
+</tr>
+<tr class="odd">
+<td align="left">類型</td>
+<td align="left">写生</td>
+<td align="left">分断</td>
+<td align="left">記号</td>
+<td align="left">創作</td>
+<td align="left">葛原</td>
+</tr>
+<tr class="even">
+<td align="left">古今</td>
+<td align="left">日系</td>
+<td align="left">価値</td>
+<td align="left">裡</td>
+<td align="left">水中翼船</td>
+<td align="left">作者</td>
+</tr>
+<tr class="odd">
+<td align="left">外部</td>
+<td align="left">発言</td>
+<td align="left">経済</td>
+<td align="left">悲歌</td>
+<td align="left">ａｉ</td>
+<td align="left">天皇</td>
+</tr>
+<tr class="even">
+<td align="left">興趣</td>
+<td align="left">詠う</td>
+<td align="left">認識</td>
+<td align="left">水仙</td>
+<td align="left">男性</td>
+<td align="left">古典</td>
+</tr>
+<tr class="odd">
+<td align="left">白熱</td>
+<td align="left">|</td>
+<td align="left">文化</td>
+<td align="left">白鳥</td>
+<td align="left">シンポジウム</td>
+<td align="left">議論</td>
+</tr>
+<tr class="even">
+<td align="left">老い</td>
+<td align="left">著作</td>
+<td align="left">島田</td>
+<td align="left">感情</td>
+<td align="left">村</td>
+<td align="left">万葉集</td>
+</tr>
+<tr class="odd">
+<td align="left">仮名</td>
+<td align="left">海外</td>
+<td align="left">明治</td>
+<td align="left">喩</td>
+<td align="left">鳥</td>
+<td align="left">穂</td>
+</tr>
+<tr class="even">
+<td align="left">樹木</td>
+<td align="left">ミックス</td>
+<td align="left">差別</td>
+<td align="left">作者</td>
+<td align="left">炎上</td>
+<td align="left">誌</td>
+</tr>
+</tbody>
+</table>
 <pre class="r"><code>LDAvis::createJSON(
   phi = m$phi,
   theta = m$theta,
@@ -305,16 +548,16 @@ glove &lt;- text2vec::GlobalVectors$new(
 wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [07:51:02.048] epoch 1, loss 0.1611 
-#&gt; INFO  [07:51:02.684] epoch 2, loss 0.0868 
-#&gt; INFO  [07:51:03.374] epoch 3, loss 0.0713 
-#&gt; INFO  [07:51:04.015] epoch 4, loss 0.0620 
-#&gt; INFO  [07:51:04.722] epoch 5, loss 0.0552 
-#&gt; INFO  [07:51:05.421] epoch 6, loss 0.0500 
-#&gt; INFO  [07:51:06.051] epoch 7, loss 0.0458 
-#&gt; INFO  [07:51:06.741] epoch 8, loss 0.0424 
-#&gt; INFO  [07:51:07.374] epoch 9, loss 0.0396 
-#&gt; INFO  [07:51:08.063] epoch 10, loss 0.0372</code></pre>
+#&gt; INFO  [13:19:19.602] epoch 1, loss 0.1608 
+#&gt; INFO  [13:19:20.225] epoch 2, loss 0.0870 
+#&gt; INFO  [13:19:20.839] epoch 3, loss 0.0714 
+#&gt; INFO  [13:19:21.416] epoch 4, loss 0.0620 
+#&gt; INFO  [13:19:21.981] epoch 5, loss 0.0552 
+#&gt; INFO  [13:19:22.564] epoch 6, loss 0.0501 
+#&gt; INFO  [13:19:23.221] epoch 7, loss 0.0460 
+#&gt; INFO  [13:19:23.915] epoch 8, loss 0.0426 
+#&gt; INFO  [13:19:24.603] epoch 9, loss 0.0398 
+#&gt; INFO  [13:19:25.279] epoch 10, loss 0.0374</code></pre>
 <pre class="r"><code>getRtsneAsTbl &lt;- function(tbl, dim = 2, perp = 30) {
   tsn &lt;- tbl %&gt;% Rtsne::Rtsne(dim = dim, perplexity = perp)
   tsny &lt;- tsn$Y
@@ -380,16 +623,16 @@ glove &lt;- text2vec::GlobalVectors$new(
 wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [07:51:16.240] epoch 1, loss 0.1656 
-#&gt; INFO  [07:51:16.629] epoch 2, loss 0.0873 
-#&gt; INFO  [07:51:17.010] epoch 3, loss 0.0707 
-#&gt; INFO  [07:51:17.375] epoch 4, loss 0.0609 
-#&gt; INFO  [07:51:17.741] epoch 5, loss 0.0540 
-#&gt; INFO  [07:51:18.132] epoch 6, loss 0.0488 
-#&gt; INFO  [07:51:18.515] epoch 7, loss 0.0446 
-#&gt; INFO  [07:51:18.930] epoch 8, loss 0.0412 
-#&gt; INFO  [07:51:19.271] epoch 9, loss 0.0384 
-#&gt; INFO  [07:51:19.612] epoch 10, loss 0.0360</code></pre>
+#&gt; INFO  [13:19:33.309] epoch 1, loss 0.1638 
+#&gt; INFO  [13:19:33.692] epoch 2, loss 0.0876 
+#&gt; INFO  [13:19:34.061] epoch 3, loss 0.0713 
+#&gt; INFO  [13:19:34.411] epoch 4, loss 0.0616 
+#&gt; INFO  [13:19:34.745] epoch 5, loss 0.0546 
+#&gt; INFO  [13:19:35.114] epoch 6, loss 0.0493 
+#&gt; INFO  [13:19:35.464] epoch 7, loss 0.0451 
+#&gt; INFO  [13:19:35.836] epoch 8, loss 0.0417 
+#&gt; INFO  [13:19:36.200] epoch 9, loss 0.0388 
+#&gt; INFO  [13:19:36.529] epoch 10, loss 0.0363</code></pre>
 <pre class="r"><code>vec &lt;- vocab %&gt;%
   dplyr::anti_join(
     y = tibble::tibble(words = stopwords),
@@ -447,16 +690,16 @@ glove &lt;- text2vec::GlobalVectors$new(
 wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [07:51:25.419] epoch 1, loss 0.1802 
-#&gt; INFO  [07:51:25.533] epoch 2, loss 0.0876 
-#&gt; INFO  [07:51:25.648] epoch 3, loss 0.0690 
-#&gt; INFO  [07:51:25.755] epoch 4, loss 0.0586 
-#&gt; INFO  [07:51:25.868] epoch 5, loss 0.0513 
-#&gt; INFO  [07:51:25.982] epoch 6, loss 0.0457 
-#&gt; INFO  [07:51:26.114] epoch 7, loss 0.0412 
-#&gt; INFO  [07:51:26.255] epoch 8, loss 0.0376 
-#&gt; INFO  [07:51:26.365] epoch 9, loss 0.0345 
-#&gt; INFO  [07:51:26.491] epoch 10, loss 0.0318</code></pre>
+#&gt; INFO  [13:19:42.591] epoch 1, loss 0.1734 
+#&gt; INFO  [13:19:42.747] epoch 2, loss 0.0870 
+#&gt; INFO  [13:19:42.860] epoch 3, loss 0.0691 
+#&gt; INFO  [13:19:42.996] epoch 4, loss 0.0587 
+#&gt; INFO  [13:19:43.125] epoch 5, loss 0.0513 
+#&gt; INFO  [13:19:43.230] epoch 6, loss 0.0457 
+#&gt; INFO  [13:19:43.342] epoch 7, loss 0.0412 
+#&gt; INFO  [13:19:43.462] epoch 8, loss 0.0375 
+#&gt; INFO  [13:19:43.571] epoch 9, loss 0.0344 
+#&gt; INFO  [13:19:43.697] epoch 10, loss 0.0317</code></pre>
 <pre class="r"><code>vec &lt;- vocab %&gt;%
   dplyr::anti_join(
     y = tibble::tibble(words = stopwords),
@@ -520,7 +763,6 @@ vec %&gt;%
 #&gt;    coda             0.19-3   2019-07-05 [1] CRAN (R 3.6.3)
 #&gt;    colorspace       1.4-1    2019-03-18 [1] CRAN (R 3.6.3)
 #&gt;    crayon           1.3.4    2017-09-16 [1] CRAN (R 3.6.3)
-#&gt;    crosstalk        1.1.0.1  2020-03-13 [1] CRAN (R 3.6.3)
 #&gt;    curl             4.3      2019-12-02 [1] CRAN (R 3.6.3)
 #&gt;    data.table       1.12.8   2019-12-09 [1] CRAN (R 3.6.3)
 #&gt;    DBI              1.1.0    2019-12-15 [1] CRAN (R 3.6.3)
@@ -528,8 +770,7 @@ vec %&gt;%
 #&gt;    desc             1.2.0    2018-05-01 [1] CRAN (R 3.6.3)
 #&gt;    devtools         2.3.0    2020-04-10 [1] CRAN (R 3.6.3)
 #&gt;    digest           0.6.25   2020-02-23 [1] CRAN (R 3.6.3)
-#&gt;    dplyr          * 0.8.5    2020-03-07 [1] CRAN (R 3.6.3)
-#&gt;    DT               0.13     2020-03-23 [1] CRAN (R 3.6.3)
+#&gt;    dplyr          * 1.0.0    2020-05-29 [1] CRAN (R 3.6.3)
 #&gt;    ellipsis         0.3.1    2020-05-15 [1] CRAN (R 3.6.3)
 #&gt;    evaluate         0.14     2019-05-28 [1] CRAN (R 3.6.3)
 #&gt;    fansi            0.4.1    2020-01-08 [1] CRAN (R 3.6.3)
@@ -542,7 +783,7 @@ vec %&gt;%
 #&gt;    gargle           0.5.0    2020-05-06 [1] CRAN (R 3.6.3)
 #&gt;    generics         0.0.2    2018-11-29 [1] CRAN (R 3.6.3)
 #&gt;    ggdendro         0.1-20   2016-04-27 [1] CRAN (R 3.6.3)
-#&gt;    ggplot2        * 3.3.0    2020-03-05 [1] CRAN (R 3.6.3)
+#&gt;    ggplot2        * 3.3.1    2020-05-28 [1] CRAN (R 3.6.3)
 #&gt;    ggpubr           0.3.0    2020-05-04 [1] CRAN (R 3.6.3)
 #&gt;    ggrepel          0.8.2    2020-03-08 [1] CRAN (R 3.6.3)
 #&gt;    ggsignif         0.6.0    2019-08-08 [1] CRAN (R 3.6.3)
@@ -550,10 +791,10 @@ vec %&gt;%
 #&gt;    googledrive      1.0.1    2020-05-05 [1] CRAN (R 3.6.3)
 #&gt;    gridExtra        2.3      2017-09-09 [1] CRAN (R 3.6.3)
 #&gt;    gtable           0.3.0    2019-03-25 [1] CRAN (R 3.6.3)
-#&gt;    haven            2.3.0    2020-05-24 [1] CRAN (R 3.6.3)
+#&gt;    haven            2.3.1    2020-06-01 [1] CRAN (R 3.6.3)
+#&gt;    highr            0.8      2019-03-20 [1] CRAN (R 3.6.3)
 #&gt;    hms              0.5.3    2020-01-08 [1] CRAN (R 3.6.3)
 #&gt;    htmltools        0.4.0    2019-10-04 [1] CRAN (R 3.6.3)
-#&gt;    htmlwidgets      1.5.1    2019-10-08 [1] CRAN (R 3.6.3)
 #&gt;    httpuv           1.5.3.1  2020-05-26 [1] CRAN (R 3.6.3)
 #&gt;    httr             1.4.1    2019-08-05 [1] CRAN (R 3.6.3)
 #&gt;    jsonlite         1.6.1    2020-02-02 [1] CRAN (R 3.6.3)
@@ -579,7 +820,7 @@ vec %&gt;%
 #&gt;    pillar           1.4.4    2020-05-05 [1] CRAN (R 3.6.3)
 #&gt;    pkgbuild         1.0.8    2020-05-07 [1] CRAN (R 3.6.3)
 #&gt;    pkgconfig        2.0.3    2019-09-22 [1] CRAN (R 3.6.3)
-#&gt;    pkgload          1.0.2    2018-10-29 [1] CRAN (R 3.6.3)
+#&gt;    pkgload          1.1.0    2020-05-29 [1] CRAN (R 3.6.3)
 #&gt;    prettyunits      1.1.1    2020-01-24 [1] CRAN (R 3.6.3)
 #&gt;    processx         3.4.2    2020-02-09 [1] CRAN (R 3.6.3)
 #&gt;    promises         1.1.0    2019-10-04 [1] CRAN (R 3.6.3)
@@ -605,7 +846,7 @@ vec %&gt;%
 #&gt;    rio              0.5.16   2018-11-26 [1] CRAN (R 3.6.3)
 #&gt;    RJSONIO          1.3-1.4  2020-01-15 [1] CRAN (R 3.6.2)
 #&gt;    rlang            0.4.6    2020-05-02 [1] CRAN (R 3.6.3)
-#&gt;    rmarkdown        2.1      2020-01-20 [1] CRAN (R 3.6.3)
+#&gt;    rmarkdown        2.2      2020-05-31 [1] CRAN (R 3.6.3)
 #&gt;    rprojroot        1.3-2    2018-01-03 [1] CRAN (R 3.6.3)
 #&gt;    rsparse          0.4.0    2020-04-01 [1] CRAN (R 3.6.3)
 #&gt;    rstatix          0.5.0    2020-04-28 [1] CRAN (R 3.6.3)

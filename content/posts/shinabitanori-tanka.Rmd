@@ -1,12 +1,12 @@
 ---
 title: 短歌のテキストマイニング
 author: paithiov909
-date: '2020-05-03'
+date: "`r Sys.Date()`"
 slug: shinabitanori-tanka
 categories: []
 tags:
   - NLP
-description: 'Rでもにょる自然言語処理'
+description: 'Rで短歌のテキストマイニング'
 ---
 
 ```{r setup, include=FALSE}
@@ -310,7 +310,7 @@ corp %>%
   quanteda::tokens(what = "fastestword") %>%
   quanteda::kwic(pattern = "[1-9]+の[0-9]+", valuetype = "regex") %>%
   head(30) %>%
-  DT::datatable()
+  knitr::kable()
 ```
 
 ### 3の2

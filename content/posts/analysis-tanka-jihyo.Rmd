@@ -1,12 +1,12 @@
 ---
 title: 短歌時評のテキスト解析（２）
 author: paithiov909
-date: '2020-05-20'
+date: "`r Sys.Date()`"
 slug: analysis-tanka-jihyo
 categories: []
 tags:
   - NLP
-description: 'Rでもにょる自然言語処理'
+description: '短歌時評のテキストマイニング'
 ---
 
 ```{r setup, include=FALSE}
@@ -283,7 +283,7 @@ m <- dtm %>%
 
 m$phi %>%
   textmineR::GetTopTerms(30L) %>%
-  DT::datatable()
+  knitr::kable()
 ```
 
 ```{r}

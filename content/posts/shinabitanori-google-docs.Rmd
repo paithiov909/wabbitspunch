@@ -1,12 +1,12 @@
 ---
 title: Rによるテキスト解析
 author: paithiov909
-date: '2020-05-18'
+date: "`r Sys.Date()`"
 slug: shinabitanori-google-docs
 categories: []
 tags:
   - NLP
-description: 'Rでもにょる自然言語処理'
+description: 'Rでテキストマイニング'
 ---
 
 ```{r setup, include = FALSE}
@@ -238,7 +238,7 @@ m <- dtm %>%
 
 m$phi %>%
   textmineR::GetTopTerms(15L) %>%
-  DT::datatable()
+  knitr::kable()
 ```
 
 {LDAvis}で可視化してみます。ただ、{LDAvis}はもうしばらくメンテナンスされていないパッケージで、ちょっと挙動があやしいところがあります。たとえば、デフォルトロケールがCP932であるWindows環境の場合、`LDAvis::createJSON`で書き出されるラベル（vocab）のエンコーディングがそっちに引きずられてCP932になってしまうため、ブラウザで表示したときにラベルが文字化けします。書き出されたlda.jsonをUTF-8に変換すれば文字化けは解消されるので、とりあえずあとから変換して上書きするとよいです。
