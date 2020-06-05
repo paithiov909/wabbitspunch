@@ -198,7 +198,87 @@ pattern <- memo %>%
 pattern
 ```
 
-以下略
+### 47. 機能動詞構文のマイニング
+
+「サ変接続名詞 + を -> 動詞」という表現だけを抽出すると、ここで解析した範囲には存在しないようなので、サ変接続名詞が含まれる文節すべてについてマイニングします。
+
+```{r}
+memo <- res %>%
+  dplyr::group_by(sentence_idx, chunk_idx) %>%
+  dplyr::mutate(
+    chunk = stringr::str_c(
+      word,
+      collapse = ""
+  )) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, POS1, POS2, Original, chunk)
+
+pattern <- memo %>%
+  dplyr::filter(POS2 == "サ変接続") %>%
+  dplyr::group_by(sentence_idx, chunk_idx) %>%
+  dplyr::mutate(surface_form = stringr::str_c(
+    chunk,
+    collapse = ""
+  )) %>%
+  dplyr::ungroup() %>%
+  dplyr::group_by(sentence_idx, chunk_idx, D1) %>%
+  dplyr::group_map(~ .x %>%
+    dplyr::mutate(collocation = stringr::str_c(
+      "",
+      memo$Original[memo$sentence_idx == .y$sentence_idx & memo$D2 == .y$D1 &  memo$POS1 == "助詞"],
+      collapse = " "
+    )) %>%
+    dplyr::mutate(chunk = stringr::str_c(
+      "",
+      memo$chunk[memo$sentence_idx == .y$sentence_idx & memo$D2 == .y$D1 &  memo$POS1 == "助詞"],
+      collapse = " "
+    ))
+  ) %>%
+  purrr::map_dfr(~ .) %>%
+  dplyr::select(surface_form, collocation, chunk)
+
+pattern
+```
+
+48. 名詞から根へのパスの抽出
+
+~~めちゃくちゃwarning出る~~
+
+```{r}
+memo <- res %>%
+  dplyr::mutate_at(c("D1", "D2"), as.integer) %>%
+  dplyr::group_by(sentence_idx, chunk_idx) %>%
+  dplyr::mutate(
+    chunk = stringr::str_c(
+      word,
+      collapse = ""
+  )) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, POS1, Original, chunk) %>%
+  dplyr::distinct(chunk, .keep_all = TRUE)
+
+pattern <- memo %>%
+  dplyr::filter(POS1 == "名詞") %>%
+  dplyr::group_by(sentence_idx, chunk_idx) %>%
+  dplyr::group_map(~ .x %>%
+    dplyr::mutate(path = stringr::str_c(
+      memo$chunk[
+        memo$sentence_idx == .y$sentence_idx &
+        memo$chunk_idx >= .y$chunk_idx &
+        (memo$D2 > .y$D1 || memo$D2 ==  -1L)
+      ],
+      collapse = " -> "
+    ))
+  ) %>%
+  purrr::map_dfr(~ .) %>%
+  dplyr::select(path)
+
+pattern
+```
+
+49. 名詞間の係り受けパスの抽出
+
+疲れたので省略
 
 ## セッション情報
 

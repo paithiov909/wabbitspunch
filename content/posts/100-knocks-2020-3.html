@@ -1,7 +1,7 @@
 ---
 title: Rで言語処理100本ノックを解くわけがない（３）
 author: paithiov909
-date: "2020-06-03"
+date: "2020-06-05"
 slug: 100-knocks-2020-3
 categories: []
 tags:
@@ -244,7 +244,234 @@ pattern
 #&gt;  9 聞く     &quot;で&quot;         &quot;あとで&quot;                          
 #&gt; 10 捕える   &quot;を&quot;         &quot;我々を&quot;                          
 #&gt; # ... with 39 more rows</code></pre>
-<p>以下略</p>
+</div>
+<div id="機能動詞構文のマイニング" class="section level3">
+<h3>47. 機能動詞構文のマイニング</h3>
+<p>「サ変接続名詞 + を -&gt; 動詞」という表現だけを抽出すると、ここで解析した範囲には存在しないようなので、サ変接続名詞が含まれる文節すべてについてマイニングします。</p>
+<pre class="r"><code>memo &lt;- res %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::mutate(
+    chunk = stringr::str_c(
+      word,
+      collapse = &quot;&quot;
+    )
+  ) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, POS1, POS2, Original, chunk)
+
+pattern &lt;- memo %&gt;%
+  dplyr::filter(POS2 == &quot;サ変接続&quot;) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::mutate(surface_form = stringr::str_c(
+    chunk,
+    collapse = &quot;&quot;
+  )) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx, D1) %&gt;%
+  dplyr::group_map(~ .x %&gt;%
+    dplyr::mutate(collocation = stringr::str_c(
+      &quot;&quot;,
+      memo$Original[memo$sentence_idx == .y$sentence_idx &amp; memo$D2 == .y$D1 &amp; memo$POS1 == &quot;助詞&quot;],
+      collapse = &quot; &quot;
+    )) %&gt;%
+    dplyr::mutate(chunk = stringr::str_c(
+      &quot;&quot;,
+      memo$chunk[memo$sentence_idx == .y$sentence_idx &amp; memo$D2 == .y$D1 &amp; memo$POS1 == &quot;助詞&quot;],
+      collapse = &quot; &quot;
+    ))) %&gt;%
+  purrr::map_dfr(~.) %&gt;%
+  dplyr::select(surface_form, collocation, chunk)
+
+pattern
+#&gt; # A tibble: 6 x 3
+#&gt;   surface_form       collocation        chunk                                   
+#&gt;   &lt;chr&gt;              &lt;chr&gt;              &lt;chr&gt;                                   
+#&gt; 1 見当が             &quot;&quot;                 &quot;&quot;                                      
+#&gt; 2 記憶している。     &quot;て だけ は&quot;       &quot;泣いて いた事だけは いた事だけは&quot;      
+#&gt; 3 話である。         &quot;という は という&quot; &quot;書生というのは 書生というのは 食うという&quot;~
+#&gt; 4 装飾されべきはずの &quot;をもって&quot;         &quot;第一毛をもって&quot;                        
+#&gt; 5 突起している。     &quot;が&quot;               &quot;真中が&quot;                                
+#&gt; 6 運転し始めた。     &quot;が と で&quot;         &quot;おったが、 すると 速力で&quot;</code></pre>
+<ol start="48" style="list-style-type: decimal">
+<li>名詞から根へのパスの抽出</li>
+</ol>
+<p><del>めちゃくちゃwarning出る</del></p>
+<pre class="r"><code>memo &lt;- res %&gt;%
+  dplyr::mutate_at(c(&quot;D1&quot;, &quot;D2&quot;), as.integer) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::mutate(
+    chunk = stringr::str_c(
+      word,
+      collapse = &quot;&quot;
+    )
+  ) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, POS1, Original, chunk) %&gt;%
+  dplyr::distinct(chunk, .keep_all = TRUE)
+
+pattern &lt;- memo %&gt;%
+  dplyr::filter(POS1 == &quot;名詞&quot;) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::group_map(~ .x %&gt;%
+    dplyr::mutate(path = stringr::str_c(
+      memo$chunk[
+        memo$sentence_idx == .y$sentence_idx &amp;
+          memo$chunk_idx &gt;= .y$chunk_idx &amp;
+          (memo$D2 &gt; .y$D1 || memo$D2 == -1L)
+      ],
+      collapse = &quot; -&gt; &quot;
+    ))) %&gt;%
+  purrr::map_dfr(~.) %&gt;%
+  dplyr::select(path)
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+#&gt; Warning: Unknown or uninitialised column: `D1`.
+
+pattern
+#&gt; # A tibble: 65 x 1
+#&gt;    path                                                                         
+#&gt;    &lt;chr&gt;                                                                        
+#&gt;  1 一                                                                           
+#&gt;  2 吾輩は -&gt; 猫である。                                                         
+#&gt;  3 猫である。                                                                   
+#&gt;  4 名前は -&gt; まだ -&gt; 無い。                                                     
+#&gt;  5 見当が -&gt; つかぬ。                                                           
+#&gt;  6 何でも -&gt; 薄暗い -&gt; じめじめした -&gt; 所で -&gt; 泣いて -&gt; いた事だけは -&gt; 記憶している。~
+#&gt;  7 所で -&gt; 泣いて -&gt; いた事だけは -&gt; 記憶している。                             
+#&gt;  8 いた事だけは -&gt; 記憶している。                                               
+#&gt;  9 記憶している。                                                               
+#&gt; 10 ここで -&gt; 始めて -&gt; 人間という -&gt; ものを -&gt; 見た。                           
+#&gt; # ... with 55 more rows</code></pre>
+<ol start="49" style="list-style-type: decimal">
+<li>名詞間の係り受けパスの抽出</li>
+</ol>
+<p>疲れたので省略</p>
 </div>
 </div>
 <div id="セッション情報" class="section level2">
@@ -260,7 +487,7 @@ pattern
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-06-03                  
+#&gt;  date     2020-06-05                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  package     * version  date       lib source        
