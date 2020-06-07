@@ -1,10 +1,12 @@
 ---
-title: このサイトについて（ポエム）
-author: paithiov909
+title: 'このサイトについて（ポエム）'
+author: 'paithiov909'
 date: '2020-04-21'
+lastmod: '2020-4-21'
 tags:
   - Concepts
-description: 'Rでもにょる自然言語処理'
+description: 'RでRMeCabに依存しないテキストマイニング'
+chordsheet: true
 ---
 
 ## このサイトでやりたいこと
@@ -85,7 +87,7 @@ RMeCabに依存しない自然言語処理の手段をもっておこう（た�
 
 ### Rにちょっと慣れてきた人向け
 
-すでに述べたように、[{quanteda}](http://quanteda.io/index.html)はMeCabなどの依存なしでトークナイズから集計まで一通りこなせます。メンテナーにKohei Watanabeという日本人研究者らしい方もいて、日本語の[クイック・スタートガイド](https://quanteda.io/articles/pkgdown/quickstart_ja.html)も用意されているため、比較的とっつきやすいです。
+すでに述べたように、[{quanteda}](http://quanteda.io/index.html)はMeCabなどの依存なしでトークナイズから集計まで一通りこなせます。メンテナーにKohei WatanabeとAkitaka Matsuoという日本人研究者らしい方もいて、日本語の[クイック・スタートガイド](https://quanteda.io/articles/pkgdown/quickstart_ja.html)も用意されているため、比較的とっつきやすいです。
 
 ### Rがわりとできる人向け
 
@@ -99,16 +101,7 @@ RMeCabに依存しない自然言語処理の手段をもっておこう（た�
 
 ### 自然言語処理が得意な人向け
 
-RからUDのモデルを利用する選択肢として、[{udpipe}](https://bnosac.github.io/udpipe/en/)や[{spacyr}](https://spacyr.quanteda.io/articles/using_spacyr.html)があります。ただ、どちらについても日本語で読める「日本語のモデルを試してみた」といった情報はおそらくまったくないため、すでにUDのモデルの扱いに慣れていないと使いづらいと思います。また、{spacyr}についてはPythonの実行環境を用意する必要があります。
-
-## 想定される読者像
-
-ていねいな入門的なものではないのである程度慣れていてわかっている人向きです。以下のような読者を想定して書いています。
-
-- テキストマイニングがなんとなくわかる
-- Rの操作がなんとなくわかっている
-
-なお、理論や実装の解説はしない（できない）ので、そういうのが必要な人は自分で勉強してもらう前提です。
+RからUDのモデルを利用する選択肢として、[{udpipe}](https://bnosac.github.io/udpipe/en/)や[{spacyr}](https://spacyr.quanteda.io/articles/using_spacyr.html)があります。ただ、どちらについても日本語で読める「日本語のモデルを試してみた」といった情報はおそらくまったくないため、すでにUDのモデルの扱いに慣れていないと使いづらいと思います（解析した結果を単純にtibbleで持ちたい場合にはこれらをバックエンドにした[{cleanNLP}](https://github.com/statsmaths/cleanNLP)というパッケージがあり、それなりに便利に使うことはできます）。また、{spacyr}についてはPythonの実行環境を用意する必要があります。
 
 ## Have fun!!
 

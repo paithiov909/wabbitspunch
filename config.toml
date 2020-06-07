@@ -47,6 +47,10 @@ rssLimit = 10
         url = "/about/"
         weight = 2
     [[menu.main]]
+        name = "Info"
+        url = "/env/"
+        weight = 3
+    [[menu.main]]
         name = "Twitter"
         url = "https://twitter.com/paithiov909"
         weight = 3
