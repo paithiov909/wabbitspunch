@@ -20,7 +20,7 @@ rssLimit = 10
 [params]
     description = "Rでもにょる自然言語処理"
     author = "paithiov909"
-    images = ["image/wabbits.jpg"]
+    images = ["images/wabbits.jpg"]
 
     googleSearch = "000195935875495954044:0i-nojmdwds"
 
@@ -44,13 +44,13 @@ rssLimit = 10
         weight = 1
     [[menu.main]]
         name = "About"
-        url = "/about/"
+        url = "/articles/about/"
         weight = 2
     [[menu.main]]
         name = "Info"
-        url = "/env/"
+        url = "/articles/env/"
         weight = 3
     [[menu.main]]
         name = "Twitter"
         url = "https://twitter.com/paithiov909"
-        weight = 3
+        weight = 4
