@@ -1,7 +1,7 @@
 ---
 title: 短歌のテキストマイニング
 author: paithiov909
-date: "2020-06-11"
+date: "2020-06-12"
 slug: shinabitanori-tanka
 categories: []
 tags:
@@ -15,7 +15,6 @@ description: 'Rで短歌のテキストマイニング'
 <div id="ファイルの読み込み" class="section level2">
 <h2>ファイルの読み込み</h2>
 <p>自作短歌のテキストを読み込んで前処理しておきます。</p>
-<!--more-->
 <pre class="r"><code>normalize &lt;- function(str) {
   str %&gt;%
     stringr::str_replace_all(&quot;\u2019&quot;, &quot;\&#39;&quot;) %&gt;%
@@ -772,7 +771,7 @@ quanteda::textplot_xray(
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-06-11                  
+#&gt;  date     2020-06-12                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  ! package      * version  date       lib source        

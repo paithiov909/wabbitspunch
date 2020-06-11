@@ -23,8 +23,6 @@ stopifnot(require(tidyverse))
 
 自作短歌のテキストを読み込んで前処理しておきます。
 
-<!--more-->
-
 ```{r}
 normalize <- function(str) {
   str %>%

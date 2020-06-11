@@ -19,8 +19,6 @@ knitr::opts_chunk$set(
 stopifnot(require(tidyverse))
 ```
 
-<!--more-->
-
 ## 全体の見通し
 
 2020年版に触ってみますが、ぜんぶは解きません。無理です。

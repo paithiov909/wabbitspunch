@@ -1,7 +1,7 @@
 ---
 title: Rによるテキスト解析
 author: paithiov909
-date: "2020-06-11"
+date: "2020-06-12"
 slug: shinabitanori-google-docs
 categories: []
 tags:
@@ -18,7 +18,6 @@ description: 'Rでテキストマイニング'
 <blockquote>
 <p><a href="https://shinabitanori.qrunch.io/">あきる野市立希望的観測所</a></p>
 </blockquote>
-<!--more-->
 <p>これまでに書いた文章はいくつかの場所にバックアップを取っていて、Googleドキュメントにもバックアップがあります。今回はそれらを{googledrive}で取得し、{readtext}で読み込みます。</p>
 <p><code>googledrive::drive_download</code>はディレクトリごとダウンロードしたりはできないようなので、特定のディレクトリにあるファイルのリスト（dribble）を<code>dplyr::rowwise</code>で行ごとに渡して<code>dplyr::do</code>のなかでダウンロードしています（<code>dplyr::rowwise() %&gt;% dplyr::do()</code>という流れで処理するやり方は手元にあるdplyr v0.8.0の時点ですでにquestioningなので、将来的に使えなくなる可能性があります）。</p>
 <pre class="r"><code>aquarium &lt;- googledrive::drive_ls(&quot;Documents/aquarium/&quot;) %&gt;%
@@ -57,7 +56,7 @@ df[1, ]
 #&gt; # Rowwise: 
 #&gt;   rowid doc      name       local_path                                          
 #&gt;   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;                                               
-#&gt; 1     1 aquarium nd8e25452~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\Rtmpct4bpH/~</code></pre>
+#&gt; 1     1 aquarium nd8e25452~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\RtmpYlQ2hg/~</code></pre>
 </div>
 <div id="形態素解析" class="section level2">
 <h2>形態素解析</h2>
@@ -227,79 +226,79 @@ m$phi %&gt;%
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">グループ</td>
-<td align="left">価値</td>
 <td align="left">ゴリラ</td>
+<td align="left">x</td>
+<td align="left">グループ</td>
 </tr>
 <tr class="even">
+<td align="left">価値</td>
+<td align="left">ポエジー</td>
 <td align="left">条例</td>
+</tr>
+<tr class="odd">
 <td align="left">テクスト</td>
+<td align="left">運動会</td>
 <td align="left">因子</td>
 </tr>
+<tr class="even">
+<td align="left">感情</td>
+<td align="left">中止</td>
+<td align="left">文節</td>
+</tr>
 <tr class="odd">
-<td align="left">x</td>
-<td align="left">ポエジー</td>
-<td align="left">物語</td>
+<td align="left">語り</td>
+<td align="left">批評</td>
+<td align="left">文体</td>
 </tr>
 <tr class="even">
-<td align="left">文</td>
-<td align="left">感情</td>
-<td align="left">孤独</td>
+<td align="left">物語</td>
+<td align="left">詩的</td>
+<td align="left">研究</td>
 </tr>
 <tr class="odd">
-<td align="left">運動会</td>
-<td align="left">批評</td>
+<td align="left">ルール</td>
+<td align="left">文</td>
 <td align="left">対</td>
 </tr>
 <tr class="even">
-<td align="left">中止</td>
-<td align="left">行間</td>
+<td align="left">孤独</td>
+<td align="left">前件</td>
 <td align="left">さよなら</td>
 </tr>
 <tr class="odd">
-<td align="left">文節</td>
-<td align="left">文体</td>
-<td align="left">エンゲージメント</td>
+<td align="left">脅迫</td>
+<td align="left">行間</td>
+<td align="left">v</td>
 </tr>
 <tr class="even">
-<td align="left">前件</td>
-<td align="left">詩的</td>
-<td align="left">語り</td>
+<td align="left">演技</td>
+<td align="left">花水木</td>
+<td align="left">エンゲージメント</td>
 </tr>
 <tr class="odd">
-<td align="left">花水木</td>
-<td align="left">研究</td>
+<td align="left">自己</td>
+<td align="left">解釈</td>
 <td align="left">あかね</td>
 </tr>
 <tr class="even">
+<td align="left">共同</td>
 <td align="left">天気</td>
-<td align="left">意図</td>
-<td align="left">笑う</td>
+<td align="left">リズム</td>
 </tr>
 <tr class="odd">
-<td align="left">並列</td>
+<td align="left">硬派</td>
 <td align="left">主義</td>
-<td align="left">呼びかけ</td>
+<td align="left">文書</td>
 </tr>
 <tr class="even">
-<td align="left">v</td>
-<td align="left">ルール</td>
-<td align="left">安田</td>
-</tr>
-<tr class="odd">
-<td align="left">告げ</td>
+<td align="left">行為</td>
 <td align="left">効果</td>
-<td align="left">相貌</td>
-</tr>
-<tr class="even">
-<td align="left">q</td>
-<td align="left">評</td>
-<td align="left">得点</td>
+<td align="left">語り口</td>
 </tr>
 <tr class="odd">
-<td align="left">含意</td>
-<td align="left">脅迫</td>
-<td align="left">さちこ</td>
+<td align="left">泥</td>
+<td align="left">評</td>
+<td align="left">笑う</td>
 </tr>
 </tbody>
 </table>
@@ -355,16 +354,16 @@ wv &lt;- glove$fit_transform(
 ) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [05:24:14.271] epoch 1, loss 0.1959 
-#&gt; INFO  [05:24:14.419] epoch 2, loss 0.0973 
-#&gt; INFO  [05:24:14.542] epoch 3, loss 0.0773 
-#&gt; INFO  [05:24:14.667] epoch 4, loss 0.0654 
-#&gt; INFO  [05:24:14.773] epoch 5, loss 0.0568 
-#&gt; INFO  [05:24:14.887] epoch 6, loss 0.0502 
-#&gt; INFO  [05:24:14.988] epoch 7, loss 0.0449 
-#&gt; INFO  [05:24:15.097] epoch 8, loss 0.0406 
-#&gt; INFO  [05:24:15.209] epoch 9, loss 0.0370 
-#&gt; INFO  [05:24:15.329] epoch 10, loss 0.0340</code></pre>
+#&gt; INFO  [05:32:47.533] epoch 1, loss 0.1978 
+#&gt; INFO  [05:32:47.690] epoch 2, loss 0.0982 
+#&gt; INFO  [05:32:47.799] epoch 3, loss 0.0776 
+#&gt; INFO  [05:32:47.893] epoch 4, loss 0.0654 
+#&gt; INFO  [05:32:47.986] epoch 5, loss 0.0567 
+#&gt; INFO  [05:32:48.111] epoch 6, loss 0.0501 
+#&gt; INFO  [05:32:48.205] epoch 7, loss 0.0450 
+#&gt; INFO  [05:32:48.317] epoch 8, loss 0.0408 
+#&gt; INFO  [05:32:48.427] epoch 9, loss 0.0373 
+#&gt; INFO  [05:32:48.520] epoch 10, loss 0.0344</code></pre>
 <p>{Rtsne}で次元を減らして可視化します。</p>
 <pre class="r"><code>getRtsneAsTbl &lt;- function(tbl, dim = 2, perp = 30) {
   tsn &lt;- tbl %&gt;% Rtsne::Rtsne(dim = dim, perplexity = perp)
@@ -411,7 +410,7 @@ vec %&gt;%
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-06-11                  
+#&gt;  date     2020-06-12                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  ! package             * version   date       lib

@@ -19,8 +19,6 @@ knitr::opts_chunk$set(
 stopifnot(require(tidyverse))
 ```
 
-<!--more-->
-
 ## 係り受け解析
 
 ```{r}

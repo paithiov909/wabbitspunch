@@ -24,8 +24,6 @@ googledrive::drive_auth(cache = ".secrets")
 
 > [短歌時評のテキスト解析｜さちこ｜note](https://note.com/shinabitanori/n/nfbcb659d6134)
 
-<!--more-->
-
 ## 短歌結社誌サイトの時評のスクレイピング
 
 以下の２誌のサイトからネットに公開済みの時評を収集します。

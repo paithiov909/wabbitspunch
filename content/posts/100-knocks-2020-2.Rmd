@@ -19,8 +19,6 @@ knitr::opts_chunk$set(
 stopifnot(require(tidyverse))
 ```
 
-<!--more-->
-
 ## 形態素解析
 
 気をきかせて{readtext}で読みこんでおきます。

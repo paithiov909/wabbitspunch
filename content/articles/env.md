@@ -2,10 +2,10 @@
 title: 'Rによるテキストマイニングのはじめ方'
 author: 'paithiov909'
 date: '2020-06-07'
+lastmod: '2020-06-12'
 tags:
   - Settings
 description: '環境構築の例'
-chordsheet: true
 ---
 
 ## この記事について

@@ -26,8 +26,6 @@ googledrive::drive_auth(cache = ".secrets")
 
 > [あきる野市立希望的観測所](https://shinabitanori.qrunch.io/)
 
-<!--more-->
-
 これまでに書いた文章はいくつかの場所にバックアップを取っていて、Googleドキュメントにもバックアップがあります。今回はそれらを{googledrive}で取得し、{readtext}で読み込みます。
 
 `googledrive::drive_download`はディレクトリごとダウンロードしたりはできないようなので、特定のディレクトリにあるファイルのリスト（dribble）を`dplyr::rowwise`で行ごとに渡して`dplyr::do`のなかでダウンロードしています（`dplyr::rowwise() %>% dplyr::do()`という流れで処理するやり方は手元にあるdplyr v0.8.0の時点ですでにquestioningなので、将来的に使えなくなる可能性があります）。

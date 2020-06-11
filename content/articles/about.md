@@ -6,7 +6,6 @@ lastmod: '2020-4-21'
 tags:
   - Concepts
 description: 'RでRMeCabに依存しないテキストマイニング'
-chordsheet: true
 ---
 
 ## このサイトでやりたいこと

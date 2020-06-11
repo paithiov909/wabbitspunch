@@ -50,8 +50,6 @@ if (nrow(cache) >= 1) {
 
 > [短歌時評のテキスト解析｜さちこ｜note](https://note.com/shinabitanori/n/nfbcb659d6134)
 
-<!--more-->
-
 ## スプレッドシートの読み込み
 
 ```{r}

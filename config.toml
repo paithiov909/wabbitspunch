@@ -20,7 +20,7 @@ rssLimit = 10
 [params]
     description = "Rでもにょる自然言語処理"
     author = "paithiov909"
-    images = ["images/wabbits.jpg"]
+    images = ["image/wabbits.jpg"]
 
     googleSearch = "000195935875495954044:0i-nojmdwds"
 
