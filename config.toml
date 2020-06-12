@@ -54,3 +54,7 @@ rssLimit = 10
         name = "Twitter"
         url = "https://twitter.com/paithiov909"
         weight = 4
+    [[menu.main]]
+        name = "RSS"
+        url = "https://feedly.com/i/subscription/feed%2Fhttps%3A%2F%2Fwabbitspunch.netlify.app%2Findex.xml"
+        weight = 5
