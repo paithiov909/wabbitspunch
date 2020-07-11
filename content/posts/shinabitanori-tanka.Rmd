@@ -2,6 +2,7 @@
 title: 短歌のテキストマイニング
 author: paithiov909
 date: "`r Sys.Date()`"
+lastmod: '2020-07-11'
 slug: shinabitanori-tanka
 categories: []
 tags:
@@ -15,7 +16,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-
 stopifnot(require(tidyverse))
 ```
 

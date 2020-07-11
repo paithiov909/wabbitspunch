@@ -2,6 +2,7 @@
 title: Rで言語処理100本ノックを解くわけがない（２）
 author: paithiov909
 date: "`r Sys.Date()`"
+lastmod: '2020-07-11'
 slug: 100-knocks-2020-2
 categories: []
 tags:
@@ -15,7 +16,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-
 stopifnot(require(tidyverse))
 ```
 

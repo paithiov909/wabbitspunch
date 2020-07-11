@@ -2,6 +2,7 @@
 title: Rで言語処理100本ノックを解くわけがない（３）
 author: paithiov909
 date: "`r Sys.Date()`"
+lastmod: '2020-07-11'
 slug: 100-knocks-2020-3
 categories: []
 tags:
@@ -15,7 +16,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-
 stopifnot(require(tidyverse))
 ```
 
@@ -37,7 +37,7 @@ neko$text[1] %>%
 ```{r}
 res <- neko$text[1] %>%
     readr::read_lines(skip_empty_rows = TRUE)
-res <- res[1:20] %>%
+res <- res[1:30] %>%
     iconv(from = "UTF-8", to = "CP932") %>%
     pipian::cabochaFlatXML()
     
@@ -263,7 +263,7 @@ pattern <- memo %>%
       memo$chunk[
         memo$sentence_idx == .y$sentence_idx &
         memo$chunk_idx >= .y$chunk_idx &
-        (memo$D2 > .y$D1 || memo$D2 ==  -1L)
+        (memo$D2 > .x$D1 || memo$D2 ==  -1L)
       ],
       collapse = " -> "
     ))

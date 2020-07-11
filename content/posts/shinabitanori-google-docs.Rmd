@@ -2,6 +2,7 @@
 title: Rによるテキスト解析
 author: paithiov909
 date: "`r Sys.Date()`"
+lastmod: '2020-07-11'
 slug: shinabitanori-google-docs
 categories: []
 tags:
@@ -40,14 +41,6 @@ aquarium <- googledrive::drive_ls("Documents/aquarium/") %>%
     overwrite = TRUE,
     verbose = FALSE
   ))
-lyrical <- googledrive::drive_ls("Documents/lyrical/") %>%
-  dplyr::rowwise() %>%
-  dplyr::do(googledrive::drive_download(
-    googledrive::as_id(.$id),
-    path = file.path(tempdir(), .$name),
-    overwrite = TRUE,
-    verbose = FALSE
-  ))
 shinabitanori <- googledrive::drive_ls("Documents/shinabitanori/") %>%
   dplyr::rowwise() %>%
   dplyr::do(googledrive::drive_download(
@@ -61,7 +54,7 @@ shinabitanori <- googledrive::drive_ls("Documents/shinabitanori/") %>%
 ダウンロードしたdocxファイルのリストをデータフレームとして持っておきます。文章は公開されている場所などに応じて３つのディレクトリに分けて保存されています。ここでは、この保存されているディレクトリを文書の変数として持つようにします。
 
 ```{r}
-df <- list("aquarium", "lyrical", "shinabitanori") %>%
+df <- list("aquarium", "shinabitanori") %>%
   purrr::map_dfr(~
   dplyr::mutate(rlang::eval_tidy(rlang::parse_expr(.)), doc = .)) %>%
   dplyr::select(doc, name, local_path) %>%
@@ -147,14 +140,14 @@ corp %>%
 
 ## Keyness
 
-lyricalグループの文書とその他の対照を見ています。
+aquariumグループの文書とその他の対照を見ています。
 
 ```{r}
 corp %>%
   quanteda::tokens(what = "fastestword") %>%
   quanteda::tokens_remove(stopwords, valuetype = "fixed") %>%
   quanteda::dfm(groups = "doc") %>%
-  quanteda::textstat_keyness(target = "lyrical") %>%
+  quanteda::textstat_keyness(target = "aquarium") %>%
   quanteda::textplot_keyness()
 ```
 
@@ -257,7 +250,7 @@ readr::read_lines_raw(file.path(getwd(), "cache", "lda.json")) %>%
   jsonlite::write_json(file.path(getwd(), "cache", "lda.json"), dataframe = "columns", auto_unbox = TRUE)
 ```
 
-```{r, include = FALSE}
+```{r, include=FALSE}
 targets <- list.files(path = file.path(getwd(), "cache"), all.files = TRUE, full.names = TRUE, no.. = TRUE)
 
 unlink(

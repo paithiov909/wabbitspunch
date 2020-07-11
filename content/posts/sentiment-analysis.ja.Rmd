@@ -2,6 +2,7 @@
 title: Rからおこなう係り受けを考慮したテキストの感情分析
 author: paithiov909
 date: "`r Sys.Date()`"
+lastmod: '2020-07-11'
 slug: sentiment-analysis
 categories: []
 tags:

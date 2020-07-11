@@ -1,7 +1,8 @@
 ---
 title: Rで言語処理100本ノックを解くわけがない（３）
 author: paithiov909
-date: "2020-06-12"
+date: "2020-07-11"
+lastmod: '2020-07-11'
 slug: 100-knocks-2020-3
 categories: []
 tags:
@@ -26,12 +27,19 @@ neko$text[1] %&gt;%
 <p>ここでも<a href="https://paithiov909.github.io/pipian/">オレオレパッケージ</a>を使います。設問の通りにクラスを実装したりはしませんが、だいたい似たような情報を出力できます。ただし、ここでは解析するのはごく一部だけにしています。</p>
 <pre class="r"><code>res &lt;- neko$text[1] %&gt;%
   readr::read_lines(skip_empty_rows = TRUE)
-res &lt;- res[1:20] %&gt;%
+res &lt;- res[1:30] %&gt;%
   iconv(from = &quot;UTF-8&quot;, to = &quot;CP932&quot;) %&gt;%
   pipian::cabochaFlatXML()
 
 res &lt;- pipian::CabochaR(res)$as_tibble()
 head(res)
+#&gt; Warning: `...` is not empty.
+#&gt; 
+#&gt; We detected these problematic arguments:
+#&gt; * `needs_dots`
+#&gt; 
+#&gt; These dots only exist to allow future extensions and should be empty.
+#&gt; Did you misspecify an argument?
 #&gt; # A tibble: 6 x 20
 #&gt;   sentence_idx chunk_idx D1    D2    rel   score head  func  tok_idx ne_value
 #&gt;          &lt;int&gt;     &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;   
@@ -48,6 +56,13 @@ head(res)
 <pre class="r"><code>res %&gt;%
   dplyr::filter(sentence_idx == 3) %&gt;%
   dplyr::select(word)
+#&gt; Warning: `...` is not empty.
+#&gt; 
+#&gt; We detected these problematic arguments:
+#&gt; * `needs_dots`
+#&gt; 
+#&gt; These dots only exist to allow future extensions and should be empty.
+#&gt; Did you misspecify an argument?
 #&gt; # A tibble: 5 x 1
 #&gt;   word 
 #&gt;   &lt;chr&gt;
@@ -87,6 +102,13 @@ memo %&gt;%
   dplyr::ungroup() %&gt;%
   dplyr::select(chunk, collocation) %&gt;%
   head()
+#&gt; Warning: `...` is not empty.
+#&gt; 
+#&gt; We detected these problematic arguments:
+#&gt; * `needs_dots`
+#&gt; 
+#&gt; These dots only exist to allow future extensions and should be empty.
+#&gt; Did you misspecify an argument?
 #&gt; # A tibble: 6 x 2
 #&gt;   chunk    collocation    
 #&gt;   &lt;chr&gt;    &lt;chr&gt;          
@@ -125,6 +147,13 @@ memo %&gt;%
   dplyr::select(chunk, collocation) %&gt;%
   dplyr::filter(chunk != collocation) %&gt;%
   head()
+#&gt; Warning: `...` is not empty.
+#&gt; 
+#&gt; We detected these problematic arguments:
+#&gt; * `needs_dots`
+#&gt; 
+#&gt; These dots only exist to allow future extensions and should be empty.
+#&gt; Did you misspecify an argument?
 #&gt; # A tibble: 6 x 2
 #&gt;   chunk        collocation                
 #&gt;   &lt;chr&gt;        &lt;chr&gt;                      
@@ -164,7 +193,14 @@ pattern &lt;- memo %&gt;%
   dplyr::select(Original, collocation)
 
 pattern
-#&gt; # A tibble: 49 x 2
+#&gt; Warning: `...` is not empty.
+#&gt; 
+#&gt; We detected these problematic arguments:
+#&gt; * `needs_dots`
+#&gt; 
+#&gt; These dots only exist to allow future extensions and should be empty.
+#&gt; Did you misspecify an argument?
+#&gt; # A tibble: 75 x 2
 #&gt;    Original collocation 
 #&gt;    &lt;chr&gt;    &lt;chr&gt;       
 #&gt;  1 生れる   &quot;で&quot;        
@@ -177,25 +213,35 @@ pattern
 #&gt;  8 見る     &quot;は を&quot;     
 #&gt;  9 聞く     &quot;で&quot;        
 #&gt; 10 捕える   &quot;を&quot;        
-#&gt; # ... with 39 more rows</code></pre>
+#&gt; # ... with 65 more rows</code></pre>
 <p>「する」「見る」「与える」という動詞の格パターン</p>
 <pre class="r"><code>pattern %&gt;%
   dplyr::filter(Original %in% c(&quot;する&quot;, &quot;見る&quot;, &quot;与える&quot;)) %&gt;%
   dplyr::group_by(Original, collocation) %&gt;%
   dplyr::count()
-#&gt; # A tibble: 9 x 3
-#&gt; # Groups:   Original, collocation [9]
-#&gt;   Original collocation      n
-#&gt;   &lt;chr&gt;    &lt;chr&gt;        &lt;int&gt;
-#&gt; 1 する     &quot;&quot;               4
-#&gt; 2 する     &quot;が&quot;             2
-#&gt; 3 する     &quot;が と で&quot;       1
-#&gt; 4 する     &quot;て だけ は&quot;     1
-#&gt; 5 する     &quot;も&quot;             1
-#&gt; 6 する     &quot;をもって&quot;       1
-#&gt; 7 見る     &quot;て を&quot;          1
-#&gt; 8 見る     &quot;の&quot;             1
-#&gt; 9 見る     &quot;は を&quot;          1</code></pre>
+#&gt; Warning: `...` is not empty.
+#&gt; 
+#&gt; We detected these problematic arguments:
+#&gt; * `needs_dots`
+#&gt; 
+#&gt; These dots only exist to allow future extensions and should be empty.
+#&gt; Did you misspecify an argument?
+#&gt; # A tibble: 12 x 3
+#&gt; # Groups:   Original, collocation [12]
+#&gt;    Original collocation      n
+#&gt;    &lt;chr&gt;    &lt;chr&gt;        &lt;int&gt;
+#&gt;  1 する     &quot;&quot;               4
+#&gt;  2 する     &quot;が&quot;             2
+#&gt;  3 する     &quot;が と で&quot;       1
+#&gt;  4 する     &quot;て だけ は&quot;     1
+#&gt;  5 する     &quot;と が&quot;          1
+#&gt;  6 する     &quot;まで は&quot;        1
+#&gt;  7 する     &quot;も&quot;             1
+#&gt;  8 する     &quot;をもって&quot;       1
+#&gt;  9 見る     &quot;て&quot;             2
+#&gt; 10 見る     &quot;て を&quot;          1
+#&gt; 11 見る     &quot;の&quot;             1
+#&gt; 12 見る     &quot;は を&quot;          1</code></pre>
 </div>
 <div id="動詞の格フレーム情報の抽出" class="section level3">
 <h3>46. 動詞の格フレーム情報の抽出</h3>
@@ -229,7 +275,14 @@ pattern &lt;- memo %&gt;%
   dplyr::select(Original, collocation, chunk)
 
 pattern
-#&gt; # A tibble: 49 x 3
+#&gt; Warning: `...` is not empty.
+#&gt; 
+#&gt; We detected these problematic arguments:
+#&gt; * `needs_dots`
+#&gt; 
+#&gt; These dots only exist to allow future extensions and should be empty.
+#&gt; Did you misspecify an argument?
+#&gt; # A tibble: 75 x 3
 #&gt;    Original collocation  chunk                             
 #&gt;    &lt;chr&gt;    &lt;chr&gt;        &lt;chr&gt;                             
 #&gt;  1 生れる   &quot;で&quot;         &quot;　どこで&quot;                        
@@ -242,7 +295,7 @@ pattern
 #&gt;  8 見る     &quot;は を&quot;      &quot;吾輩は ものを&quot;                   
 #&gt;  9 聞く     &quot;で&quot;         &quot;あとで&quot;                          
 #&gt; 10 捕える   &quot;を&quot;         &quot;我々を&quot;                          
-#&gt; # ... with 39 more rows</code></pre>
+#&gt; # ... with 65 more rows</code></pre>
 </div>
 <div id="機能動詞構文のマイニング" class="section level3">
 <h3>47. 機能動詞構文のマイニング</h3>
@@ -282,7 +335,14 @@ pattern &lt;- memo %&gt;%
   dplyr::select(surface_form, collocation, chunk)
 
 pattern
-#&gt; # A tibble: 6 x 3
+#&gt; Warning: `...` is not empty.
+#&gt; 
+#&gt; We detected these problematic arguments:
+#&gt; * `needs_dots`
+#&gt; 
+#&gt; These dots only exist to allow future extensions and should be empty.
+#&gt; Did you misspecify an argument?
+#&gt; # A tibble: 7 x 3
 #&gt;   surface_form       collocation        chunk                                   
 #&gt;   &lt;chr&gt;              &lt;chr&gt;              &lt;chr&gt;                                   
 #&gt; 1 見当が             &quot;&quot;                 &quot;&quot;                                      
@@ -290,7 +350,8 @@ pattern
 #&gt; 3 話である。         &quot;という は という&quot; &quot;書生というのは 書生というのは 食うという&quot;~
 #&gt; 4 装飾されべきはずの &quot;をもって&quot;         &quot;第一毛をもって&quot;                        
 #&gt; 5 突起している。     &quot;が&quot;               &quot;真中が&quot;                                
-#&gt; 6 運転し始めた。     &quot;が と で&quot;         &quot;おったが、 すると 速力で&quot;</code></pre>
+#&gt; 6 運転し始めた。     &quot;が と で&quot;         &quot;おったが、 すると 速力で&quot;              
+#&gt; 7 記憶しているが     &quot;まで は&quot;          &quot;それまでは それまでは&quot;</code></pre>
 <ol start="48" style="list-style-type: decimal">
 <li>名詞から根へのパスの抽出</li>
 </ol>
@@ -316,144 +377,22 @@ pattern &lt;- memo %&gt;%
       memo$chunk[
         memo$sentence_idx == .y$sentence_idx &amp;
           memo$chunk_idx &gt;= .y$chunk_idx &amp;
-          (memo$D2 &gt; .y$D1 || memo$D2 == -1L)
+          (memo$D2 &gt; .x$D1 || memo$D2 == -1L)
       ],
       collapse = &quot; -&gt; &quot;
     ))) %&gt;%
   purrr::map_dfr(~.) %&gt;%
   dplyr::select(path)
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
-
-#&gt; Warning: Unknown or uninitialised column: `D1`.
 
 pattern
-#&gt; # A tibble: 65 x 1
+#&gt; Warning: `...` is not empty.
+#&gt; 
+#&gt; We detected these problematic arguments:
+#&gt; * `needs_dots`
+#&gt; 
+#&gt; These dots only exist to allow future extensions and should be empty.
+#&gt; Did you misspecify an argument?
+#&gt; # A tibble: 92 x 1
 #&gt;    path                                                                         
 #&gt;    &lt;chr&gt;                                                                        
 #&gt;  1 一                                                                           
@@ -466,7 +405,7 @@ pattern
 #&gt;  8 いた事だけは -&gt; 記憶している。                                               
 #&gt;  9 記憶している。                                                               
 #&gt; 10 ここで -&gt; 始めて -&gt; 人間という -&gt; ものを -&gt; 見た。                           
-#&gt; # ... with 55 more rows</code></pre>
+#&gt; # ... with 82 more rows</code></pre>
 <ol start="49" style="list-style-type: decimal">
 <li>名詞間の係り受けパスの抽出</li>
 </ol>
@@ -486,17 +425,17 @@ pattern
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-06-12                  
+#&gt;  date     2020-07-11                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  package     * version  date       lib source        
 #&gt;  assertthat    0.2.1    2019-03-21 [1] CRAN (R 3.6.3)
-#&gt;  backports     1.1.7    2020-05-13 [1] CRAN (R 3.6.3)
+#&gt;  backports     1.1.8    2020-06-17 [1] CRAN (R 3.6.3)
 #&gt;  bitops        1.0-6    2013-08-17 [1] CRAN (R 3.6.0)
 #&gt;  blob          1.2.1    2020-01-20 [1] CRAN (R 3.6.3)
-#&gt;  blogdown      0.19     2020-05-22 [1] CRAN (R 3.6.3)
-#&gt;  bookdown      0.19     2020-05-15 [1] CRAN (R 3.6.3)
-#&gt;  broom         0.5.6    2020-04-20 [1] CRAN (R 3.6.3)
+#&gt;  blogdown      0.20     2020-06-23 [1] CRAN (R 3.6.3)
+#&gt;  bookdown      0.20     2020-06-23 [1] CRAN (R 3.6.3)
+#&gt;  broom         0.7.0    2020-07-09 [1] CRAN (R 3.6.3)
 #&gt;  callr         3.4.3    2020-03-28 [1] CRAN (R 3.6.3)
 #&gt;  cellranger    1.1.0    2016-07-27 [1] CRAN (R 3.6.3)
 #&gt;  cli           2.0.2    2020-02-28 [1] CRAN (R 3.6.3)
@@ -514,33 +453,31 @@ pattern
 #&gt;  fansi         0.4.1    2020-01-08 [1] CRAN (R 3.6.3)
 #&gt;  flatxml       0.0.2    2018-07-08 [1] CRAN (R 3.6.3)
 #&gt;  forcats     * 0.5.0    2020-03-01 [1] CRAN (R 3.6.3)
-#&gt;  fs            1.4.1    2020-04-04 [1] CRAN (R 3.6.3)
+#&gt;  fs            1.4.2    2020-06-30 [1] CRAN (R 3.6.3)
 #&gt;  generics      0.0.2    2018-11-29 [1] CRAN (R 3.6.3)
-#&gt;  ggplot2     * 3.3.1    2020-05-28 [1] CRAN (R 3.6.3)
+#&gt;  ggplot2     * 3.3.2    2020-06-19 [1] CRAN (R 3.6.3)
 #&gt;  glue          1.4.1    2020-05-13 [1] CRAN (R 3.6.3)
 #&gt;  gtable        0.3.0    2019-03-25 [1] CRAN (R 3.6.3)
 #&gt;  haven         2.3.1    2020-06-01 [1] CRAN (R 3.6.3)
 #&gt;  hms           0.5.3    2020-01-08 [1] CRAN (R 3.6.3)
-#&gt;  htmltools     0.4.0    2019-10-04 [1] CRAN (R 3.6.3)
+#&gt;  htmltools     0.5.0    2020-06-16 [1] CRAN (R 3.6.3)
 #&gt;  httr          1.4.1    2019-08-05 [1] CRAN (R 3.6.3)
 #&gt;  igraph        1.2.5    2020-03-19 [1] CRAN (R 3.6.3)
-#&gt;  jsonlite      1.6.1    2020-02-02 [1] CRAN (R 3.6.3)
-#&gt;  knitr         1.28     2020-02-06 [1] CRAN (R 3.6.3)
-#&gt;  lattice       0.20-38  2018-11-04 [2] CRAN (R 3.6.3)
+#&gt;  jsonlite      1.7.0    2020-06-25 [1] CRAN (R 3.6.3)
+#&gt;  knitr         1.29     2020-06-23 [1] CRAN (R 3.6.3)
 #&gt;  lifecycle     0.2.0    2020-03-06 [1] CRAN (R 3.6.3)
 #&gt;  lubridate     1.7.9    2020-06-08 [1] CRAN (R 3.6.3)
 #&gt;  magrittr      1.5      2014-11-22 [1] CRAN (R 3.6.3)
 #&gt;  memoise       1.1.0    2017-04-21 [1] CRAN (R 3.6.3)
 #&gt;  modelr        0.1.8    2020-05-19 [1] CRAN (R 3.6.3)
 #&gt;  munsell       0.5.0    2018-06-12 [1] CRAN (R 3.6.3)
-#&gt;  nlme          3.1-144  2020-02-06 [2] CRAN (R 3.6.3)
-#&gt;  pillar        1.4.4    2020-05-05 [1] CRAN (R 3.6.3)
+#&gt;  pillar        1.4.6    2020-07-10 [1] CRAN (R 3.6.3)
 #&gt;  pipian        0.2.1    2020-06-02 [1] local         
 #&gt;  pkgbuild      1.0.8    2020-05-07 [1] CRAN (R 3.6.3)
 #&gt;  pkgconfig     2.0.3    2019-09-22 [1] CRAN (R 3.6.3)
 #&gt;  pkgload       1.1.0    2020-05-29 [1] CRAN (R 3.6.3)
 #&gt;  prettyunits   1.1.1    2020-01-24 [1] CRAN (R 3.6.3)
-#&gt;  processx      3.4.2    2020-02-09 [1] CRAN (R 3.6.3)
+#&gt;  processx      3.4.3    2020-07-05 [1] CRAN (R 3.6.3)
 #&gt;  ps            1.3.3    2020-05-08 [1] CRAN (R 3.6.3)
 #&gt;  purrr       * 0.3.4    2020-04-17 [1] CRAN (R 3.6.3)
 #&gt;  R.cache       0.14.0   2019-12-06 [1] CRAN (R 3.6.3)
@@ -548,7 +485,7 @@ pattern
 #&gt;  R.oo          1.23.0   2019-11-03 [1] CRAN (R 3.6.2)
 #&gt;  R.utils       2.9.2    2019-12-08 [1] CRAN (R 3.6.3)
 #&gt;  R6            2.4.1    2019-11-12 [1] CRAN (R 3.6.3)
-#&gt;  Rcpp          1.0.4.6  2020-04-09 [1] CRAN (R 3.6.3)
+#&gt;  Rcpp          1.0.5    2020-07-06 [1] CRAN (R 3.6.3)
 #&gt;  RCurl         1.98-1.2 2020-04-18 [1] CRAN (R 3.6.3)
 #&gt;  readr       * 1.3.1    2018-12-21 [1] CRAN (R 3.6.3)
 #&gt;  readtext      0.76     2020-03-04 [1] CRAN (R 3.6.3)
@@ -556,7 +493,7 @@ pattern
 #&gt;  remotes       2.1.1    2020-02-15 [1] CRAN (R 3.6.3)
 #&gt;  reprex        0.3.0    2019-05-16 [1] CRAN (R 3.6.3)
 #&gt;  rlang         0.4.6    2020-05-02 [1] CRAN (R 3.6.3)
-#&gt;  rmarkdown     2.2      2020-05-31 [1] CRAN (R 3.6.3)
+#&gt;  rmarkdown     2.3      2020-06-18 [1] CRAN (R 3.6.3)
 #&gt;  rprojroot     1.3-2    2018-01-03 [1] CRAN (R 3.6.3)
 #&gt;  rstudioapi    0.11     2020-02-07 [1] CRAN (R 3.6.3)
 #&gt;  rvest         0.3.5    2019-11-08 [1] CRAN (R 3.6.3)
@@ -566,7 +503,7 @@ pattern
 #&gt;  stringr     * 1.4.0    2019-02-10 [1] CRAN (R 3.6.3)
 #&gt;  styler        1.3.2    2020-02-23 [1] CRAN (R 3.6.3)
 #&gt;  testthat      2.3.2    2020-03-02 [1] CRAN (R 3.6.3)
-#&gt;  tibble      * 3.0.1    2020-04-20 [1] CRAN (R 3.6.3)
+#&gt;  tibble      * 3.0.2    2020-07-07 [1] CRAN (R 3.6.3)
 #&gt;  tidyr       * 1.1.0    2020-05-20 [1] CRAN (R 3.6.3)
 #&gt;  tidyselect    1.1.0    2020-05-11 [1] CRAN (R 3.6.3)
 #&gt;  tidyverse   * 1.3.0    2019-11-21 [1] CRAN (R 3.6.3)
@@ -574,7 +511,7 @@ pattern
 #&gt;  utf8          1.1.4    2018-05-24 [1] CRAN (R 3.6.3)
 #&gt;  vctrs         0.3.1    2020-06-05 [1] CRAN (R 3.6.3)
 #&gt;  withr         2.2.0    2020-04-20 [1] CRAN (R 3.6.3)
-#&gt;  xfun          0.14     2020-05-20 [1] CRAN (R 3.6.3)
+#&gt;  xfun          0.15     2020-06-21 [1] CRAN (R 3.6.3)
 #&gt;  xml2          1.3.2    2020-04-23 [1] CRAN (R 3.6.3)
 #&gt;  yaml          2.2.1    2020-02-01 [1] CRAN (R 3.6.3)
 #&gt; 

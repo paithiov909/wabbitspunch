@@ -1,8 +1,9 @@
 ---
-title: 'Rによるテキストマイニングのはじめ方'
-author: 'paithiov909'
+title: Rによるテキストマイニングのはじめ方
+author: paithiov909
 date: '2020-06-07'
 lastmod: '2020-06-12'
+slug: env
 tags:
   - Settings
 description: '環境構築の例'
