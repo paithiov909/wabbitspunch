@@ -1,0 +1,109 @@
+---
+title: spacyr・cleanNLPのデモ
+author: paithiov909
+date: '2020-07-16'
+lastmod: "`r Sys.Date()`"
+slug: sapcyr-clenanlp-demo
+categories: []
+tags:
+  - NLP
+description: 'spacyr・cleanNLPのデモ on Windows'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  tidy = "styler",
+  collapse = TRUE,
+  comment = "#>"
+)
+
+stopifnot(require(tidyverse))
+stopifnot(require(reticulate))
+```
+
+## spacyr
+
+### 環境
+
+Windows10、Miniconda3 (Python 3.7.6 64-bit) です。
+
+### spacyrについて
+
+[spaCy](https://spacy.io/)を{reticulate}経由で呼ぶRパッケージです。
+
+> [Wrapper to the spaCy NLP Library • spacyr](https://spacyr.quanteda.io/)
+
+spaCyは2.3で日本語のモデルが利用できるようになったらしいです。
+
+### Initialize
+
+簡単に導入できるのですが、Windows環境だけの罠として以下の手順はRを管理者権限で実行する必要があります。Rstudioならショートカットを右クリックから「管理者として実行」です。
+
+> For Windows, you need to run R as an administrator to make installation work properly. To do so, right click the RStudio icon (or R desktop icon) and select “Run as administrator” when launching R.
+
+管理者として以下のスクリプトを実行すると、`spacy_condaenv`という名前のcondaenv内にspaCyと日本語の`ja_core_news_md`というモデルがダウンロードされます
+
+```r
+spacyr::spacy_install()
+spacyr::spacy_download_langmodel("ja_core_news_md")
+```
+
+モデルをロードして使います。
+
+```{r}
+spacyr::spacy_initialize(model = "ja_core_news_md")
+```
+
+### 使用例
+
+日本語のモデルではlemmatizationはうまく動かないよという怒られが発生するので`lemma = FALSE`とします。
+
+```{r}
+spacyr::spacy_parse("望遠鏡で泳ぐ彼女を見た", lemma = FALSE)
+```
+
+UDなので係り受けを出せます。
+
+```{r}
+spacyr::spacy_parse("望遠鏡で泳ぐ彼女を見た", dependency = TRUE, lemma = FALSE, pos = FALSE)
+```
+
+とくにサイズの大きいモデルを使う場合、モデルをメモリに読み込んだままだとよろしくない場合があるので、使い終わったら以下のおまじないを実行するとよいらしいです。
+
+```{r}
+spacyr::spacy_finalize()
+```
+
+## cleanNLP
+
+### cleanNLPについて
+
+UDPipe、spaCy、CoreNLPをtidyに使えるよ！というRパッケージです。
+
+> [cleanNLP: A Tidy Data Model for Natural Language Processing | cleanNLP](https://statsmaths.github.io/cleanNLP/)
+
+UDPipeについてはふつうに{udpipe}をバックエンドとして使っています。spaCyとCoreNLPについてはpipでPythonライブラリを別途導入して、それをバックエンドとして使うようです（{spacyr}や{coreNLP}とは無関係）。spaCyについてはcondaenvのなかにすでにモデルをダウンロードしてあるのでそれを利用できないか試してみたのですが、手元ではうまく動かせませんでした。実質的に{udpipe}のラッパーという感じです。
+
+### Initialize
+
+`clenaNLP::cnlp_init_udpipe`だけで動くようになります。脳死でも使えて便利。
+
+```{r}
+library(cleanNLP)
+cleanNLP::cnlp_init_udpipe(model_name = "japanese")
+```
+
+### 使用例
+
+Windows環境なので文字コードをUTF-8に変換して渡す必要があります。
+
+```{r}
+annotation <- cleanNLP::cnlp_annotate(input = iconv("望遠鏡で泳ぐ彼女を見た", to = "UTF-8"))
+annotation$token
+```
+
+## セッション情報
+
+```{r}
+sessioninfo::session_info()
+```
