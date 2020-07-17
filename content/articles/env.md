@@ -59,3 +59,24 @@ MeCabとCaboChaを入れていきます。
 32bit版については公式のインストーラを用いて入れることができます。文字コードはShift-JISを指定し、いずれについてもインストール先のディレクトリ配下の`bin`にパスを通しておきます。「全ユーザーに実行を許可しますか」という選択肢は「はい」を選びます。
 
 {RMeCab}や{RcppMeCab}はダイナミックライブラリについては環境変数を見てパスが通っているものを読みに行きますが、辞書についてはレジストリを見て読みに行くため、この手順にしたがって環境を準備した場合、64bitのRからは64bitのMeCabが呼ばれ、辞書はShift-JISのものが参照されます。この場合、Windows環境の{RMeCab}はShift-JISの辞書を前提としているため正しく表示されますが、{RcppMeCab}はUTF-8で文字列を渡してUTF-8の辞書で解析することを前提としているために正しく表示されなくなります。このため、この状態で{RcppMeCab}の関数を呼ぶ場合には都度64bit版のほうのシステム辞書のパスを引数として与える必要があります。
+
+## 自作パッケージ
+
+ブログ記事中で使用している自作パッケージです。
+
+### pipian
+
+[![paithiov909/pipian - GitHub](https://gh-card.dev/repos/paithiov909/pipian.svg?fullname=)](https://github.com/paithiov909/pipian)
+
+### rjavacmecab
+
+[![paithiov909/rjavacmecab - GitHub](https://gh-card.dev/repos/paithiov909/rjavacmecab.svg?fullname=)](https://github.com/paithiov909/rjavacmecab)
+
+### gibasa
+
+[![paithiov909/gibasa - GitHub](https://gh-card.dev/repos/paithiov909/gibasa.svg?fullname=)](https://github.com/paithiov909/gibasa)
+
+### tangela
+
+[![paithiov909/tangela - GitHub](https://gh-card.dev/repos/paithiov909/tangela.svg?fullname=)](https://github.com/paithiov909/tangela)
+

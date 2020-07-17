@@ -1,8 +1,8 @@
 ---
 title: Rによるテキスト解析
 author: paithiov909
-date: "2020-07-11"
-lastmod: '2020-07-11'
+date: '2020-07-11'
+lastmod: "2020-07-12"
 slug: shinabitanori-google-docs
 categories: []
 tags:
@@ -56,7 +56,7 @@ df[1, ]
 #&gt; # Rowwise: 
 #&gt;   rowid doc      name       local_path                                          
 #&gt;   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;                                               
-#&gt; 1     1 aquarium nfe7f3c14~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\RtmpEvlDKS/~</code></pre>
+#&gt; 1     1 aquarium nfe7f3c14~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\RtmpOWabS0/~</code></pre>
 </div>
 <div id="形態素解析" class="section level2">
 <h2>形態素解析</h2>
@@ -223,79 +223,79 @@ m$phi %&gt;%
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">x</td>
-<td align="left">価値</td>
-<td align="left">ゴリラ</td>
-</tr>
-<tr class="even">
-<td align="left">運動会</td>
-<td align="left">ポエジー</td>
 <td align="left">グループ</td>
+<td align="left">ゴリラ</td>
+<td align="left">価値</td>
 </tr>
-<tr class="odd">
-<td align="left">中止</td>
-<td align="left">感情</td>
+<tr class="even">
 <td align="left">条例</td>
-</tr>
-<tr class="even">
-<td align="left">文</td>
-<td align="left">批評</td>
-<td align="left">因子</td>
+<td align="left">x</td>
+<td align="left">感情</td>
 </tr>
 <tr class="odd">
-<td align="left">前件</td>
-<td align="left">詩的</td>
-<td align="left">文節</td>
+<td align="left">因子</td>
+<td align="left">ポエジー</td>
+<td align="left">語り</td>
 </tr>
 <tr class="even">
-<td align="left">花水木</td>
-<td align="left">行間</td>
-<td align="left">孤独</td>
+<td align="left">文節</td>
+<td align="left">運動会</td>
+<td align="left">物語</td>
+</tr>
+<tr class="odd">
+<td align="left">文体</td>
+<td align="left">中止</td>
+<td align="left">さよなら</td>
+</tr>
+<tr class="even">
+<td align="left">ルール</td>
+<td align="left">批評</td>
+<td align="left">自己</td>
 </tr>
 <tr class="odd">
 <td align="left">テクスト</td>
-<td align="left">文体</td>
-<td align="left">対</td>
+<td align="left">詩的</td>
+<td align="left">演技</td>
 </tr>
 <tr class="even">
-<td align="left">天気</td>
-<td align="left">語り</td>
-<td align="left">さよなら</td>
-</tr>
-<tr class="odd">
-<td align="left">ルール</td>
 <td align="left">研究</td>
-<td align="left">v</td>
-</tr>
-<tr class="even">
-<td align="left">並列</td>
-<td align="left">物語</td>
-<td align="left">エンゲージメント</td>
+<td align="left">文</td>
+<td align="left">役割</td>
 </tr>
 <tr class="odd">
-<td align="left">告げ</td>
-<td align="left">主義</td>
+<td align="left">対</td>
+<td align="left">前件</td>
 <td align="left">あかね</td>
 </tr>
 <tr class="even">
-<td align="left">q</td>
-<td align="left">意図</td>
-<td align="left">文書</td>
+<td align="left">v</td>
+<td align="left">行間</td>
+<td align="left">共同</td>
 </tr>
 <tr class="odd">
-<td align="left">含意</td>
-<td align="left">効果</td>
-<td align="left">笑う</td>
+<td align="left">エンゲージメント</td>
+<td align="left">花水木</td>
+<td align="left">テクスト</td>
 </tr>
 <tr class="even">
-<td align="left">脅迫</td>
-<td align="left">評</td>
-<td align="left">語り口</td>
+<td align="left">加藤</td>
+<td align="left">解釈</td>
+<td align="left">泥</td>
 </tr>
 <tr class="odd">
-<td align="left">事態</td>
-<td align="left">自己</td>
-<td align="left">相貌</td>
+<td align="left">脅迫</td>
+<td align="left">天気</td>
+<td align="left">船</td>
+</tr>
+<tr class="even">
+<td align="left">治郎</td>
+<td align="left">主義</td>
+<td align="left">笑う</td>
+</tr>
+<tr class="odd">
+<td align="left">リズム</td>
+<td align="left">孤独</td>
+<td align="left">社会</td>
 </tr>
 </tbody>
 </table>
@@ -351,16 +351,16 @@ wv &lt;- glove$fit_transform(
 ) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [15:29:02.433] epoch 1, loss 0.1973 
-#&gt; INFO  [15:29:02.566] epoch 2, loss 0.0984 
-#&gt; INFO  [15:29:02.678] epoch 3, loss 0.0779 
-#&gt; INFO  [15:29:02.784] epoch 4, loss 0.0658 
-#&gt; INFO  [15:29:02.892] epoch 5, loss 0.0571 
-#&gt; INFO  [15:29:03.016] epoch 6, loss 0.0505 
-#&gt; INFO  [15:29:03.122] epoch 7, loss 0.0452 
-#&gt; INFO  [15:29:03.223] epoch 8, loss 0.0409 
-#&gt; INFO  [15:29:03.335] epoch 9, loss 0.0373 
-#&gt; INFO  [15:29:03.451] epoch 10, loss 0.0343</code></pre>
+#&gt; INFO  [12:41:04.727] epoch 1, loss 0.1979 
+#&gt; INFO  [12:41:04.836] epoch 2, loss 0.0983 
+#&gt; INFO  [12:41:04.930] epoch 3, loss 0.0778 
+#&gt; INFO  [12:41:05.008] epoch 4, loss 0.0656 
+#&gt; INFO  [12:41:05.086] epoch 5, loss 0.0568 
+#&gt; INFO  [12:41:05.164] epoch 6, loss 0.0501 
+#&gt; INFO  [12:41:05.242] epoch 7, loss 0.0447 
+#&gt; INFO  [12:41:05.352] epoch 8, loss 0.0404 
+#&gt; INFO  [12:41:05.461] epoch 9, loss 0.0369 
+#&gt; INFO  [12:41:05.524] epoch 10, loss 0.0339</code></pre>
 <p>{Rtsne}で次元を減らして可視化します。</p>
 <pre class="r"><code>getRtsneAsTbl &lt;- function(tbl, dim = 2, perp = 30) {
   tsn &lt;- tbl %&gt;% Rtsne::Rtsne(dim = dim, perplexity = perp)
@@ -407,7 +407,7 @@ vec %&gt;%
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-07-11                  
+#&gt;  date     2020-07-12                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  ! package             * version  date       lib source        

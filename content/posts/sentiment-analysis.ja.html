@@ -1,8 +1,8 @@
 ---
 title: Rからおこなう係り受けを考慮したテキストの感情分析
 author: paithiov909
-date: "2020-07-11"
-lastmod: '2020-07-11'
+date: '2020-07-11'
+lastmod: "2020-07-12"
 slug: sentiment-analysis
 categories: []
 tags:
@@ -131,7 +131,7 @@ nrow(pntable)
   dplyr::distinct(X1, .keep_all = TRUE)
 
 nrow(pnt)
-#&gt; [1] 3966</code></pre>
+#&gt; [1] 3975</code></pre>
 </div>
 <div id="係り受け解析" class="section level2">
 <h2>係り受け解析</h2>
@@ -230,41 +230,41 @@ head(tbl)
 #&gt; 
 #&gt; These dots only exist to allow future extensions and should be empty.
 #&gt; Did you misspecify an argument?
-#&gt; # A tibble: 6 x 3,973
-#&gt;     did id    link  score morphs count tag   sim_賞用 sim_勧戒 sim_傑作 sim_退色
-#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE         0        0        0        0
-#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE         0        0        0        0
-#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE         0        0        0        0
-#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE         0        0        0        0
-#&gt; 5     2 0     1     1.83~ 俺の       0 TRUE         0        0        0        0
-#&gt; 6     2 1     5     -0.9~ 妹が       0 TRUE         0        0        0        0
-#&gt; # ... with 3,962 more variables: sim_臭わせる &lt;dbl&gt;, sim_未だ &lt;dbl&gt;,
-#&gt; #   sim_窈窕 &lt;dbl&gt;, sim_死児 &lt;dbl&gt;, sim_炎 &lt;dbl&gt;, sim_胴 &lt;dbl&gt;, sim_竹 &lt;dbl&gt;,
-#&gt; #   sim_全力 &lt;dbl&gt;, sim_次 &lt;dbl&gt;, sim_価値 &lt;dbl&gt;, sim_雀躍 &lt;dbl&gt;,
-#&gt; #   sim_水っぽい &lt;dbl&gt;, sim_名利 &lt;dbl&gt;, sim_婀娜っぽい &lt;dbl&gt;, sim_呪法 &lt;dbl&gt;,
-#&gt; #   sim_崇敬 &lt;dbl&gt;, sim_義兵 &lt;dbl&gt;, sim_極貧 &lt;dbl&gt;, sim_蓄膿症 &lt;dbl&gt;,
-#&gt; #   sim_威力 &lt;dbl&gt;, sim_北 &lt;dbl&gt;, sim_精粋 &lt;dbl&gt;, sim_空巣 &lt;dbl&gt;,
-#&gt; #   sim_惨たらしい &lt;dbl&gt;, sim_憂い &lt;dbl&gt;, sim_疑心 &lt;dbl&gt;, sim_無才 &lt;dbl&gt;,
-#&gt; #   sim_鈍い &lt;dbl&gt;, sim_人面疽 &lt;dbl&gt;, sim_名医 &lt;dbl&gt;, sim_大立者 &lt;dbl&gt;,
-#&gt; #   sim_酷刑 &lt;dbl&gt;, sim_鶏群 &lt;dbl&gt;, sim_今 &lt;dbl&gt;, sim_癌腫 &lt;dbl&gt;,
-#&gt; #   sim_悲しい &lt;dbl&gt;, sim_口堅い &lt;dbl&gt;, sim_諫める &lt;dbl&gt;, sim_つやつや &lt;dbl&gt;,
-#&gt; #   sim_緑便 &lt;dbl&gt;, sim_話 &lt;dbl&gt;, sim_武名 &lt;dbl&gt;, sim_信服 &lt;dbl&gt;,
-#&gt; #   sim_九尺二間 &lt;dbl&gt;, sim_毀傷 &lt;dbl&gt;, sim_握屋 &lt;dbl&gt;, sim_決然 &lt;dbl&gt;,
-#&gt; #   sim_約束 &lt;dbl&gt;, sim_熱 &lt;dbl&gt;, sim_時分 &lt;dbl&gt;, sim_虚伝 &lt;dbl&gt;,
-#&gt; #   sim_虚業 &lt;dbl&gt;, sim_悪所 &lt;dbl&gt;, sim_寛厚 &lt;dbl&gt;, sim_早世 &lt;dbl&gt;,
-#&gt; #   sim_鈍磨 &lt;dbl&gt;, sim_主 &lt;dbl&gt;, sim_寿 &lt;dbl&gt;, sim_切除 &lt;dbl&gt;, sim_邪 &lt;dbl&gt;,
-#&gt; #   sim_慌てふためく &lt;dbl&gt;, sim_色悪 &lt;dbl&gt;, sim_救民 &lt;dbl&gt;, sim_巨人 &lt;dbl&gt;,
-#&gt; #   sim_頌徳 &lt;dbl&gt;, sim_鎮撫 &lt;dbl&gt;, sim_賀宴 &lt;dbl&gt;, sim_就褥 &lt;dbl&gt;,
-#&gt; #   sim_詰問 &lt;dbl&gt;, sim_荷なう &lt;dbl&gt;, sim_立直る &lt;dbl&gt;, sim_トラブル &lt;dbl&gt;,
-#&gt; #   sim_鮮魚 &lt;dbl&gt;, sim_佞奸 &lt;dbl&gt;, sim_掘る &lt;dbl&gt;, sim_無間 &lt;dbl&gt;,
-#&gt; #   sim_生臭坊主 &lt;dbl&gt;, sim_紫雲 &lt;dbl&gt;, sim_液体 &lt;dbl&gt;, sim_低迷 &lt;dbl&gt;,
-#&gt; #   sim_鍾馗 &lt;dbl&gt;, sim_擂鉢 &lt;dbl&gt;, sim_固まる &lt;dbl&gt;, sim_快闊 &lt;dbl&gt;,
-#&gt; #   sim_二度手間 &lt;dbl&gt;, sim_精肉 &lt;dbl&gt;, sim_方忌 &lt;dbl&gt;, sim_狼 &lt;dbl&gt;,
-#&gt; #   sim_類 &lt;dbl&gt;, sim_明哲 &lt;dbl&gt;, sim_三途の川 &lt;dbl&gt;, sim_介意 &lt;dbl&gt;,
-#&gt; #   sim_言祝ぐ &lt;dbl&gt;, sim_燻す &lt;dbl&gt;, sim_ぐしゃっと &lt;dbl&gt;, sim_幾つ &lt;dbl&gt;,
-#&gt; #   sim_集まる &lt;dbl&gt;, sim_やんごとない &lt;dbl&gt;, sim_びしょびしょ &lt;dbl&gt;,
-#&gt; #   sim_患者 &lt;dbl&gt;, ...</code></pre>
+#&gt; # A tibble: 6 x 3,982
+#&gt;     did id    link  score morphs count tag   sim_情っ張り sim_悲しみ sim_没落
+#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;        &lt;dbl&gt;      &lt;dbl&gt;    &lt;dbl&gt;
+#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE             0          0        0
+#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE             0          0        0
+#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE             0          0        0
+#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE             0          0        0
+#&gt; 5     2 0     1     1.83~ 俺の       0 TRUE             0          0        0
+#&gt; 6     2 1     5     -0.9~ 妹が       0 TRUE             0          0        0
+#&gt; # ... with 3,972 more variables: sim_出涸らし &lt;dbl&gt;, sim_阻喪 &lt;dbl&gt;,
+#&gt; #   sim_斯かる &lt;dbl&gt;, sim_平定 &lt;dbl&gt;, sim_悪疾 &lt;dbl&gt;, sim_貴顕 &lt;dbl&gt;,
+#&gt; #   sim_腹立たしい &lt;dbl&gt;, sim_悪 &lt;dbl&gt;, sim_言祝ぐ &lt;dbl&gt;, sim_根性 &lt;dbl&gt;,
+#&gt; #   sim_難所 &lt;dbl&gt;, sim_癩者 &lt;dbl&gt;, sim_飯 &lt;dbl&gt;, sim_深手 &lt;dbl&gt;, sim_逆 &lt;dbl&gt;,
+#&gt; #   sim_水魚 &lt;dbl&gt;, sim_鋤く &lt;dbl&gt;, sim_皮 &lt;dbl&gt;, sim_おめでたい &lt;dbl&gt;,
+#&gt; #   sim_名論 &lt;dbl&gt;, sim_聖者 &lt;dbl&gt;, sim_重畳 &lt;dbl&gt;, sim_弄う &lt;dbl&gt;,
+#&gt; #   sim_全い &lt;dbl&gt;, sim_殊遇 &lt;dbl&gt;, sim_住む &lt;dbl&gt;, sim_命令 &lt;dbl&gt;,
+#&gt; #   sim_空空しい &lt;dbl&gt;, sim_所帯窶れ &lt;dbl&gt;, sim_余喘 &lt;dbl&gt;, sim_おろおろ &lt;dbl&gt;,
+#&gt; #   sim_奇瑞 &lt;dbl&gt;, sim_蠱惑 &lt;dbl&gt;, sim_有難涙 &lt;dbl&gt;, sim_官尊民卑 &lt;dbl&gt;,
+#&gt; #   sim_脇見 &lt;dbl&gt;, sim_浸す &lt;dbl&gt;, sim_怪文書 &lt;dbl&gt;, sim_浩然 &lt;dbl&gt;,
+#&gt; #   sim_豪傑 &lt;dbl&gt;, sim_呪 &lt;dbl&gt;, sim_切ない &lt;dbl&gt;, sim_音痴 &lt;dbl&gt;,
+#&gt; #   sim_ほろ苦い &lt;dbl&gt;, sim_失態 &lt;dbl&gt;, sim_茹でる &lt;dbl&gt;, sim_役 &lt;dbl&gt;,
+#&gt; #   sim_隆昌 &lt;dbl&gt;, sim_三国一 &lt;dbl&gt;, sim_生色 &lt;dbl&gt;, sim_盗み食い &lt;dbl&gt;,
+#&gt; #   sim_皮肉 &lt;dbl&gt;, sim_正道 &lt;dbl&gt;, sim_ぐずる &lt;dbl&gt;, sim_重手 &lt;dbl&gt;,
+#&gt; #   sim_暴勇 &lt;dbl&gt;, sim_吝嗇 &lt;dbl&gt;, sim_淫佚 &lt;dbl&gt;, sim_卑劣 &lt;dbl&gt;,
+#&gt; #   sim_淫蕩 &lt;dbl&gt;, sim_好好爺 &lt;dbl&gt;, sim_失火 &lt;dbl&gt;, sim_苦渋 &lt;dbl&gt;,
+#&gt; #   sim_毒死 &lt;dbl&gt;, sim_心掛り &lt;dbl&gt;, sim_矢頃 &lt;dbl&gt;, sim_度し難い &lt;dbl&gt;,
+#&gt; #   sim_少し &lt;dbl&gt;, sim_呻吟 &lt;dbl&gt;, sim_張付ける &lt;dbl&gt;, sim_詫びる &lt;dbl&gt;,
+#&gt; #   sim_札付 &lt;dbl&gt;, sim_渋っ面 &lt;dbl&gt;, sim_偉観 &lt;dbl&gt;, sim_勝運 &lt;dbl&gt;,
+#&gt; #   sim_義烈 &lt;dbl&gt;, sim_返す &lt;dbl&gt;, sim_荒 &lt;dbl&gt;, sim_調べる &lt;dbl&gt;,
+#&gt; #   sim_世知 &lt;dbl&gt;, sim_痛罵 &lt;dbl&gt;, sim_思う &lt;dbl&gt;, sim_蜘蛛 &lt;dbl&gt;,
+#&gt; #   sim_鎖 &lt;dbl&gt;, sim_傑出 &lt;dbl&gt;, sim_たじろぐ &lt;dbl&gt;, sim_ずっこける &lt;dbl&gt;,
+#&gt; #   sim_談判 &lt;dbl&gt;, sim_横死 &lt;dbl&gt;, sim_紛らわしい &lt;dbl&gt;, sim_観 &lt;dbl&gt;,
+#&gt; #   sim_金牌 &lt;dbl&gt;, sim_淑 &lt;dbl&gt;, sim_陰口 &lt;dbl&gt;, sim_余人 &lt;dbl&gt;,
+#&gt; #   sim_難い &lt;dbl&gt;, sim_依怙地 &lt;dbl&gt;, sim_微熱 &lt;dbl&gt;, sim_縁起直し &lt;dbl&gt;,
+#&gt; #   sim_色女 &lt;dbl&gt;, ...</code></pre>
 <p>文中に否定表現があった場合、各文節についてその否定表現がその文節の係り先にあるかを判定するために、文の木構造においてその文節からターゲットとなる否定表現までの最短経路を求めています。グラフ理論はまったくのド素人なのですが、おそらく文の木構造というのはどこから入っても閉路のない有向グラフとかいうやつなので、その文節の係り先にある＝その文節からの最短経路があると考えることができるはずです。</p>
 <pre class="r"><code>vpath &lt;- tbl %&gt;%
   dplyr::group_by(did) %&gt;%
@@ -306,41 +306,41 @@ head(tbl)
 #&gt; 
 #&gt; These dots only exist to allow future extensions and should be empty.
 #&gt; Did you misspecify an argument?
-#&gt; # A tibble: 6 x 3,976
-#&gt;     did id    link  score morphs count tag   sim_賞用 sim_勧戒 sim_傑作 sim_退色
-#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;
-#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE         0        0        0        0
-#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE         0        0        0        0
-#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE         0        0        0        0
-#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE         0        0        0        0
-#&gt; 5     2 0     1     1.83~ 俺の       0 FALSE        0        0        0        0
-#&gt; 6     2 1     5     -0.9~ 妹が       0 FALSE        0        0        0        0
-#&gt; # ... with 3,965 more variables: sim_臭わせる &lt;dbl&gt;, sim_未だ &lt;dbl&gt;,
-#&gt; #   sim_窈窕 &lt;dbl&gt;, sim_死児 &lt;dbl&gt;, sim_炎 &lt;dbl&gt;, sim_胴 &lt;dbl&gt;, sim_竹 &lt;dbl&gt;,
-#&gt; #   sim_全力 &lt;dbl&gt;, sim_次 &lt;dbl&gt;, sim_価値 &lt;dbl&gt;, sim_雀躍 &lt;dbl&gt;,
-#&gt; #   sim_水っぽい &lt;dbl&gt;, sim_名利 &lt;dbl&gt;, sim_婀娜っぽい &lt;dbl&gt;, sim_呪法 &lt;dbl&gt;,
-#&gt; #   sim_崇敬 &lt;dbl&gt;, sim_義兵 &lt;dbl&gt;, sim_極貧 &lt;dbl&gt;, sim_蓄膿症 &lt;dbl&gt;,
-#&gt; #   sim_威力 &lt;dbl&gt;, sim_北 &lt;dbl&gt;, sim_精粋 &lt;dbl&gt;, sim_空巣 &lt;dbl&gt;,
-#&gt; #   sim_惨たらしい &lt;dbl&gt;, sim_憂い &lt;dbl&gt;, sim_疑心 &lt;dbl&gt;, sim_無才 &lt;dbl&gt;,
-#&gt; #   sim_鈍い &lt;dbl&gt;, sim_人面疽 &lt;dbl&gt;, sim_名医 &lt;dbl&gt;, sim_大立者 &lt;dbl&gt;,
-#&gt; #   sim_酷刑 &lt;dbl&gt;, sim_鶏群 &lt;dbl&gt;, sim_今 &lt;dbl&gt;, sim_癌腫 &lt;dbl&gt;,
-#&gt; #   sim_悲しい &lt;dbl&gt;, sim_口堅い &lt;dbl&gt;, sim_諫める &lt;dbl&gt;, sim_つやつや &lt;dbl&gt;,
-#&gt; #   sim_緑便 &lt;dbl&gt;, sim_話 &lt;dbl&gt;, sim_武名 &lt;dbl&gt;, sim_信服 &lt;dbl&gt;,
-#&gt; #   sim_九尺二間 &lt;dbl&gt;, sim_毀傷 &lt;dbl&gt;, sim_握屋 &lt;dbl&gt;, sim_決然 &lt;dbl&gt;,
-#&gt; #   sim_約束 &lt;dbl&gt;, sim_熱 &lt;dbl&gt;, sim_時分 &lt;dbl&gt;, sim_虚伝 &lt;dbl&gt;,
-#&gt; #   sim_虚業 &lt;dbl&gt;, sim_悪所 &lt;dbl&gt;, sim_寛厚 &lt;dbl&gt;, sim_早世 &lt;dbl&gt;,
-#&gt; #   sim_鈍磨 &lt;dbl&gt;, sim_主 &lt;dbl&gt;, sim_寿 &lt;dbl&gt;, sim_切除 &lt;dbl&gt;, sim_邪 &lt;dbl&gt;,
-#&gt; #   sim_慌てふためく &lt;dbl&gt;, sim_色悪 &lt;dbl&gt;, sim_救民 &lt;dbl&gt;, sim_巨人 &lt;dbl&gt;,
-#&gt; #   sim_頌徳 &lt;dbl&gt;, sim_鎮撫 &lt;dbl&gt;, sim_賀宴 &lt;dbl&gt;, sim_就褥 &lt;dbl&gt;,
-#&gt; #   sim_詰問 &lt;dbl&gt;, sim_荷なう &lt;dbl&gt;, sim_立直る &lt;dbl&gt;, sim_トラブル &lt;dbl&gt;,
-#&gt; #   sim_鮮魚 &lt;dbl&gt;, sim_佞奸 &lt;dbl&gt;, sim_掘る &lt;dbl&gt;, sim_無間 &lt;dbl&gt;,
-#&gt; #   sim_生臭坊主 &lt;dbl&gt;, sim_紫雲 &lt;dbl&gt;, sim_液体 &lt;dbl&gt;, sim_低迷 &lt;dbl&gt;,
-#&gt; #   sim_鍾馗 &lt;dbl&gt;, sim_擂鉢 &lt;dbl&gt;, sim_固まる &lt;dbl&gt;, sim_快闊 &lt;dbl&gt;,
-#&gt; #   sim_二度手間 &lt;dbl&gt;, sim_精肉 &lt;dbl&gt;, sim_方忌 &lt;dbl&gt;, sim_狼 &lt;dbl&gt;,
-#&gt; #   sim_類 &lt;dbl&gt;, sim_明哲 &lt;dbl&gt;, sim_三途の川 &lt;dbl&gt;, sim_介意 &lt;dbl&gt;,
-#&gt; #   sim_言祝ぐ &lt;dbl&gt;, sim_燻す &lt;dbl&gt;, sim_ぐしゃっと &lt;dbl&gt;, sim_幾つ &lt;dbl&gt;,
-#&gt; #   sim_集まる &lt;dbl&gt;, sim_やんごとない &lt;dbl&gt;, sim_びしょびしょ &lt;dbl&gt;,
-#&gt; #   sim_患者 &lt;dbl&gt;, ...</code></pre>
+#&gt; # A tibble: 6 x 3,985
+#&gt;     did id    link  score morphs count tag   sim_情っ張り sim_悲しみ sim_没落
+#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;        &lt;dbl&gt;      &lt;dbl&gt;    &lt;dbl&gt;
+#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE             0          0        0
+#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE             0          0        0
+#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE             0          0        0
+#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE             0          0        0
+#&gt; 5     2 0     1     1.83~ 俺の       0 FALSE            0          0        0
+#&gt; 6     2 1     5     -0.9~ 妹が       0 FALSE            0          0        0
+#&gt; # ... with 3,975 more variables: sim_出涸らし &lt;dbl&gt;, sim_阻喪 &lt;dbl&gt;,
+#&gt; #   sim_斯かる &lt;dbl&gt;, sim_平定 &lt;dbl&gt;, sim_悪疾 &lt;dbl&gt;, sim_貴顕 &lt;dbl&gt;,
+#&gt; #   sim_腹立たしい &lt;dbl&gt;, sim_悪 &lt;dbl&gt;, sim_言祝ぐ &lt;dbl&gt;, sim_根性 &lt;dbl&gt;,
+#&gt; #   sim_難所 &lt;dbl&gt;, sim_癩者 &lt;dbl&gt;, sim_飯 &lt;dbl&gt;, sim_深手 &lt;dbl&gt;, sim_逆 &lt;dbl&gt;,
+#&gt; #   sim_水魚 &lt;dbl&gt;, sim_鋤く &lt;dbl&gt;, sim_皮 &lt;dbl&gt;, sim_おめでたい &lt;dbl&gt;,
+#&gt; #   sim_名論 &lt;dbl&gt;, sim_聖者 &lt;dbl&gt;, sim_重畳 &lt;dbl&gt;, sim_弄う &lt;dbl&gt;,
+#&gt; #   sim_全い &lt;dbl&gt;, sim_殊遇 &lt;dbl&gt;, sim_住む &lt;dbl&gt;, sim_命令 &lt;dbl&gt;,
+#&gt; #   sim_空空しい &lt;dbl&gt;, sim_所帯窶れ &lt;dbl&gt;, sim_余喘 &lt;dbl&gt;, sim_おろおろ &lt;dbl&gt;,
+#&gt; #   sim_奇瑞 &lt;dbl&gt;, sim_蠱惑 &lt;dbl&gt;, sim_有難涙 &lt;dbl&gt;, sim_官尊民卑 &lt;dbl&gt;,
+#&gt; #   sim_脇見 &lt;dbl&gt;, sim_浸す &lt;dbl&gt;, sim_怪文書 &lt;dbl&gt;, sim_浩然 &lt;dbl&gt;,
+#&gt; #   sim_豪傑 &lt;dbl&gt;, sim_呪 &lt;dbl&gt;, sim_切ない &lt;dbl&gt;, sim_音痴 &lt;dbl&gt;,
+#&gt; #   sim_ほろ苦い &lt;dbl&gt;, sim_失態 &lt;dbl&gt;, sim_茹でる &lt;dbl&gt;, sim_役 &lt;dbl&gt;,
+#&gt; #   sim_隆昌 &lt;dbl&gt;, sim_三国一 &lt;dbl&gt;, sim_生色 &lt;dbl&gt;, sim_盗み食い &lt;dbl&gt;,
+#&gt; #   sim_皮肉 &lt;dbl&gt;, sim_正道 &lt;dbl&gt;, sim_ぐずる &lt;dbl&gt;, sim_重手 &lt;dbl&gt;,
+#&gt; #   sim_暴勇 &lt;dbl&gt;, sim_吝嗇 &lt;dbl&gt;, sim_淫佚 &lt;dbl&gt;, sim_卑劣 &lt;dbl&gt;,
+#&gt; #   sim_淫蕩 &lt;dbl&gt;, sim_好好爺 &lt;dbl&gt;, sim_失火 &lt;dbl&gt;, sim_苦渋 &lt;dbl&gt;,
+#&gt; #   sim_毒死 &lt;dbl&gt;, sim_心掛り &lt;dbl&gt;, sim_矢頃 &lt;dbl&gt;, sim_度し難い &lt;dbl&gt;,
+#&gt; #   sim_少し &lt;dbl&gt;, sim_呻吟 &lt;dbl&gt;, sim_張付ける &lt;dbl&gt;, sim_詫びる &lt;dbl&gt;,
+#&gt; #   sim_札付 &lt;dbl&gt;, sim_渋っ面 &lt;dbl&gt;, sim_偉観 &lt;dbl&gt;, sim_勝運 &lt;dbl&gt;,
+#&gt; #   sim_義烈 &lt;dbl&gt;, sim_返す &lt;dbl&gt;, sim_荒 &lt;dbl&gt;, sim_調べる &lt;dbl&gt;,
+#&gt; #   sim_世知 &lt;dbl&gt;, sim_痛罵 &lt;dbl&gt;, sim_思う &lt;dbl&gt;, sim_蜘蛛 &lt;dbl&gt;,
+#&gt; #   sim_鎖 &lt;dbl&gt;, sim_傑出 &lt;dbl&gt;, sim_たじろぐ &lt;dbl&gt;, sim_ずっこける &lt;dbl&gt;,
+#&gt; #   sim_談判 &lt;dbl&gt;, sim_横死 &lt;dbl&gt;, sim_紛らわしい &lt;dbl&gt;, sim_観 &lt;dbl&gt;,
+#&gt; #   sim_金牌 &lt;dbl&gt;, sim_淑 &lt;dbl&gt;, sim_陰口 &lt;dbl&gt;, sim_余人 &lt;dbl&gt;,
+#&gt; #   sim_難い &lt;dbl&gt;, sim_依怙地 &lt;dbl&gt;, sim_微熱 &lt;dbl&gt;, sim_縁起直し &lt;dbl&gt;,
+#&gt; #   sim_色女 &lt;dbl&gt;, ...</code></pre>
 <p>整形して表示してみます。</p>
 <pre class="r"><code>res &lt;- tbl %&gt;%
   dplyr::group_by(did) %&gt;%
@@ -370,32 +370,32 @@ knitr::kable(res)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="right">1</td>
-<td align="right">-16.014807</td>
+<td align="right">-19.989084</td>
 <td align="left">俺の妹はこんなに可愛い</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="right">-7.141796</td>
+<td align="right">-8.095531</td>
 <td align="left">俺の妹がこんなに可愛いわけがない</td>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
-<td align="right">-27.061791</td>
+<td align="right">-30.784741</td>
 <td align="left">俺の妹がこんなに可愛いわけがなくないですか</td>
 </tr>
 <tr class="even">
 <td align="right">4</td>
-<td align="right">12.054744</td>
+<td align="right">12.884833</td>
 <td align="left">俺の妹がこんなに可愛くないわけがない</td>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
-<td align="right">-8.481910</td>
+<td align="right">-11.833001</td>
 <td align="left">必ずしも可愛くなくないこともない</td>
 </tr>
 <tr class="even">
 <td align="right">6</td>
-<td align="right">-32.833937</td>
+<td align="right">-37.550805</td>
 <td align="left">必ずしも可愛くなくないこともないかもしれないな</td>
 </tr>
 </tbody>
@@ -490,7 +490,7 @@ knitr::kable(res)</code></pre>
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-07-11                  
+#&gt;  date     2020-07-12                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  package     * version date       lib source        

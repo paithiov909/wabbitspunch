@@ -1,8 +1,8 @@
 ---
 title: 短歌のテキストマイニング
 author: paithiov909
-date: "`r Sys.Date()`"
-lastmod: '2020-07-11'
+date: '2020-07-11'
+lastmod: "`r Sys.Date()`"
 slug: shinabitanori-tanka
 categories: []
 tags:

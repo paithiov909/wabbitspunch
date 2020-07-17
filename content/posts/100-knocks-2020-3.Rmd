@@ -1,8 +1,8 @@
 ---
 title: Rで言語処理100本ノックを解くわけがない（３）
 author: paithiov909
-date: "`r Sys.Date()`"
-lastmod: '2020-07-11'
+date: '2020-07-11'
+lastmod: "`r Sys.Date()`"
 slug: 100-knocks-2020-3
 categories: []
 tags:

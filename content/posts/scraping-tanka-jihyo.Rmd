@@ -1,8 +1,8 @@
 ---
 title: 短歌時評のテキスト解析（１）
 author: paithiov909
-date: "`r Sys.Date()`"
-lastmod: '2020-07-11'
+date: '2020-07-11'
+lastmod: "`r Sys.Date()`"
 slug: scraping-tanka-jihyo
 categories: []
 tags:
