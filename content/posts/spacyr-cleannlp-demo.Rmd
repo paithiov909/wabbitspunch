@@ -18,7 +18,6 @@ knitr::opts_chunk$set(
 )
 
 stopifnot(require(tidyverse))
-stopifnot(require(reticulate))
 ```
 
 ## spacyr
@@ -31,7 +30,7 @@ Windows10、Miniconda3 (Python 3.7.6 64-bit) です。
 
 [spaCy](https://spacy.io/)を{reticulate}経由で呼ぶRパッケージです。
 
-> [Wrapper to the spaCy NLP Library • spacyr](https://spacyr.quanteda.io/)
+[Wrapper to the spaCy NLP Library • spacyr](https://spacyr.quanteda.io/)
 
 spaCyは2.3で日本語のモデルが利用できるようになったらしいです。
 
@@ -80,13 +79,13 @@ spacyr::spacy_finalize()
 
 UDPipe、spaCy、CoreNLPをtidyに使えるよ！というRパッケージです。
 
-> [cleanNLP: A Tidy Data Model for Natural Language Processing | cleanNLP](https://statsmaths.github.io/cleanNLP/)
+[cleanNLP: A Tidy Data Model for Natural Language Processing | cleanNLP](https://statsmaths.github.io/cleanNLP/)
 
 UDPipeについてはふつうに{udpipe}をバックエンドとして使っています。spaCyとCoreNLPについてはpipでPythonライブラリを別途導入して、それをバックエンドとして使うようです（{spacyr}や{coreNLP}とは無関係）。spaCyについてはcondaenvのなかにすでにモデルをダウンロードしてあるのでそれを利用できないか試してみたのですが、手元ではうまく動かせませんでした。実質的に{udpipe}のラッパーという感じです。
 
 ### Initialize
 
-`clenaNLP::cnlp_init_udpipe`だけで動くようになります。脳死でも使えて便利。
+`cleanNLP::cnlp_init_udpipe`だけで動くようになります。脳死でも使えて便利。
 
 ```{r}
 library(cleanNLP)
