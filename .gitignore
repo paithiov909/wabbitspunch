@@ -81,9 +81,7 @@ packrat/src/
 .Rproj.user
 .here
 .Rhistory
-.metals
-# Executables
-R-Portable/
-MeCab/
+
 /public/*
 .secrets
+*.udpipe
