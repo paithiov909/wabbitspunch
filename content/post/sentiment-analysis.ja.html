@@ -1,0 +1,553 @@
+---
+title: Rからおこなう係り受けを考慮したテキストの感情分析
+author: paithiov909
+date: '2020-07-11'
+lastmod: "2020-07-21"
+slug: sentiment-analysis
+categories: []
+tags:
+  - NLP
+description: 'CaboChaによる係り受け解析の結果を考慮したテキストの感情分析の例'
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="はじめに" class="section level2">
+<h2>はじめに</h2>
+<div id="感情分析について" class="section level3">
+<h3>感情分析について</h3>
+<p>テキストの内容がポジティブなものかネガティブなものかを判定するあれです。</p>
+<p>この記事の筆者は一応「感情」に関する研究がわりと得意とする領域だと思っている人間なので、そもそもテキストの「ネガポジ」を機械的に判定することにどれほどの意義があるのかといった点についてやや疑問に思う部分もあるのですが、こうした感情分析は自然言語処理におけるタスクとしてはけっこう注目されているものであるような気がします。</p>
+<p>Rから日本語の感情分析を簡単に試すなら、<a href="https://github.com/paithiov909/conifer">{conifer}</a>というオレオレパッケージを使って<a href="https://api.ce-cotoha.com/contents/index.html">COTOHA API</a>を叩くことで実行することができます。</p>
+<pre class="r"><code>client &lt;- conifer::cotoha(TOKEN)
+cotoha_res &lt;- purrr::map(
+  c(
+    &quot;俺の妹はこんなに可愛い&quot;,
+    &quot;俺の妹がこんなに可愛いわけがない&quot;,
+    &quot;俺の妹がこんなに可愛いわけがなくないですか&quot;,
+    &quot;俺の妹がこんなに可愛くないわけがない&quot;,
+    &quot;必ずしも可愛くなくないこともない&quot;,
+    &quot;必ずしも可愛くなくないこともないかもしれないな&quot;
+  ),
+  ~ client$sentiment(.)
+)
+
+cotoha_res %&gt;%
+  purrr::map_dfr(~ tibble::tibble(
+    emotion = .$sentiment,
+    score = .$score,
+    morphs = purrr::map_chr(.$emotional_phrase, ~ paste0(.$form, collapse = &quot;&quot;))
+  )) %&gt;%
+  tibble::rowid_to_column() %&gt;%
+  dplyr::select(rowid, emotion, score, morphs) %&gt;%
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">rowid</th>
+<th align="left">emotion</th>
+<th align="right">score</th>
+<th align="left">morphs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">Positive</td>
+<td align="right">0.6151585</td>
+<td align="left">こんなに可愛い</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">Positive</td>
+<td align="right">0.3532261</td>
+<td align="left">こんなに可愛い</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">Positive</td>
+<td align="right">0.1695927</td>
+<td align="left">こんなに可愛い</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">Negative</td>
+<td align="right">0.8475820</td>
+<td align="left">こんなに可愛くない</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">Negative</td>
+<td align="right">0.8981710</td>
+<td align="left">必ずしも可愛くなくない</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">Negative</td>
+<td align="right">0.8466253</td>
+<td align="left">必ずしも可愛くなくない</td>
+</tr>
+</tbody>
+</table>
+<p>ただ、この結果を見るとわかるように、こういうのは文意と正しく対応する結果が返ってくるケースばかりではありません。個人的にはむしろそれがそう解析されちゃうのかという感想のほうが大きくて、感情分析を精度よくこなすのはどうやらとても難しいタスクであるらしいことがうかがえます。</p>
+</div>
+<div id="係り受けを考慮した感情分析" class="section level3">
+<h3>係り受けを考慮した感情分析</h3>
+<p>感情分析をやってみた系の情報はネットにもたくさん転がっていますが、たぶん大別すると極性辞書なんかを利用して素朴にネガポジ判定しているものと、感情がラベリングされた正解データを用いて自前で機械学習して分類問題として解いているものの2パターンがあります。</p>
+<p>とりあえず手軽にやる分には極性辞書なりの既存のリソースを使えばよいと思います。ところが、それ系の記事を見るとだいたい決まって「こういうことするなら本当は係り受けとか文脈とか考慮しなきゃダメだよね」という文言が書かれています。たとえば、<a href="https://qiita.com/rmecab/items/b1a55a0e3a0a8637a461">R+RMeCabで感情分析</a>には次のように書いてあります。</p>
+<blockquote>
+<p>ただし、たとえば「面白くない」という単語は「面白い」と「ない」に分解されるが、このフレーズ全体はマイナスな評価になる。ところが、単純にこのフレーズを評価すると「面白い」と「ない」のそれぞれ別々に完成評価（註：原文ママ）の値を与えてしまう。（中略）「面白くない」の評価として、それぞれの値を合算すると相殺されて、ほぼ 0 となってしまう。このように、正しくテキストを評価しようとすると文脈や係り受けを考慮することが必須である。</p>
+</blockquote>
+<p>これはこの通りで誰もが一度は考えるあれなのですが、だから実際に係り受けを考慮した感情分析をやってみたという内容の記事はなぜかあまり見つかりません。なぜなんでしょうね。ともかく、ないならちょっと自分でやってみるかという感じで試しにやってみます。</p>
+</div>
+</div>
+<div id="極性辞書" class="section level2">
+<h2>極性辞書</h2>
+<p>研究用の日本語の極性辞書としては、東北大の乾・岡崎研究室が公開している<a href="http://www.cl.ecei.tohoku.ac.jp/index.php?Open%20Resources%2FJapanese%20Sentiment%20Polarity%20Dictionary">日本語評価極性辞書</a>と東工大の高村教授が公開している<a href="http://www.lr.pi.titech.ac.jp/~takamura/pndic_ja.html">単語感情極性対応表</a>があります。ただ、率直にいってクオリティとしてはどっちもどっちでそれほど実用的ではないらしいです。</p>
+<p>ただ、他にはないのでとりあえず、ここでは単語感情極性対応表のほうを使います。この辞書の特徴として、単語感情極性対応表と比べて収録している語彙が圧倒的に多いのですが、振られている極性値がネガティブ寄りなのと、ときたまよくわからない極性値が振られている点があげられます。</p>
+<p>読みこむ例です。</p>
+<pre class="r"><code>pntable &lt;- readr::read_delim(
+  &quot;http://www.lr.pi.titech.ac.jp/~takamura/pubs/pn_ja.dic&quot;,
+  delim = &quot;:&quot;,
+  quote = &quot;&quot;,
+  col_names = FALSE,
+  locale = locale(encoding = &quot;Shift_JIS&quot;)
+) %&gt;%
+  dplyr::filter(X3 != &quot;助動詞&quot;) %&gt;%
+  dplyr::filter(abs(X4) &gt; .8)
+#&gt; Parsed with column specification:
+#&gt; cols(
+#&gt;   X1 = col_character(),
+#&gt;   X2 = col_character(),
+#&gt;   X3 = col_character(),
+#&gt;   X4 = col_double()
+#&gt; )
+
+nrow(pntable)
+#&gt; [1] 6674</code></pre>
+<p>都合上、語彙を少し削ります。また、見た目がまったく同じで読みや品詞が違う項目があると扱いづらいので表層形で<code>distinct</code>しておきます。</p>
+<pre class="r"><code>pnt &lt;- dplyr::sample_frac(pntable, 0.6) %&gt;%
+  dplyr::distinct(X1, .keep_all = TRUE)
+
+nrow(pnt)
+#&gt; [1] 3967</code></pre>
+</div>
+<div id="係り受け解析" class="section level2">
+<h2>係り受け解析</h2>
+<p><a href="https://github.com/paithiov909/pipian">オレオレパッケージ</a>を使います。<code>pipian::CabochaTbl</code>の戻り値はR6クラスのオブジェクトで、<code>tbl2graph</code>というメソッドで一発で簡単に{igraph}のグラフオブジェクトに変換することができます。</p>
+<pre class="r"><code>li &lt;- purrr::map(
+  c(
+    &quot;俺の妹はこんなに可愛い&quot;,
+    &quot;俺の妹がこんなに可愛いわけがない&quot;,
+    &quot;俺の妹がこんなに可愛いわけがなくないですか&quot;,
+    &quot;俺の妹がこんなに可愛くないわけがない&quot;,
+    &quot;必ずしも可愛くなくないこともない&quot;,
+    &quot;必ずしも可愛くなくないこともないかもしれないな&quot;
+  ),
+  ~ pipian::CabochaTbl(.)
+)
+
+li[[3]]$tbl
+#&gt; # A tibble: 6 x 4
+#&gt;   id    link  score     morphs        
+#&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;         
+#&gt; 1 0     1     1.834494  俺の          
+#&gt; 2 1     5     -0.725152 妹が          
+#&gt; 3 2     3     1.064274  こんなに      
+#&gt; 4 3     4     2.078169  可愛い        
+#&gt; 5 4     5     -0.725152 わけが        
+#&gt; 6 5     -1    0.000000  なくないですか</code></pre>
+<p>ここでは関係ないですが、木構造のプロットもできます。</p>
+<pre class="r"><code>li[[3]]$plot()</code></pre>
+<p><img src="/post/sentiment-analysis.ja_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+</div>
+<div id="特性値を計算する方法" class="section level2">
+<h2>特性値を計算する方法</h2>
+<div id="多重否定の考慮" class="section level3">
+<h3>多重否定の考慮</h3>
+<p>この記事のフォーカスとして、先ほどの例でも試した「必ずしも可愛くなくないこともないかもしれないな」のような、しつこい多重否定をイイ感じに感情分析の結果に反映させたいというのがあります。そのために、文節ごとにその文節中の否定語の数を数えて、その数に応じて文節のネガポジの値を反転させます。</p>
+<p>ただ、お試しなのでここは雑にやっています。日本語における否定語としては「ない・ず・ぬ」とその活用形に加えて「ありません」という表現における「ん」を網羅する必要がありますが、めんどうなので「ない」の活用形のみについて下手な正規表現を書いて済ませています。</p>
+</div>
+<div id="文節の係り受けの考慮" class="section level3">
+<h3>文節の係り受けの考慮</h3>
+<p>これはこの記事でやっていることのポイントです。文ごとに否定表現があるかを判定し、否定表現があった場合にはその表現が係り先になるすべての文節（否定表現を含む文節それ自身は除く）についてその特性値を反転させるようにします。文節の特性値としては割り当てルールによって文節に割り当てられた、重み付けした極性値の総和をとります。</p>
+</div>
+<div id="編集距離にもとづく極性値の重み付け" class="section level3">
+<h3>編集距離にもとづく極性値の重み付け</h3>
+<p>こういう辞書との照らし合わせみたいなことをするとき、テキストにあらわれる表現を辞書に収録されている表記にいかにして正規化していくかというのが地味ながらとても大事な作業だと思います。ただ、どうせ用言は活用したりするものだし、体言であっても漢字がかな文字に開かれていたりすると表記ゆれからは逃れられないので、ここでは極性値をもっとルーズに割り当ててしまうことを考えます。</p>
+<p>具体的には、それぞれの文節について辞書の語彙項目との編集距離をとってみて、文字列として完全に一致していなくても見た目が似ていればその類似度に応じて重み付けした極性値を割り当ててしまうというアプローチを採ります。これをやってみるのに都合のよい編集距離として、Jaro-Winkler距離というものがあります。解説は以下の記事に譲りますが、ようするに0~1の範囲の値をとる編集距離で、値が0に近いほどまったく似ていない文字列であることをあらわし、文字列として完全に一致していると1になります。</p>
+<ul>
+<li><a href="https://mieruca-ai.com/ai/levenshtein_jaro-winkler_distance/">【技術解説】似ている文字列がわかる！レーベンシュタイン距離とジャロ・ウィンクラー距離の計算方法とは</a></li>
+</ul>
+<p>単語感情極性対応表で振られている極性値は-1~1の範囲の値をとるので、ふつうに乗算してしまっても問題ないです。ただし、この方法は感情分析する文節*辞書にある語彙項目だけ編集距離を計算することになるため、単純に辞書とマッチングする場合に比べてめちゃくちゃ効率が悪いです。そのあたりは前処理をサボれるのとトレードオフかと。</p>
+</div>
+</div>
+<div id="スニペット" class="section level2">
+<h2>スニペット</h2>
+<p>RでJaro-Winkler距離を計算するには<code>stringdist::stringsim(method = "jw", p = 0.1)</code>を使います。</p>
+<pre class="r"><code>tbl &lt;- li %&gt;%
+  purrr::imap_dfr(function(res, idx) {
+    tbl &lt;- res$tbl %&gt;%
+      dplyr::mutate(count = stringr::str_count(morphs, &quot;(な)[かっ|く|けれ|い]+&quot;)) %&gt;%
+      dplyr::mutate(tag = dplyr::if_else(count %% 2 == 0, TRUE, FALSE))
+    tbl &lt;- tbl %&gt;%
+      dplyr::group_by(id) %&gt;%
+      dplyr::group_map(function(.x, .y) {
+        pnt %&gt;%
+          tidyr::expand_grid(.x) %&gt;%
+          dplyr::mutate(dist = stringdist::stringsim(X1, morphs, method = &quot;jw&quot;, p = 0.1)) %&gt;%
+          dplyr::mutate(emotion = X4 * dist) %&gt;%
+          dplyr::select(id, X1, emotion)
+      }, keep = TRUE) %&gt;%
+      purrr::map_dfr(~.) %&gt;%
+      dplyr::left_join(tbl, by = &quot;id&quot;) %&gt;%
+      tidyr::pivot_wider(
+        id_cols = c(id, link, score, morphs, count, tag),
+        names_from = X1,
+        values_from = emotion,
+        names_prefix = &quot;sim_&quot;
+      )
+    return(tibble::tibble(did = idx, tbl))
+  })
+#&gt; Warning: The `keep` argument of `group_map()` is deprecated as of dplyr 1.0.0.
+#&gt; Please use the `.keep` argument instead.
+#&gt; This warning is displayed once every 8 hours.
+#&gt; Call `lifecycle::last_warnings()` to see where this warning was generated.
+
+head(tbl)
+#&gt; # A tibble: 6 x 3,974
+#&gt;     did id    link  score morphs count tag   sim_傷害 sim_つんつん sim_佳作
+#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;    &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;
+#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE         0        0            0
+#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE         0        0            0
+#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE         0       -0.497        0
+#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE         0        0            0
+#&gt; 5     2 0     1     1.83~ 俺の       0 TRUE         0        0            0
+#&gt; 6     2 1     5     -0.9~ 妹が       0 TRUE         0        0            0
+#&gt; # ... with 3,964 more variables: sim_怪しむ &lt;dbl&gt;, sim_いびり出す &lt;dbl&gt;,
+#&gt; #   sim_枕 &lt;dbl&gt;, sim_驚風 &lt;dbl&gt;, sim_傑 &lt;dbl&gt;, sim_劣等 &lt;dbl&gt;, sim_滾る &lt;dbl&gt;,
+#&gt; #   sim_底翳 &lt;dbl&gt;, sim_種 &lt;dbl&gt;, sim_弄ぶ &lt;dbl&gt;, sim_好手 &lt;dbl&gt;,
+#&gt; #   sim_自恣 &lt;dbl&gt;, sim_どやす &lt;dbl&gt;, sim_水分 &lt;dbl&gt;, sim_激賞 &lt;dbl&gt;,
+#&gt; #   sim_健勝 &lt;dbl&gt;, sim_軽軽 &lt;dbl&gt;, sim_寒村 &lt;dbl&gt;, sim_決する &lt;dbl&gt;,
+#&gt; #   sim_ぎゅうぎゅう &lt;dbl&gt;, sim_薄ら寒い &lt;dbl&gt;, sim_濫伐 &lt;dbl&gt;,
+#&gt; #   sim_ぶらぶら病 &lt;dbl&gt;, sim_不都合 &lt;dbl&gt;, sim_晦冥 &lt;dbl&gt;, sim_自責 &lt;dbl&gt;,
+#&gt; #   sim_面当て &lt;dbl&gt;, sim_誠意 &lt;dbl&gt;, sim_患部 &lt;dbl&gt;, sim_感嘆 &lt;dbl&gt;,
+#&gt; #   sim_和睦 &lt;dbl&gt;, sim_低能 &lt;dbl&gt;, sim_絞首 &lt;dbl&gt;, sim_代る代る &lt;dbl&gt;,
+#&gt; #   sim_舌打ち &lt;dbl&gt;, sim_楽しむ &lt;dbl&gt;, sim_切れ端 &lt;dbl&gt;, sim_艶 &lt;dbl&gt;,
+#&gt; #   sim_弊習 &lt;dbl&gt;, sim_述べる &lt;dbl&gt;, sim_小物 &lt;dbl&gt;, sim_過大 &lt;dbl&gt;,
+#&gt; #   sim_英図 &lt;dbl&gt;, sim_血 &lt;dbl&gt;, sim_安安 &lt;dbl&gt;, sim_悪漢 &lt;dbl&gt;,
+#&gt; #   sim_才気 &lt;dbl&gt;, sim_公憤 &lt;dbl&gt;, sim_箱 &lt;dbl&gt;, sim_誤謬 &lt;dbl&gt;,
+#&gt; #   sim_眼力 &lt;dbl&gt;, sim_神韻 &lt;dbl&gt;, sim_材料 &lt;dbl&gt;, sim_見紛う &lt;dbl&gt;,
+#&gt; #   sim_良貨 &lt;dbl&gt;, sim_蓖麻 &lt;dbl&gt;, sim_恩給 &lt;dbl&gt;, sim_隔たる &lt;dbl&gt;,
+#&gt; #   sim_昔 &lt;dbl&gt;, sim_強震 &lt;dbl&gt;, sim_付け火 &lt;dbl&gt;, sim_祝 &lt;dbl&gt;,
+#&gt; #   sim_リョーマチ &lt;dbl&gt;, sim_寿老人 &lt;dbl&gt;, sim_忘我 &lt;dbl&gt;, sim_鮮魚 &lt;dbl&gt;,
+#&gt; #   sim_胡散臭い &lt;dbl&gt;, sim_ぐずつく &lt;dbl&gt;, sim_同慶 &lt;dbl&gt;, sim_晒す &lt;dbl&gt;,
+#&gt; #   sim_抹香臭い &lt;dbl&gt;, sim_適時 &lt;dbl&gt;, sim_強健 &lt;dbl&gt;, sim_扱う &lt;dbl&gt;,
+#&gt; #   sim_纏繞 &lt;dbl&gt;, sim_嗜虐 &lt;dbl&gt;, sim_期待 &lt;dbl&gt;, sim_客 &lt;dbl&gt;,
+#&gt; #   sim_後腐れ &lt;dbl&gt;, sim_憂鬱 &lt;dbl&gt;, sim_根気 &lt;dbl&gt;, sim_月 &lt;dbl&gt;,
+#&gt; #   sim_食用 &lt;dbl&gt;, sim_不穏 &lt;dbl&gt;, sim_共助 &lt;dbl&gt;, sim_すかっと &lt;dbl&gt;,
+#&gt; #   sim_絹緞 &lt;dbl&gt;, sim_去る &lt;dbl&gt;, sim_好評 &lt;dbl&gt;, sim_一人相撲 &lt;dbl&gt;,
+#&gt; #   sim_後悔 &lt;dbl&gt;, sim_鬼才 &lt;dbl&gt;, sim_もじもじ &lt;dbl&gt;, sim_片手落ち &lt;dbl&gt;,
+#&gt; #   sim_貯留 &lt;dbl&gt;, sim_若緑 &lt;dbl&gt;, sim_蔑如 &lt;dbl&gt;, sim_熟練工 &lt;dbl&gt;,
+#&gt; #   sim_大剛 &lt;dbl&gt;, sim_乗る &lt;dbl&gt;, ...</code></pre>
+<p>文中に否定表現があった場合、各文節についてその否定表現がその文節の係り先にあるかを判定するために、文の木構造においてその文節からターゲットとなる否定表現までの最短経路を求めています。グラフ理論はまったくのド素人なのですが、おそらく文の木構造というのはどこから入っても閉路のない有向グラフとかいうやつなので、その文節の係り先にある＝その文節からの最短経路があると考えることができるはずです。</p>
+<pre class="r"><code>vpath &lt;- tbl %&gt;%
+  dplyr::group_by(did) %&gt;%
+  dplyr::group_map(function(x, y) {
+    graph &lt;- li[[x$did[1]]]$tbl2graph()
+    not &lt;- x %&gt;%
+      dplyr::filter(count &gt; 0) %&gt;%
+      dplyr::pull(id)
+    path &lt;- ifelse(
+      length(not) == 0,
+      list(),
+      purrr::map(not, ~ igraph::shortest_paths(graph, from = x$id, to = ., mode = &quot;out&quot;))
+    )
+    return(path)
+  }, keep = TRUE) %&gt;%
+  purrr::flatten() %&gt;%
+  purrr::map(~ purrr::pluck(., &quot;vpath&quot;))
+
+vpath[[1]]
+#&gt; NULL</code></pre>
+<p>特性値を計算します。</p>
+<pre class="r"><code>tbl &lt;- purrr::imap_dfr(vpath, function(igraph_vs, idx) {
+  names &lt;- attr(igraph_vs[[1]], &quot;names&quot;)
+  names &lt;- names[1:length(names) - 1]
+  tbl &lt;- tbl %&gt;%
+    dplyr::filter(did == idx) %&gt;%
+    dplyr::mutate(tag = dplyr::if_else(id %in% names, !tag, tag)) %&gt;%
+    dplyr::mutate(emotion = dplyr::if_else(tag, 1, -1)) %&gt;%
+    dplyr::mutate(sumup = purrr::reduce(across(matches(&quot;sim_&quot;)), `+`)) %&gt;%
+    dplyr::mutate(result = sumup * emotion)
+  return(tbl)
+})
+
+head(tbl)
+#&gt; # A tibble: 6 x 3,977
+#&gt;     did id    link  score morphs count tag   sim_傷害 sim_つんつん sim_佳作
+#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;    &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;
+#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE         0        0            0
+#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE         0        0            0
+#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE         0       -0.497        0
+#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE         0        0            0
+#&gt; 5     2 0     1     1.83~ 俺の       0 FALSE        0        0            0
+#&gt; 6     2 1     5     -0.9~ 妹が       0 FALSE        0        0            0
+#&gt; # ... with 3,967 more variables: sim_怪しむ &lt;dbl&gt;, sim_いびり出す &lt;dbl&gt;,
+#&gt; #   sim_枕 &lt;dbl&gt;, sim_驚風 &lt;dbl&gt;, sim_傑 &lt;dbl&gt;, sim_劣等 &lt;dbl&gt;, sim_滾る &lt;dbl&gt;,
+#&gt; #   sim_底翳 &lt;dbl&gt;, sim_種 &lt;dbl&gt;, sim_弄ぶ &lt;dbl&gt;, sim_好手 &lt;dbl&gt;,
+#&gt; #   sim_自恣 &lt;dbl&gt;, sim_どやす &lt;dbl&gt;, sim_水分 &lt;dbl&gt;, sim_激賞 &lt;dbl&gt;,
+#&gt; #   sim_健勝 &lt;dbl&gt;, sim_軽軽 &lt;dbl&gt;, sim_寒村 &lt;dbl&gt;, sim_決する &lt;dbl&gt;,
+#&gt; #   sim_ぎゅうぎゅう &lt;dbl&gt;, sim_薄ら寒い &lt;dbl&gt;, sim_濫伐 &lt;dbl&gt;,
+#&gt; #   sim_ぶらぶら病 &lt;dbl&gt;, sim_不都合 &lt;dbl&gt;, sim_晦冥 &lt;dbl&gt;, sim_自責 &lt;dbl&gt;,
+#&gt; #   sim_面当て &lt;dbl&gt;, sim_誠意 &lt;dbl&gt;, sim_患部 &lt;dbl&gt;, sim_感嘆 &lt;dbl&gt;,
+#&gt; #   sim_和睦 &lt;dbl&gt;, sim_低能 &lt;dbl&gt;, sim_絞首 &lt;dbl&gt;, sim_代る代る &lt;dbl&gt;,
+#&gt; #   sim_舌打ち &lt;dbl&gt;, sim_楽しむ &lt;dbl&gt;, sim_切れ端 &lt;dbl&gt;, sim_艶 &lt;dbl&gt;,
+#&gt; #   sim_弊習 &lt;dbl&gt;, sim_述べる &lt;dbl&gt;, sim_小物 &lt;dbl&gt;, sim_過大 &lt;dbl&gt;,
+#&gt; #   sim_英図 &lt;dbl&gt;, sim_血 &lt;dbl&gt;, sim_安安 &lt;dbl&gt;, sim_悪漢 &lt;dbl&gt;,
+#&gt; #   sim_才気 &lt;dbl&gt;, sim_公憤 &lt;dbl&gt;, sim_箱 &lt;dbl&gt;, sim_誤謬 &lt;dbl&gt;,
+#&gt; #   sim_眼力 &lt;dbl&gt;, sim_神韻 &lt;dbl&gt;, sim_材料 &lt;dbl&gt;, sim_見紛う &lt;dbl&gt;,
+#&gt; #   sim_良貨 &lt;dbl&gt;, sim_蓖麻 &lt;dbl&gt;, sim_恩給 &lt;dbl&gt;, sim_隔たる &lt;dbl&gt;,
+#&gt; #   sim_昔 &lt;dbl&gt;, sim_強震 &lt;dbl&gt;, sim_付け火 &lt;dbl&gt;, sim_祝 &lt;dbl&gt;,
+#&gt; #   sim_リョーマチ &lt;dbl&gt;, sim_寿老人 &lt;dbl&gt;, sim_忘我 &lt;dbl&gt;, sim_鮮魚 &lt;dbl&gt;,
+#&gt; #   sim_胡散臭い &lt;dbl&gt;, sim_ぐずつく &lt;dbl&gt;, sim_同慶 &lt;dbl&gt;, sim_晒す &lt;dbl&gt;,
+#&gt; #   sim_抹香臭い &lt;dbl&gt;, sim_適時 &lt;dbl&gt;, sim_強健 &lt;dbl&gt;, sim_扱う &lt;dbl&gt;,
+#&gt; #   sim_纏繞 &lt;dbl&gt;, sim_嗜虐 &lt;dbl&gt;, sim_期待 &lt;dbl&gt;, sim_客 &lt;dbl&gt;,
+#&gt; #   sim_後腐れ &lt;dbl&gt;, sim_憂鬱 &lt;dbl&gt;, sim_根気 &lt;dbl&gt;, sim_月 &lt;dbl&gt;,
+#&gt; #   sim_食用 &lt;dbl&gt;, sim_不穏 &lt;dbl&gt;, sim_共助 &lt;dbl&gt;, sim_すかっと &lt;dbl&gt;,
+#&gt; #   sim_絹緞 &lt;dbl&gt;, sim_去る &lt;dbl&gt;, sim_好評 &lt;dbl&gt;, sim_一人相撲 &lt;dbl&gt;,
+#&gt; #   sim_後悔 &lt;dbl&gt;, sim_鬼才 &lt;dbl&gt;, sim_もじもじ &lt;dbl&gt;, sim_片手落ち &lt;dbl&gt;,
+#&gt; #   sim_貯留 &lt;dbl&gt;, sim_若緑 &lt;dbl&gt;, sim_蔑如 &lt;dbl&gt;, sim_熟練工 &lt;dbl&gt;,
+#&gt; #   sim_大剛 &lt;dbl&gt;, sim_乗る &lt;dbl&gt;, ...</code></pre>
+<p>整形して表示してみます。</p>
+<pre class="r"><code>res &lt;- tbl %&gt;%
+  dplyr::group_by(did) %&gt;%
+  dplyr::summarise_at(&quot;result&quot;, mean) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(result) %&gt;%
+  tibble::rowid_to_column() %&gt;%
+  dplyr::right_join(
+    tbl %&gt;%
+      dplyr::group_by(did) %&gt;%
+      dplyr::summarise_at(&quot;morphs&quot;, ~ paste0(., collapse = &quot;&quot;)) %&gt;%
+      dplyr::ungroup() %&gt;%
+      dplyr::select(morphs) %&gt;%
+      tibble::rowid_to_column(),
+    by = &quot;rowid&quot;
+  )
+
+knitr::kable(res)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">rowid</th>
+<th align="right">result</th>
+<th align="left">morphs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">-16.351095</td>
+<td align="left">俺の妹はこんなに可愛い</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">-6.737163</td>
+<td align="left">俺の妹がこんなに可愛いわけがない</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">-27.606258</td>
+<td align="left">俺の妹がこんなに可愛いわけがなくないですか</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">12.053288</td>
+<td align="left">俺の妹がこんなに可愛くないわけがない</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">-6.724040</td>
+<td align="left">必ずしも可愛くなくないこともない</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">-30.879399</td>
+<td align="left">必ずしも可愛くなくないこともないかもしれないな</td>
+</tr>
+</tbody>
+</table>
+<p>COTOHA APIによる解析結果の再掲。</p>
+<pre class="r"><code>cotoha_res %&gt;%
+  purrr::map_dfr(~ tibble::tibble(
+    emotion = .$sentiment,
+    score = .$score,
+    morphs = purrr::map_chr(.$emotional_phrase, ~ paste0(.$form, collapse = &quot;&quot;))
+  )) %&gt;%
+  tibble::rowid_to_column() %&gt;%
+  dplyr::select(rowid, emotion, score, morphs) %&gt;%
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">rowid</th>
+<th align="left">emotion</th>
+<th align="right">score</th>
+<th align="left">morphs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">Positive</td>
+<td align="right">0.6151585</td>
+<td align="left">こんなに可愛い</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">Positive</td>
+<td align="right">0.3532261</td>
+<td align="left">こんなに可愛い</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">Positive</td>
+<td align="right">0.1695927</td>
+<td align="left">こんなに可愛い</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">Negative</td>
+<td align="right">0.8475820</td>
+<td align="left">こんなに可愛くない</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">Negative</td>
+<td align="right">0.8981710</td>
+<td align="left">必ずしも可愛くなくない</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">Negative</td>
+<td align="right">0.8466253</td>
+<td align="left">必ずしも可愛くなくない</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="むすび" class="section level2">
+<h2>むすび</h2>
+<div id="所感" class="section level3">
+<h3>所感</h3>
+<p>正直いって、私には「5. 必ずしも可愛くなくないこともない」や「6. 必ずしも可愛くなくないこともないかもしれないな」といった文が発話されるべき場面をうまく想定できないのでこれらに正解ラベルを用意できないのですが、多重否定をイイ感じに反映させたいというねらいに沿っていえば「4. 俺の妹がこんなに可愛くないわけがない」については「可愛くない」という表現をちゃんと反転できたように見えます。</p>
+</div>
+<div id="参考になる記事" class="section level3">
+<h3>参考になる記事</h3>
+<p>感情分析の流れやTipsなどについては以下の記事が参考になります。</p>
+<ul>
+<li><a href="https://qiita.com/toshiyuki_tsutsui/items/604f92dbe6e20a18a17e">【自然言語処理】感情分析の進め方＆ハマりやすいポイント</a></li>
+<li><a href="https://qiita.com/g-k/items/1b7c765fa6520297ca7c">感情分析に用いる極性辞書を自動生成する</a></li>
+</ul>
+<p>また、テキストの特性値が何についてのものなのかに注目して感情解析をおこなう「観点感情分析」と呼ばれる自然言語処理タスクについては以下のスライドが詳しく扱っています。</p>
+<ul>
+<li><a href="https://www.slideshare.net/takahirokubo7792/ss-96203329">感情の出どころを探る、一歩進んだ感情解析</a></li>
+</ul>
+</div>
+<div id="セッション情報" class="section level3">
+<h3>セッション情報</h3>
+<pre class="r"><code>sessioninfo::session_info()
+#&gt; - Session info ---------------------------------------------------------------
+#&gt;  setting  value                       
+#&gt;  version  R version 4.0.2 (2020-06-22)
+#&gt;  os       Windows 10 x64              
+#&gt;  system   x86_64, mingw32             
+#&gt;  ui       RTerm                       
+#&gt;  language (EN)                        
+#&gt;  collate  Japanese_Japan.932          
+#&gt;  ctype    Japanese_Japan.932          
+#&gt;  tz       Asia/Tokyo                  
+#&gt;  date     2020-07-21                  
+#&gt; 
+#&gt; - Packages -------------------------------------------------------------------
+#&gt;  package     * version date       lib source                             
+#&gt;  assertthat    0.2.1   2019-03-21 [1] CRAN (R 4.0.2)                     
+#&gt;  backports     1.1.8   2020-06-17 [1] CRAN (R 4.0.2)                     
+#&gt;  blob          1.2.1   2020-01-20 [1] CRAN (R 4.0.2)                     
+#&gt;  blogdown      0.20    2020-06-23 [1] CRAN (R 4.0.2)                     
+#&gt;  bookdown      0.20    2020-06-23 [1] CRAN (R 4.0.2)                     
+#&gt;  broom         0.7.0   2020-07-09 [1] CRAN (R 4.0.2)                     
+#&gt;  cellranger    1.1.0   2016-07-27 [1] CRAN (R 4.0.2)                     
+#&gt;  cli           2.0.2   2020-02-28 [1] CRAN (R 4.0.2)                     
+#&gt;  colorspace    1.4-1   2019-03-18 [1] CRAN (R 4.0.2)                     
+#&gt;  conifer       0.0.3   2020-07-21 [1] local                              
+#&gt;  crayon        1.3.4   2017-09-16 [1] CRAN (R 4.0.2)                     
+#&gt;  curl          4.3     2019-12-02 [1] CRAN (R 4.0.2)                     
+#&gt;  DBI           1.1.0   2019-12-15 [1] CRAN (R 4.0.2)                     
+#&gt;  dbplyr        1.4.4   2020-05-27 [1] CRAN (R 4.0.2)                     
+#&gt;  digest        0.6.25  2020-02-23 [1] CRAN (R 4.0.2)                     
+#&gt;  dplyr       * 1.0.0   2020-05-29 [1] CRAN (R 4.0.2)                     
+#&gt;  ellipsis      0.3.1   2020-05-15 [1] CRAN (R 4.0.2)                     
+#&gt;  evaluate      0.14    2019-05-28 [1] CRAN (R 4.0.2)                     
+#&gt;  fansi         0.4.1   2020-01-08 [1] CRAN (R 4.0.2)                     
+#&gt;  flatxml       0.0.2   2018-07-08 [1] CRAN (R 4.0.2)                     
+#&gt;  forcats     * 0.5.0   2020-03-01 [1] CRAN (R 4.0.2)                     
+#&gt;  fs            1.4.2   2020-06-30 [1] CRAN (R 4.0.2)                     
+#&gt;  generics      0.0.2   2018-11-29 [1] CRAN (R 4.0.2)                     
+#&gt;  ggplot2     * 3.3.2   2020-06-19 [1] CRAN (R 4.0.2)                     
+#&gt;  glue          1.4.1   2020-05-13 [1] CRAN (R 4.0.2)                     
+#&gt;  gtable        0.3.0   2019-03-25 [1] CRAN (R 4.0.2)                     
+#&gt;  haven         2.3.1   2020-06-01 [1] CRAN (R 4.0.2)                     
+#&gt;  highr         0.8     2019-03-20 [1] CRAN (R 4.0.2)                     
+#&gt;  hms           0.5.3   2020-01-08 [1] CRAN (R 4.0.2)                     
+#&gt;  htmltools     0.5.0   2020-06-16 [1] CRAN (R 4.0.2)                     
+#&gt;  httr          1.4.1   2019-08-05 [1] CRAN (R 4.0.0)                     
+#&gt;  igraph        1.2.5   2020-03-19 [1] CRAN (R 4.0.2)                     
+#&gt;  jsonlite      1.7.0   2020-06-25 [1] CRAN (R 4.0.2)                     
+#&gt;  knitr         1.29    2020-06-23 [1] CRAN (R 4.0.2)                     
+#&gt;  lifecycle     0.2.0   2020-03-06 [1] CRAN (R 4.0.2)                     
+#&gt;  lubridate     1.7.9   2020-06-08 [1] CRAN (R 4.0.2)                     
+#&gt;  magrittr      1.5     2014-11-22 [1] CRAN (R 4.0.2)                     
+#&gt;  modelr        0.1.8   2020-05-19 [1] CRAN (R 4.0.2)                     
+#&gt;  munsell       0.5.0   2018-06-12 [1] CRAN (R 4.0.2)                     
+#&gt;  pillar        1.4.6   2020-07-10 [1] CRAN (R 4.0.2)                     
+#&gt;  pipian        0.2.1   2020-07-15 [1] Github (paithiov909/pipian@f08b049)
+#&gt;  pkgconfig     2.0.3   2019-09-22 [1] CRAN (R 4.0.2)                     
+#&gt;  purrr       * 0.3.4   2020-04-17 [1] CRAN (R 4.0.2)                     
+#&gt;  R.cache       0.14.0  2019-12-06 [1] CRAN (R 4.0.2)                     
+#&gt;  R.methodsS3   1.8.0   2020-02-14 [1] CRAN (R 4.0.0)                     
+#&gt;  R.oo          1.23.0  2019-11-03 [1] CRAN (R 4.0.0)                     
+#&gt;  R.utils       2.9.2   2019-12-08 [1] CRAN (R 4.0.2)                     
+#&gt;  R6            2.4.1   2019-11-12 [1] CRAN (R 4.0.2)                     
+#&gt;  Rcpp          1.0.5   2020-07-06 [1] CRAN (R 4.0.2)                     
+#&gt;  readr       * 1.3.1   2018-12-21 [1] CRAN (R 4.0.2)                     
+#&gt;  readxl        1.3.1   2019-03-13 [1] CRAN (R 4.0.2)                     
+#&gt;  reprex        0.3.0   2019-05-16 [1] CRAN (R 4.0.2)                     
+#&gt;  rlang         0.4.7   2020-07-09 [1] CRAN (R 4.0.2)                     
+#&gt;  rmarkdown     2.3     2020-06-18 [1] CRAN (R 4.0.2)                     
+#&gt;  rstudioapi    0.11    2020-02-07 [1] CRAN (R 4.0.2)                     
+#&gt;  rvest         0.3.5   2019-11-08 [1] CRAN (R 4.0.0)                     
+#&gt;  scales        1.1.1   2020-05-11 [1] CRAN (R 4.0.2)                     
+#&gt;  sessioninfo   1.1.1   2018-11-05 [1] CRAN (R 4.0.2)                     
+#&gt;  stringdist    0.9.6   2020-07-16 [1] CRAN (R 4.0.2)                     
+#&gt;  stringi       1.4.6   2020-02-17 [1] CRAN (R 4.0.0)                     
+#&gt;  stringr     * 1.4.0   2019-02-10 [1] CRAN (R 4.0.2)                     
+#&gt;  styler        1.3.2   2020-02-23 [1] CRAN (R 4.0.2)                     
+#&gt;  tibble      * 3.0.3   2020-07-10 [1] CRAN (R 4.0.2)                     
+#&gt;  tidyr       * 1.1.0   2020-05-20 [1] CRAN (R 4.0.2)                     
+#&gt;  tidyselect    1.1.0   2020-05-11 [1] CRAN (R 4.0.2)                     
+#&gt;  tidyverse   * 1.3.0   2019-11-21 [1] CRAN (R 4.0.2)                     
+#&gt;  utf8          1.1.4   2018-05-24 [1] CRAN (R 4.0.2)                     
+#&gt;  V8            3.2.0   2020-06-19 [1] CRAN (R 4.0.2)                     
+#&gt;  vctrs         0.3.2   2020-07-15 [1] CRAN (R 4.0.2)                     
+#&gt;  withr         2.2.0   2020-04-20 [1] CRAN (R 4.0.2)                     
+#&gt;  xfun          0.15    2020-06-21 [1] CRAN (R 4.0.2)                     
+#&gt;  xml2          1.3.2   2020-04-23 [1] CRAN (R 4.0.2)                     
+#&gt;  yaml          2.2.1   2020-02-01 [1] CRAN (R 4.0.0)                     
+#&gt; 
+#&gt; [1] C:/Users/user/Documents/R/win-library/4.0
+#&gt; [2] C:/Program Files/R/R-4.0.2/library</code></pre>
+</div>
+</div>

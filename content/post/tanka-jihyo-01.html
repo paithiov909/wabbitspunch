@@ -1,0 +1,883 @@
+---
+title: 短歌時評のテキスト解析（２）
+author: paithiov909
+date: '2020-07-11'
+lastmod: "2020-07-21"
+slug: analysis-tanka-jihyo
+categories: []
+tags:
+  - NLP
+description: '短歌時評のテキストマイニング'
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="解説" class="section level2">
+<h2>解説</h2>
+<blockquote>
+<p><a href="https://note.com/shinabitanori/n/nfbcb659d6134">短歌時評のテキスト解析｜さちこ｜note</a></p>
+</blockquote>
+</div>
+<div id="スプレッドシートの読み込み" class="section level2">
+<h2>スプレッドシートの読み込み</h2>
+<pre class="r"><code>if (nrow(cache) &lt;= 0) {
+
+  # キャッシュがない場合のみ
+  # 同名のファイルが複数あると重複して読み込んでしまうので注意のこと
+
+  jihyo_mirai &lt;- googledrive::drive_find(&quot;jihyo_mirai&quot;, type = &quot;spreadsheet&quot;) %&gt;%
+    dplyr::rowwise() %&gt;%
+    dplyr::do(
+      googledrive::drive_download(
+        googledrive::as_id(.$id),
+        path = file.path(tempdir(), .$name),
+        overwrite = TRUE,
+        verbose = FALSE
+      )
+    )
+  jihyo_tou &lt;- googledrive::drive_find(&quot;jihyo_tou&quot;, type = &quot;spreadsheet&quot;) %&gt;%
+    dplyr::rowwise() %&gt;%
+    dplyr::do(
+      googledrive::drive_download(
+        googledrive::as_id(.$id),
+        path = file.path(tempdir(), .$name),
+        overwrite = TRUE,
+        verbose = FALSE
+      )
+    )
+
+  df &lt;- tibble::tibble(source = c(&quot;mirai&quot;, &quot;tou&quot;)) %&gt;%
+    dplyr::bind_cols(dplyr::bind_rows(jihyo_mirai, jihyo_tou)) %&gt;%
+    dplyr::select(source, name, local_path) %&gt;%
+    tibble::rowid_to_column()
+}
+
+head(df)
+#&gt; # A tibble: 6 x 5
+#&gt;   title        author  text                     source tokens                   
+#&gt;   &lt;chr&gt;        &lt;chr&gt;   &lt;chr&gt;                    &lt;chr&gt;  &lt;chr&gt;                    
+#&gt; 1 『「声」を集める』~ 山崎    緊急事態宣言が発令されてからひと月あまりが経っ~ 未来   緊急 事態 宣言 が 発令 さ れ て から ひ~
+#&gt; 2 『「不要不急」に思うこ~ 山崎聡子~ 新型コロナウィルスの感染拡大に伴ってさまざまな~ 未来   新型 コロナ ウィルス の 感染 拡大 に 伴っ~
+#&gt; 3 『乱反射する「母」と「~ 山崎聡子~ 産めば歌も変わるよと言いしひとびとをわれはゆる~ 未来   産め ば 歌 も 変わる よ と 言い し ひと~
+#&gt; 4 『「わたし」のいるとこ~ 山崎聡子~ このお正月ジュンパラヒリわたしのいるところとカ~ 未来   この お正月 ジュンパラヒリ わたし の いる ~
+#&gt; 5 『すべて失うも良し』~ 高島裕  角川短歌年鑑令和二年版掲載の座談会国語教育と短~ 未来   角川 短歌 年鑑 令 和 二 年版 掲載 の 座~
+#&gt; 6 『他者としての韓国』~ 高島裕  短歌研究一月号では韓国と短歌をテーマとして吉川~ 未来   短歌 研究 一月 号 で は 韓国 と 短歌 を~</code></pre>
+<pre class="r"><code>normalize &lt;- function(str) {
+  str %&gt;%
+    stringr::str_replace_all(&quot;\u2019&quot;, &quot;\&#39;&quot;) %&gt;%
+    stringr::str_replace_all(&quot;\u201d&quot;, &quot;\&quot;&quot;) %&gt;%
+    stringr::str_replace_all(&quot;[\u02d7\u058a\u2010\u2011\u2012\u2013\u2043\u207b\u208b\u2212]&quot;, &quot;-&quot;) %&gt;%
+    stringr::str_replace_all(&quot;[\ufe63\uff0d\uff70\u2014\u2015\u2500\u2501\u30fc]&quot;, enc2utf8(&quot;\u30fc&quot;)) %&gt;%
+    stringr::str_replace_all(&quot;[~\u223c\u223e\u301c\u3030\uff5e]&quot;, &quot;~&quot;) %&gt;%
+    stringr::str_remove_all(&quot;[:punct:]&quot;) %&gt;%
+    stringr::str_remove_all(&quot;[:blank:]&quot;) %&gt;%
+    stringr::str_remove_all(&quot;[:cntrl:]&quot;) %&gt;%
+    return()
+}
+
+if (nrow(cache) &lt;= 0) {
+  df &lt;- df %&gt;%
+    mutate(source = dplyr::if_else(
+      .data$source == &quot;tou&quot;,
+      stringi::stri_enc_toutf8(&quot;\u5854&quot;),
+      stringi::stri_enc_toutf8(&quot;\u672a\u6765&quot;)
+    )) %&gt;%
+    tidyr::nest(li = c(source, local_path)) %&gt;%
+    dplyr::pull(li) %&gt;%
+    purrr::map_dfr(function(el) {
+      tbl &lt;- readxl::read_xlsx(el$local_path)
+      return(
+        dplyr::bind_cols(
+          tbl,
+          tibble::tibble(source = rep(el$source, nrow(tbl)))
+        )
+      )
+    }) %&gt;%
+    dplyr::rowwise() %&gt;%
+    dplyr::mutate(text = normalize(text)) %&gt;%
+    dplyr::mutate(tokens = stringr::str_c(
+      purrr::map_chr(
+        tangela::kuromoji(text), ~ purrr::pluck(., &quot;surface&quot;)
+      ),
+      collapse = &quot; &quot;
+    )) %&gt;%
+    dplyr::ungroup()
+}
+
+corp &lt;- df %&gt;%
+  quanteda::corpus(text_field = &quot;tokens&quot;)</code></pre>
+</div>
+<div id="ワードクラウド" class="section level2">
+<h2>ワードクラウド</h2>
+<p>ストップワードとして<code>rtweet::stopwordslangs</code>を利用しています。</p>
+<pre class="r"><code>stopwords &lt;- rtweet::stopwordslangs %&gt;%
+  dplyr::filter(lang == &quot;ja&quot;) %&gt;%
+  dplyr::filter(p &gt;= .98) %&gt;%
+  dplyr::pull(word)
+
+corp %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
+  quanteda::dfm(groups = &quot;source&quot;) %&gt;%
+  quanteda::dfm_trim(min_termfreq = 12L) %&gt;%
+  quanteda::textplot_wordcloud(comparison = TRUE, color = viridis::cividis(2))</code></pre>
+<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+</div>
+<div id="出現頻度の集計" class="section level2">
+<h2>出現頻度の集計</h2>
+<pre class="r"><code>corp %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
+  quanteda::dfm() %&gt;%
+  quanteda::dfm_weight(&quot;prop&quot;) %&gt;%
+  quanteda::textstat_frequency(groups = &quot;source&quot;) %&gt;%
+  dplyr::top_n(-16L, rank) %&gt;%
+  ggpubr::ggdotchart(
+    x = &quot;feature&quot;,
+    y = &quot;frequency&quot;,
+    group = &quot;group&quot;,
+    color = &quot;group&quot;,
+    rotate = TRUE
+  ) +
+  theme_bw()</code></pre>
+<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="keyness" class="section level2">
+<h2>Keyness</h2>
+<pre class="r"><code>corp %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
+  quanteda::dfm(groups = &quot;source&quot;) %&gt;%
+  quanteda::textstat_keyness() %&gt;%
+  quanteda::textplot_keyness(n = 16L)</code></pre>
+<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="共起ネットワーク" class="section level2">
+<h2>共起ネットワーク</h2>
+<div id="塔" class="section level3">
+<h3>塔</h3>
+<pre class="r"><code>corp %&gt;%
+  quanteda::corpus_subset(source == stringi::stri_enc_toutf8(&quot;\u5854&quot;)) %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
+  quanteda::dfm() %&gt;%
+  quanteda::dfm_trim(min_termfreq = 50L) %&gt;%
+  quanteda::fcm() %&gt;%
+  quanteda::textplot_network(min_freq = .8)</code></pre>
+<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="未来" class="section level3">
+<h3>未来</h3>
+<pre class="r"><code>corp %&gt;%
+  quanteda::corpus_subset(source == stringi::stri_enc_toutf8(&quot;\u672a\u6765&quot;)) %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
+  quanteda::dfm() %&gt;%
+  quanteda::dfm_trim(min_termfreq = 20L) %&gt;%
+  quanteda::fcm() %&gt;%
+  quanteda::textplot_network(min_freq = .8)</code></pre>
+<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+</div>
+<div id="クラスタリング" class="section level2">
+<h2>クラスタリング</h2>
+<p>マンハッタン距離、ward法（ward.D2）です。</p>
+<pre class="r"><code>d &lt;- corp %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
+  quanteda::dfm() %&gt;%
+  quanteda::dfm_weight(scheme = &quot;prop&quot;) %&gt;%
+  quanteda::textstat_dist(method = &quot;manhattan&quot;, diag = TRUE) %&gt;%
+  as.dist() %&gt;%
+  hclust(method = &quot;ward.D2&quot;) %&gt;%
+  ggdendro::dendro_data(type = &quot;rectangle&quot;) %&gt;%
+  purrr::list_modify(labels = dplyr::bind_cols(
+    .$labels,
+    names = quanteda::docvars(corp, &quot;title&quot;),
+    doc = quanteda::docvars(corp, &quot;source&quot;)
+  ))
+#&gt; Warning: diag argument is not used.
+
+ggplot(ggdendro::segment(d)) +
+  geom_segment(aes(
+    x = x,
+    y = y,
+    xend = xend,
+    yend = yend
+  )) +
+  ggrepel::geom_label_repel(
+    ggdendro::label(d),
+    mapping = aes(x, y, label = names, colour = doc),
+    size = 2.5
+  ) +
+  coord_flip() +
+  scale_y_reverse(expand = c(.2, 0)) +
+  ggdendro::theme_dendro()</code></pre>
+<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-10-1.png" width="1344" /></p>
+</div>
+<div id="ldalatent-dirichlet-allocation" class="section level2">
+<h2>LDA（Latent Dirichlet Allocation）</h2>
+<pre class="r"><code>dtm &lt;- corp %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
+  quanteda::dfm() %&gt;%
+  quanteda::dfm_tfidf()
+
+features &lt;- corp %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
+  quanteda::dfm(groups = &quot;title&quot;) %&gt;%
+  quanteda::ntoken()
+
+m &lt;- dtm %&gt;%
+  as(&quot;dgCMatrix&quot;) %&gt;%
+  textmineR::FitLdaModel(k = 6, iterations = 200, burnin = 175)
+
+m$phi %&gt;%
+  textmineR::GetTopTerms(30L) %&gt;%
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">t_1</th>
+<th align="left">t_2</th>
+<th align="left">t_3</th>
+<th align="left">t_4</th>
+<th align="left">t_5</th>
+<th align="left">t_6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">づら</td>
+<td align="left">川野</td>
+<td align="left">渡辺</td>
+<td align="left">震災</td>
+<td align="left">批評</td>
+<td align="left">子規</td>
+</tr>
+<tr class="even">
+<td align="left">杉原</td>
+<td align="left">穂</td>
+<td align="left">沖縄</td>
+<td align="left">当事者</td>
+<td align="left">評論</td>
+<td align="left">ニューウェーブ</td>
+</tr>
+<tr class="odd">
+<td align="left">韓国</td>
+<td align="left">ノスタルジー</td>
+<td align="left">写生</td>
+<td align="left">口語</td>
+<td align="left">時評</td>
+<td align="left">賞</td>
+</tr>
+<tr class="even">
+<td align="left">塚本</td>
+<td align="left">村</td>
+<td align="left">父</td>
+<td align="left">文語</td>
+<td align="left">ｉ</td>
+<td align="left">山田</td>
+</tr>
+<tr class="odd">
+<td align="left">竹山</td>
+<td align="left">吉川</td>
+<td align="left">白鳥</td>
+<td align="left">名詞</td>
+<td align="left">ａ</td>
+<td align="left">白秋</td>
+</tr>
+<tr class="even">
+<td align="left">瀬戸</td>
+<td align="left">近代</td>
+<td align="left">悲歌</td>
+<td align="left">大衆</td>
+<td align="left">読者</td>
+<td align="left">文語</td>
+</tr>
+<tr class="odd">
+<td align="left">安永</td>
+<td align="left">不能</td>
+<td align="left">首</td>
+<td align="left">被災</td>
+<td align="left">座談</td>
+<td align="left">母</td>
+</tr>
+<tr class="even">
+<td align="left">評伝</td>
+<td align="left">万葉集</td>
+<td align="left">冬</td>
+<td align="left">書きことば</td>
+<td align="left">桜</td>
+<td align="left">中止</td>
+</tr>
+<tr class="odd">
+<td align="left">モノ</td>
+<td align="left">過去</td>
+<td align="left">皇后</td>
+<td align="left">富山</td>
+<td align="left">永井</td>
+<td align="left">要請</td>
+</tr>
+<tr class="even">
+<td align="left">構造</td>
+<td align="left">古典</td>
+<td align="left">石井</td>
+<td align="left">小池</td>
+<td align="left">田中</td>
+<td align="left">連作</td>
+</tr>
+<tr class="odd">
+<td align="left">表記</td>
+<td align="left">歌集</td>
+<td align="left">磯江</td>
+<td align="left">梯</td>
+<td align="left">創作</td>
+<td align="left">加藤</td>
+</tr>
+<tr class="even">
+<td align="left">阿木</td>
+<td align="left">レトリック</td>
+<td align="left">口語</td>
+<td align="left">中村</td>
+<td align="left">議論</td>
+<td align="left">決定</td>
+</tr>
+<tr class="odd">
+<td align="left">津</td>
+<td align="left">和歌</td>
+<td align="left">牛尾</td>
+<td align="left">斉藤</td>
+<td align="left">結社</td>
+<td align="left">学生</td>
+</tr>
+<tr class="even">
+<td align="left">染野</td>
+<td align="left">自然</td>
+<td align="left">牧水</td>
+<td align="left">狂歌</td>
+<td align="left">文法</td>
+<td align="left">荻原</td>
+</tr>
+<tr class="odd">
+<td align="left">辞</td>
+<td align="left">現実</td>
+<td align="left">森岡</td>
+<td align="left">日系</td>
+<td align="left">俳句</td>
+<td align="left">茂吉</td>
+</tr>
+<tr class="even">
+<td align="left">原爆</td>
+<td align="left">両義</td>
+<td align="left">ゆく</td>
+<td align="left">●</td>
+<td align="left">前衛</td>
+<td align="left">河野</td>
+</tr>
+<tr class="odd">
+<td align="left">仲田</td>
+<td align="left">戦後</td>
+<td align="left">陛下</td>
+<td align="left">|</td>
+<td align="left">妊娠</td>
+<td align="left">虚構</td>
+</tr>
+<tr class="even">
+<td align="left">内山</td>
+<td align="left">アイディア</td>
+<td align="left">セクハラ</td>
+<td align="left">文学</td>
+<td align="left">主義</td>
+<td align="left">侃</td>
+</tr>
+<tr class="odd">
+<td align="left">暴力</td>
+<td align="left">社会</td>
+<td align="left">殺し</td>
+<td align="left">１</td>
+<td align="left">塚</td>
+<td align="left">旧</td>
+</tr>
+<tr class="even">
+<td align="left">塚</td>
+<td align="left">詠わ</td>
+<td align="left">方向</td>
+<td align="left">詠う</td>
+<td align="left">〇</td>
+<td align="left">裡</td>
+</tr>
+<tr class="odd">
+<td align="left">身銭</td>
+<td align="left">志向</td>
+<td align="left">事故</td>
+<td align="left">在住</td>
+<td align="left">特集</td>
+<td align="left">折</td>
+</tr>
+<tr class="even">
+<td align="left">島田</td>
+<td align="left">詩型</td>
+<td align="left">虚構</td>
+<td align="left">服部</td>
+<td align="left">作者</td>
+<td align="left">外部</td>
+</tr>
+<tr class="odd">
+<td align="left">詩歌</td>
+<td align="left">香川</td>
+<td align="left">秋</td>
+<td align="left">原発</td>
+<td align="left">客観</td>
+<td align="left">枡</td>
+</tr>
+<tr class="even">
+<td align="left">分断</td>
+<td align="left">時代</td>
+<td align="left">刊</td>
+<td align="left">海外</td>
+<td align="left">松村</td>
+<td align="left">基準</td>
+</tr>
+<tr class="odd">
+<td align="left">論理</td>
+<td align="left">天皇</td>
+<td align="left">岡野</td>
+<td align="left">教育</td>
+<td align="left">著作</td>
+<td align="left">万葉</td>
+</tr>
+<tr class="even">
+<td align="left">批判</td>
+<td align="left">記号</td>
+<td align="left">植物</td>
+<td align="left">契約</td>
+<td align="left">資料</td>
+<td align="left">新人</td>
+</tr>
+<tr class="odd">
+<td align="left">差別</td>
+<td align="left">共同</td>
+<td align="left">句</td>
+<td align="left">物語</td>
+<td align="left">戦後</td>
+<td align="left">治郎</td>
+</tr>
+<tr class="even">
+<td align="left">扇風機</td>
+<td align="left">告げ</td>
+<td align="left">怒り</td>
+<td align="left">永田</td>
+<td align="left">歌壇</td>
+<td align="left">同人</td>
+</tr>
+<tr class="odd">
+<td align="left">一司</td>
+<td align="left">現代</td>
+<td align="left">軸</td>
+<td align="left">復興</td>
+<td align="left">執筆</td>
+<td align="left">韻律</td>
+</tr>
+<tr class="even">
+<td align="left">愚鈍</td>
+<td align="left">略</td>
+<td align="left">父親</td>
+<td align="left">処分</td>
+<td align="left">担当</td>
+<td align="left">九</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>LDAvis::createJSON(
+  phi = m$phi,
+  theta = m$theta,
+  doc.length = features,
+  vocab = stringi::stri_enc_toutf8(dtm@Dimnames$features),
+  term.frequency = quanteda::colSums(dtm)
+) %&gt;%
+  LDAvis::serVis(open.browser = FALSE, out.dir = file.path(getwd(), &quot;cache&quot;))
+#&gt; Warning in dir.create(out.dir): &#39;C:
+#&gt; \Users\user\Documents\GitHub\wabbitspunch\content\post\cache&#39; はすでに存在します
+#&gt;  要求されたパッケージ servr をロード中です
+
+readr::read_lines_raw(file.path(getwd(), &quot;cache&quot;, &quot;lda.json&quot;)) %&gt;%
+  iconv(from = &quot;CP932&quot;, to = &quot;UTF-8&quot;) %&gt;%
+  jsonlite::parse_json(simplifyVector = TRUE) %&gt;%
+  jsonlite::write_json(
+    file.path(getwd(), &quot;cache&quot;, &quot;lda.json&quot;),
+    dataframe = &quot;columns&quot;,
+    auto_unbox = TRUE
+  )</code></pre>
+<blockquote>
+<p><a href="/ldavis/analysis-tanka-jihyo">LDAvis</a></p>
+</blockquote>
+</div>
+<div id="glove" class="section level2">
+<h2>GloVe</h2>
+<div id="全体" class="section level3">
+<h3>全体</h3>
+<pre class="r"><code>toks &lt;- corp %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  as.list() %&gt;%
+  text2vec::itoken()
+
+vocab &lt;- toks %&gt;%
+  text2vec::create_vocabulary() %&gt;%
+  text2vec::prune_vocabulary(term_count_min = 5L)
+
+vect &lt;- text2vec::vocab_vectorizer(vocab)
+
+tcm &lt;- text2vec::create_tcm(
+  it = toks,
+  vectorizer = vect,
+  skip_grams_window = 5L
+)
+
+glove &lt;- text2vec::GlobalVectors$new(
+  rank = 50,
+  x_max = 15L
+)
+
+wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
+  as.data.frame(stringsAsFactors = FALSE) %&gt;%
+  tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
+#&gt; INFO  [20:25:57.064] epoch 1, loss 0.1654 
+#&gt; INFO  [20:25:57.581] epoch 2, loss 0.0870 
+#&gt; INFO  [20:25:58.080] epoch 3, loss 0.0709 
+#&gt; INFO  [20:25:58.525] epoch 4, loss 0.0614 
+#&gt; INFO  [20:25:58.952] epoch 5, loss 0.0547 
+#&gt; INFO  [20:25:59.445] epoch 6, loss 0.0497 
+#&gt; INFO  [20:25:59.919] epoch 7, loss 0.0456 
+#&gt; INFO  [20:26:00.385] epoch 8, loss 0.0424 
+#&gt; INFO  [20:26:00.850] epoch 9, loss 0.0396 
+#&gt; INFO  [20:26:01.319] epoch 10, loss 0.0373</code></pre>
+<pre class="r"><code>getRtsneAsTbl &lt;- function(tbl, dim = 2, perp = 30) {
+  tsn &lt;- tbl %&gt;% Rtsne::Rtsne(dim = dim, perplexity = perp)
+  tsny &lt;- tsn$Y
+  rownames(tsny) &lt;- row.names(tbl)
+  tsny &lt;- as.data.frame(tsny, stringsAsFactors = FALSE)
+  return(tibble::as_tibble(tsny, .name_repair = &quot;minimal&quot;, rownames = NA))
+}
+
+vec &lt;- vocab %&gt;%
+  dplyr::anti_join(
+    y = tibble::tibble(words = stopwords),
+    by = c(&quot;term&quot; = &quot;words&quot;)
+  ) %&gt;%
+  dplyr::arrange(desc(term_count)) %&gt;%
+  head(150) %&gt;%
+  dplyr::left_join(tibble::rownames_to_column(wv), by = c(&quot;term&quot; = &quot;rowname&quot;)) %&gt;%
+  tibble::column_to_rownames(&quot;term&quot;) %&gt;%
+  dplyr::select(V1, V2)
+
+dist &lt;- proxy::dist(
+  x = vec,
+  y = vec,
+  method = &quot;Euclidean&quot;,
+  diag = TRUE
+)
+clust &lt;- kmeans(x = dist, centers = 5)
+vec &lt;- getRtsneAsTbl(vec, perp = 2) %&gt;%
+  tibble::rownames_to_column() %&gt;%
+  dplyr::mutate(cluster = as.factor(clust$cluster))
+
+vec %&gt;%
+  ggplot(aes(x = V1, y = V2, colour = cluster)) +
+  geom_point() +
+  ggrepel::geom_text_repel(aes(label = rowname)) +
+  theme_light()</code></pre>
+<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+</div>
+<div id="塔のみ" class="section level3">
+<h3>塔のみ</h3>
+<pre class="r"><code>toks &lt;- corp %&gt;%
+  quanteda::corpus_subset(source == stringi::stri_enc_toutf8(&quot;\u5854&quot;)) %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  as.list() %&gt;%
+  text2vec::itoken()
+
+vocab &lt;- toks %&gt;%
+  text2vec::create_vocabulary() %&gt;%
+  text2vec::prune_vocabulary(term_count_min = 5L)
+
+vect &lt;- text2vec::vocab_vectorizer(vocab)
+
+tcm &lt;- text2vec::create_tcm(
+  it = toks,
+  vectorizer = vect,
+  skip_grams_window = 5L
+)
+
+glove &lt;- text2vec::GlobalVectors$new(
+  rank = 50,
+  x_max = 15L
+)
+
+wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
+  as.data.frame(stringsAsFactors = FALSE) %&gt;%
+  tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
+#&gt; INFO  [20:26:07.821] epoch 1, loss 0.1688 
+#&gt; INFO  [20:26:08.197] epoch 2, loss 0.0869 
+#&gt; INFO  [20:26:08.542] epoch 3, loss 0.0704 
+#&gt; INFO  [20:26:08.908] epoch 4, loss 0.0609 
+#&gt; INFO  [20:26:09.280] epoch 5, loss 0.0541 
+#&gt; INFO  [20:26:09.613] epoch 6, loss 0.0489 
+#&gt; INFO  [20:26:09.973] epoch 7, loss 0.0448 
+#&gt; INFO  [20:26:10.310] epoch 8, loss 0.0414 
+#&gt; INFO  [20:26:10.633] epoch 9, loss 0.0386 
+#&gt; INFO  [20:26:10.976] epoch 10, loss 0.0362</code></pre>
+<pre class="r"><code>vec &lt;- vocab %&gt;%
+  dplyr::anti_join(
+    y = tibble::tibble(words = stopwords),
+    by = c(&quot;term&quot; = &quot;words&quot;)
+  ) %&gt;%
+  dplyr::arrange(desc(term_count)) %&gt;%
+  head(150) %&gt;%
+  dplyr::left_join(tibble::rownames_to_column(wv), by = c(&quot;term&quot; = &quot;rowname&quot;)) %&gt;%
+  tibble::column_to_rownames(&quot;term&quot;) %&gt;%
+  dplyr::select(V1, V2)
+
+dist &lt;- proxy::dist(
+  x = vec,
+  y = vec,
+  method = &quot;Euclidean&quot;,
+  diag = TRUE
+)
+clust &lt;- kmeans(x = dist, centers = 5)
+vec &lt;- getRtsneAsTbl(vec, perp = 2) %&gt;%
+  tibble::rownames_to_column() %&gt;%
+  dplyr::mutate(cluster = as.factor(clust$cluster))
+
+vec %&gt;%
+  ggplot(aes(x = V1, y = V2, colour = cluster)) +
+  geom_point() +
+  ggrepel::geom_text_repel(aes(label = rowname)) +
+  theme_light()</code></pre>
+<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+<div id="未来のみ" class="section level3">
+<h3>未来のみ</h3>
+<pre class="r"><code>toks &lt;- corp %&gt;%
+  quanteda::corpus_subset(source == stringi::stri_enc_toutf8(&quot;\u672a\u6765&quot;)) %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  as.list() %&gt;%
+  text2vec::itoken()
+
+vocab &lt;- toks %&gt;%
+  text2vec::create_vocabulary() %&gt;%
+  text2vec::prune_vocabulary(term_count_min = 5L)
+
+vect &lt;- text2vec::vocab_vectorizer(vocab)
+
+tcm &lt;- text2vec::create_tcm(
+  it = toks,
+  vectorizer = vect,
+  skip_grams_window = 5L
+)
+
+glove &lt;- text2vec::GlobalVectors$new(
+  rank = 50,
+  x_max = 15L
+)
+
+wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
+  as.data.frame(stringsAsFactors = FALSE) %&gt;%
+  tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
+#&gt; INFO  [20:26:16.519] epoch 1, loss 0.1788 
+#&gt; INFO  [20:26:16.646] epoch 2, loss 0.0865 
+#&gt; INFO  [20:26:16.745] epoch 3, loss 0.0684 
+#&gt; INFO  [20:26:16.848] epoch 4, loss 0.0581 
+#&gt; INFO  [20:26:16.965] epoch 5, loss 0.0509 
+#&gt; INFO  [20:26:17.076] epoch 6, loss 0.0454 
+#&gt; INFO  [20:26:17.191] epoch 7, loss 0.0410 
+#&gt; INFO  [20:26:17.325] epoch 8, loss 0.0374 
+#&gt; INFO  [20:26:17.427] epoch 9, loss 0.0343 
+#&gt; INFO  [20:26:17.533] epoch 10, loss 0.0317</code></pre>
+<pre class="r"><code>vec &lt;- vocab %&gt;%
+  dplyr::anti_join(
+    y = tibble::tibble(words = stopwords),
+    by = c(&quot;term&quot; = &quot;words&quot;)
+  ) %&gt;%
+  dplyr::arrange(desc(term_count)) %&gt;%
+  head(150) %&gt;%
+  dplyr::left_join(tibble::rownames_to_column(wv), by = c(&quot;term&quot; = &quot;rowname&quot;)) %&gt;%
+  tibble::column_to_rownames(&quot;term&quot;) %&gt;%
+  dplyr::select(V1, V2)
+
+dist &lt;- proxy::dist(
+  x = vec,
+  y = vec,
+  method = &quot;Euclidean&quot;,
+  diag = TRUE
+)
+clust &lt;- kmeans(x = dist, centers = 5)
+vec &lt;- getRtsneAsTbl(vec, perp = 2) %&gt;%
+  tibble::rownames_to_column() %&gt;%
+  dplyr::mutate(cluster = as.factor(clust$cluster))
+
+vec %&gt;%
+  ggplot(aes(x = V1, y = V2, colour = cluster)) +
+  geom_point() +
+  ggrepel::geom_text_repel(aes(label = rowname)) +
+  theme_light()</code></pre>
+<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+</div>
+</div>
+<div id="セッション情報" class="section level2">
+<h2>セッション情報</h2>
+<pre class="r"><code>devtools::session_info()
+#&gt; - Session info ---------------------------------------------------------------
+#&gt;  setting  value                       
+#&gt;  version  R version 4.0.2 (2020-06-22)
+#&gt;  os       Windows 10 x64              
+#&gt;  system   x86_64, mingw32             
+#&gt;  ui       RTerm                       
+#&gt;  language (EN)                        
+#&gt;  collate  Japanese_Japan.932          
+#&gt;  ctype    Japanese_Japan.932          
+#&gt;  tz       Asia/Tokyo                  
+#&gt;  date     2020-07-21                  
+#&gt; 
+#&gt; - Packages -------------------------------------------------------------------
+#&gt;  ! package        * version  date       lib source        
+#&gt;    abind            1.4-5    2016-07-21 [1] CRAN (R 4.0.0)
+#&gt;    askpass          1.1      2019-01-13 [1] CRAN (R 4.0.2)
+#&gt;    assertthat       0.2.1    2019-03-21 [1] CRAN (R 4.0.2)
+#&gt;    backports        1.1.8    2020-06-17 [1] CRAN (R 4.0.2)
+#&gt;    blob             1.2.1    2020-01-20 [1] CRAN (R 4.0.2)
+#&gt;    blogdown         0.20     2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;    bookdown         0.20     2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;    broom            0.7.0    2020-07-09 [1] CRAN (R 4.0.2)
+#&gt;    callr            3.4.3    2020-03-28 [1] CRAN (R 4.0.2)
+#&gt;    car              3.0-8    2020-05-21 [1] CRAN (R 4.0.2)
+#&gt;    carData          3.0-4    2020-05-22 [1] CRAN (R 4.0.0)
+#&gt;    cellranger       1.1.0    2016-07-27 [1] CRAN (R 4.0.2)
+#&gt;    cli              2.0.2    2020-02-28 [1] CRAN (R 4.0.2)
+#&gt;    coda             0.19-3   2019-07-05 [1] CRAN (R 4.0.2)
+#&gt;    colorspace       1.4-1    2019-03-18 [1] CRAN (R 4.0.2)
+#&gt;    crayon           1.3.4    2017-09-16 [1] CRAN (R 4.0.2)
+#&gt;    curl             4.3      2019-12-02 [1] CRAN (R 4.0.2)
+#&gt;    data.table       1.12.8   2019-12-09 [1] CRAN (R 4.0.0)
+#&gt;    DBI              1.1.0    2019-12-15 [1] CRAN (R 4.0.2)
+#&gt;    dbplyr           1.4.4    2020-05-27 [1] CRAN (R 4.0.2)
+#&gt;    desc             1.2.0    2018-05-01 [1] CRAN (R 4.0.2)
+#&gt;    devtools         2.3.0    2020-04-10 [1] CRAN (R 4.0.2)
+#&gt;    digest           0.6.25   2020-02-23 [1] CRAN (R 4.0.2)
+#&gt;    dplyr          * 1.0.0    2020-05-29 [1] CRAN (R 4.0.2)
+#&gt;    ellipsis         0.3.1    2020-05-15 [1] CRAN (R 4.0.2)
+#&gt;    evaluate         0.14     2019-05-28 [1] CRAN (R 4.0.2)
+#&gt;    fansi            0.4.1    2020-01-08 [1] CRAN (R 4.0.2)
+#&gt;    farver           2.0.3    2020-01-16 [1] CRAN (R 4.0.2)
+#&gt;    fastmatch        1.1-0    2017-01-28 [1] CRAN (R 4.0.0)
+#&gt;    float            0.2-4    2020-04-22 [1] CRAN (R 4.0.0)
+#&gt;    forcats        * 0.5.0    2020-03-01 [1] CRAN (R 4.0.2)
+#&gt;    foreign          0.8-80   2020-05-24 [2] CRAN (R 4.0.2)
+#&gt;    fs               1.4.2    2020-06-30 [1] CRAN (R 4.0.2)
+#&gt;    gargle           0.5.0    2020-05-06 [1] CRAN (R 4.0.2)
+#&gt;    generics         0.0.2    2018-11-29 [1] CRAN (R 4.0.2)
+#&gt;    ggdendro         0.1-20   2016-04-27 [1] CRAN (R 4.0.2)
+#&gt;    ggplot2        * 3.3.2    2020-06-19 [1] CRAN (R 4.0.2)
+#&gt;    ggpubr           0.4.0    2020-06-27 [1] CRAN (R 4.0.2)
+#&gt;    ggrepel          0.8.2    2020-03-08 [1] CRAN (R 4.0.2)
+#&gt;    ggsignif         0.6.0    2019-08-08 [1] CRAN (R 4.0.2)
+#&gt;    glue             1.4.1    2020-05-13 [1] CRAN (R 4.0.2)
+#&gt;    googledrive      1.0.1    2020-05-05 [1] CRAN (R 4.0.2)
+#&gt;    gridExtra        2.3      2017-09-09 [1] CRAN (R 4.0.2)
+#&gt;    gtable           0.3.0    2019-03-25 [1] CRAN (R 4.0.2)
+#&gt;    haven            2.3.1    2020-06-01 [1] CRAN (R 4.0.2)
+#&gt;    highr            0.8      2019-03-20 [1] CRAN (R 4.0.2)
+#&gt;    hms              0.5.3    2020-01-08 [1] CRAN (R 4.0.2)
+#&gt;    htmltools        0.5.0    2020-06-16 [1] CRAN (R 4.0.2)
+#&gt;    httpuv           1.5.4    2020-06-06 [1] CRAN (R 4.0.2)
+#&gt;    httr             1.4.1    2019-08-05 [1] CRAN (R 4.0.0)
+#&gt;    jsonlite         1.7.0    2020-06-25 [1] CRAN (R 4.0.2)
+#&gt;    knitr            1.29     2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;    labeling         0.3      2014-08-23 [1] CRAN (R 4.0.0)
+#&gt;    later            1.1.0.1  2020-06-05 [1] CRAN (R 4.0.2)
+#&gt;    lattice          0.20-41  2020-04-02 [2] CRAN (R 4.0.2)
+#&gt;    LDAvis           0.3.2    2015-10-24 [1] CRAN (R 4.0.2)
+#&gt;    lgr              0.3.4    2020-03-20 [1] CRAN (R 4.0.2)
+#&gt;    lifecycle        0.2.0    2020-03-06 [1] CRAN (R 4.0.2)
+#&gt;    lubridate        1.7.9    2020-06-08 [1] CRAN (R 4.0.2)
+#&gt;    magrittr         1.5      2014-11-22 [1] CRAN (R 4.0.2)
+#&gt;    MASS             7.3-51.6 2020-04-26 [2] CRAN (R 4.0.2)
+#&gt;    Matrix           1.2-18   2019-11-27 [2] CRAN (R 4.0.2)
+#&gt;    memoise          1.1.0    2017-04-21 [1] CRAN (R 4.0.2)
+#&gt;    mlapi            0.1.0    2017-12-17 [1] CRAN (R 4.0.2)
+#&gt;    modelr           0.1.8    2020-05-19 [1] CRAN (R 4.0.2)
+#&gt;    munsell          0.5.0    2018-06-12 [1] CRAN (R 4.0.2)
+#&gt;    network          1.16.0   2019-12-01 [1] CRAN (R 4.0.2)
+#&gt;    openssl          1.4.2    2020-06-27 [1] CRAN (R 4.0.2)
+#&gt;    openxlsx         4.1.5    2020-05-06 [1] CRAN (R 4.0.2)
+#&gt;    pillar           1.4.6    2020-07-10 [1] CRAN (R 4.0.2)
+#&gt;    pkgbuild         1.1.0    2020-07-13 [1] CRAN (R 4.0.2)
+#&gt;    pkgconfig        2.0.3    2019-09-22 [1] CRAN (R 4.0.2)
+#&gt;    pkgload          1.1.0    2020-05-29 [1] CRAN (R 4.0.2)
+#&gt;    prettyunits      1.1.1    2020-01-24 [1] CRAN (R 4.0.2)
+#&gt;    processx         3.4.3    2020-07-05 [1] CRAN (R 4.0.2)
+#&gt;    promises         1.1.1    2020-06-09 [1] CRAN (R 4.0.2)
+#&gt;    proxy            0.4-24   2020-04-25 [1] CRAN (R 4.0.2)
+#&gt;    proxyC           0.1.5    2019-07-21 [1] CRAN (R 4.0.2)
+#&gt;    ps               1.3.3    2020-05-08 [1] CRAN (R 4.0.2)
+#&gt;    purrr          * 0.3.4    2020-04-17 [1] CRAN (R 4.0.2)
+#&gt;    quanteda         2.1.0    2020-07-05 [1] CRAN (R 4.0.2)
+#&gt;    R.cache          0.14.0   2019-12-06 [1] CRAN (R 4.0.2)
+#&gt;    R.methodsS3      1.8.0    2020-02-14 [1] CRAN (R 4.0.0)
+#&gt;    R.oo             1.23.0   2019-11-03 [1] CRAN (R 4.0.0)
+#&gt;    R.utils          2.9.2    2019-12-08 [1] CRAN (R 4.0.2)
+#&gt;    R6               2.4.1    2019-11-12 [1] CRAN (R 4.0.2)
+#&gt;    Rcpp             1.0.5    2020-07-06 [1] CRAN (R 4.0.2)
+#&gt;  D RcppParallel     5.0.2    2020-06-24 [1] CRAN (R 4.0.2)
+#&gt;    RcppProgress     0.4.2    2020-02-06 [1] CRAN (R 4.0.2)
+#&gt;    readr          * 1.3.1    2018-12-21 [1] CRAN (R 4.0.2)
+#&gt;    readxl           1.3.1    2019-03-13 [1] CRAN (R 4.0.2)
+#&gt;    rematch2         2.1.2    2020-05-01 [1] CRAN (R 4.0.2)
+#&gt;    remotes          2.1.1    2020-02-15 [1] CRAN (R 4.0.2)
+#&gt;    reprex           0.3.0    2019-05-16 [1] CRAN (R 4.0.2)
+#&gt;    RhpcBLASctl      0.20-137 2020-05-17 [1] CRAN (R 4.0.0)
+#&gt;    rio              0.5.16   2018-11-26 [1] CRAN (R 4.0.2)
+#&gt;    RJSONIO          1.3-1.4  2020-01-15 [1] CRAN (R 4.0.0)
+#&gt;    rlang            0.4.7    2020-07-09 [1] CRAN (R 4.0.2)
+#&gt;    rmarkdown        2.3      2020-06-18 [1] CRAN (R 4.0.2)
+#&gt;    rprojroot        1.3-2    2018-01-03 [1] CRAN (R 4.0.2)
+#&gt;    rsparse          0.4.0    2020-04-01 [1] CRAN (R 4.0.2)
+#&gt;    rstatix          0.6.0    2020-06-18 [1] CRAN (R 4.0.2)
+#&gt;    rstudioapi       0.11     2020-02-07 [1] CRAN (R 4.0.2)
+#&gt;    Rtsne            0.15     2018-11-10 [1] CRAN (R 4.0.2)
+#&gt;    rtweet           0.7.0    2020-01-08 [1] CRAN (R 4.0.2)
+#&gt;    rvest            0.3.5    2019-11-08 [1] CRAN (R 4.0.0)
+#&gt;    scales           1.1.1    2020-05-11 [1] CRAN (R 4.0.2)
+#&gt;    servr            0.17     2020-05-26 [1] CRAN (R 4.0.2)
+#&gt;    sessioninfo      1.1.1    2018-11-05 [1] CRAN (R 4.0.2)
+#&gt;    sna              2.5      2019-12-10 [1] CRAN (R 4.0.2)
+#&gt;    statnet.common   4.3.0    2019-06-02 [1] CRAN (R 4.0.2)
+#&gt;    stopwords        2.0      2020-04-14 [1] CRAN (R 4.0.2)
+#&gt;    stringi          1.4.6    2020-02-17 [1] CRAN (R 4.0.0)
+#&gt;    stringr        * 1.4.0    2019-02-10 [1] CRAN (R 4.0.2)
+#&gt;    styler           1.3.2    2020-02-23 [1] CRAN (R 4.0.2)
+#&gt;    testthat         2.3.2    2020-03-02 [1] CRAN (R 4.0.2)
+#&gt;    text2vec         0.6      2020-02-18 [1] CRAN (R 4.0.2)
+#&gt;    textmineR        3.0.4    2019-04-18 [1] CRAN (R 4.0.2)
+#&gt;    tibble         * 3.0.3    2020-07-10 [1] CRAN (R 4.0.2)
+#&gt;    tidyr          * 1.1.0    2020-05-20 [1] CRAN (R 4.0.2)
+#&gt;    tidyselect       1.1.0    2020-05-11 [1] CRAN (R 4.0.2)
+#&gt;    tidyverse      * 1.3.0    2019-11-21 [1] CRAN (R 4.0.2)
+#&gt;    usethis          1.6.1    2020-04-29 [1] CRAN (R 4.0.2)
+#&gt;    utf8             1.1.4    2018-05-24 [1] CRAN (R 4.0.2)
+#&gt;    vctrs            0.3.2    2020-07-15 [1] CRAN (R 4.0.2)
+#&gt;    viridis          0.5.1    2018-03-29 [1] CRAN (R 4.0.2)
+#&gt;    viridisLite      0.3.0    2018-02-01 [1] CRAN (R 4.0.2)
+#&gt;    withr            2.2.0    2020-04-20 [1] CRAN (R 4.0.2)
+#&gt;    xfun             0.15     2020-06-21 [1] CRAN (R 4.0.2)
+#&gt;    xml2             1.3.2    2020-04-23 [1] CRAN (R 4.0.2)
+#&gt;    yaml             2.2.1    2020-02-01 [1] CRAN (R 4.0.0)
+#&gt;    zip              2.0.4    2019-09-01 [1] CRAN (R 4.0.2)
+#&gt; 
+#&gt; [1] C:/Users/user/Documents/R/win-library/4.0
+#&gt; [2] C:/Program Files/R/R-4.0.2/library
+#&gt; 
+#&gt;  D -- DLL MD5 mismatch, broken installation.</code></pre>
+</div>

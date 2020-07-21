@@ -74,14 +74,18 @@ dist
 .dynamodb/
 # TernJS port file
 .tern-port
+
+
 # Rproj directories
+.secrets/
 cache/
-packrat/lib*/
-packrat/src/
+public/
+
 .Rproj.user
 .here
 .Rhistory
 
-/public/*
-.secrets
 *.udpipe
+*.feather
+*.csv
+

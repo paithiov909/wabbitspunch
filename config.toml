@@ -9,13 +9,13 @@ enableRobotsTXT = true
 pluralizeListTitles = false
 disqusShortname = ""
 googleAnalytics = "UA-73417314-20"
-ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "\\.udpipe$", "\\.csv$", "_files$", "_cache$", "cache$"]
 
 buildFuture = true
 rssLimit = 10
 
 [permalinks]
-    posts = "/posts/:slug/"
+    post = "/posts/:slug/"
 
 [params]
     description = "Rでもにょる自然言語処理"

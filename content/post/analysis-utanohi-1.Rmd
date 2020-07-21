@@ -1,0 +1,96 @@
+---
+title: 短歌の構文マイニング（１）
+author: paithiov909
+date: '2020-07-21'
+lastmod: "`r Sys.Date()`"
+slug: analysis-utanohi-1
+categories: []
+tags:
+  - NLP
+  - Preprocessing
+description: '{udpipe}による解析'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  tidy = "styler",
+  collapse = TRUE,
+  comment = "#>"
+)
+
+stopifnot(require(tidyverse))
+
+CSV <- "https://bit.ly/3jnffkk"
+```
+
+## データの読み込み
+
+[この記事](https://note.com/shinabitanori/n/nb55d8c7d041d)を書いたときに収集した短歌を解析する。
+
+> うたの日のオープン1001日目から1500日目までの500日間に投稿された短歌（74,857首）をスクレイピングして分析しました。
+> それぞれの短歌について、詠んだ人の筆名・投稿された日・投稿された部屋・もらったハートの数（「選」をした際につく+1を除く）に加えて、今回はもらった音符の数も収集しています。
+> 該当期間中は全部で2,383部屋あったっぽいです（「自由詠」などの重複する題を含みます）。
+
+```{r}
+doc <- CSV %>%
+    readr::read_csv() %>%
+    dplyr::rename(doc_id = X1) %>%
+    dplyr::mutate(names = stringr::str_remove_all(names, "[<U\\+A>]")) %>%
+    dplyr::mutate(text = zipangu::str_conv_normalize(poems)) %>%
+    dplyr::mutate(names = as.factor(names)) %>%
+    dplyr::mutate(keys1 = as.factor(keys1)) %>%
+    dplyr::mutate(keys2 = as.factor(keys2))
+```
+
+## 解析にかかる時間の見積もり
+
+25分くらいかかりそう
+
+```{r}
+bench <- microbenchmark::microbenchmark(
+    annotation = udpipe::udpipe(head(doc, 100), object = "japanese"),
+    times = 5L
+)
+ggplot2::autoplot(bench)
+```
+
+```{r}
+nrow(doc) / 100 * median(bench$time) / 60.00e+09
+```
+
+## 解析
+
+```{r}
+if (!file.exists("cache/annotation.feather")) {
+    annotation <- udpipe::udpipe(head(doc, 10), object = "japanese")
+    annotation <- doc %>%
+        dplyr::mutate(doc_id = as.character(doc_id)) %>%
+        dplyr::right_join(annotation, by = "doc_id") %>%
+        dplyr::mutate(upos = as.factor(upos)) %>%
+        dplyr::mutate(xpos = as.factor(xpos)) %>%
+        dplyr::mutate(dep_rel = as.factor(dep_rel)) %>%
+        dplyr::select(-feats, -deps, -misc) %>%
+        feather::write_feather("cache/annotation.feather")
+}
+```
+
+```{r}
+annotation <- feather::read_feather("cache/annotation.feather")
+words <- udpipe::keywords_collocation(
+  dplyr::filter(annotation, upos %in% c("SCONJ", "ADP", "VERB")),
+  term = "lemma",
+  group = c("doc_id", "sentence_id"),
+  ngram_max = 6L
+)
+words %>%
+  dplyr::select(1:7) %>%
+  dplyr::arrange(desc(freq)) %>%
+  head(200) %>%
+  DT::datatable()
+```
+
+## セッション情報
+
+```{r}
+sessioninfo::session_info()
+```

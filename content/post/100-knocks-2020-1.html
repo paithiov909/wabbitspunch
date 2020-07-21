@@ -1,0 +1,457 @@
+---
+title: Rで言語処理100本ノックを解くわけがない（１）
+author: paithiov909
+date: '2020-07-11'
+lastmod: "2020-07-21"
+slug: 100-knocks-2020-1
+categories: []
+tags:
+  - NLP
+description: 'Rで言語処理100本ノック 2020（１）'
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="全体の見通し" class="section level2">
+<h2>全体の見通し</h2>
+<p>2020年版に触ってみますが、ぜんぶは解きません。無理です。</p>
+<ul>
+<li><a href="https://nlp100.github.io/ja/">言語処理100本ノック 2020</a></li>
+</ul>
+<p>ググって出てくる範囲では2015年版にはyamano357さんが取り組んでいます。RcppでMeCabとCaboChaのバインディングを自分で書いて解いている本格派です。</p>
+<ul>
+<li><a href="http://yamano357.hatenadiary.com/entry/2015/07/27/001728">Rによる言語処理100本ノック前半まとめ - バイアスと戯れる</a></li>
+<li><a href="http://yamano357.hatenadiary.com/entry/2015/10/22/193839">Rによる言語処理100本ノック後半まとめと全体での総括 - バイアスと戯れる</a></li>
+</ul>
+<p>2020年版もやろうとしている人がいるようです。</p>
+<ul>
+<li><a href="https://qiita.com/PiyoMoasa/items/7c1a6cca3f9cbcaf7773">言語処理100本ノック R - Qiita</a></li>
+</ul>
+<p>2020年版も7章の単語ベクトルあたりまではPure Rでいけそうですが、おそらく8章のディープ・ニューラルネットあたりからバックエンドにPythonを利用することになり、10章の最終題の翻訳デモの構築でふつうにPythonを利用しなければならなくなるはずなので詰みます。</p>
+</div>
+<div id="準備運動" class="section level2">
+<h2>準備運動</h2>
+<p>コーディングの方針として、値はなるべくリストのまま持っておいて最後に<code>unlist</code>する感じにしています。あと、<code>paste</code>ではなくて<code>stringr::str_c</code>で統一しています。</p>
+<div id="文字列の逆順" class="section level3">
+<h3>00. 文字列の逆順</h3>
+<pre class="r"><code>stringr::str_split(&quot;stressed&quot;, pattern = &quot;&quot;) %&gt;%
+  purrr::map(~ rev(.)) %&gt;%
+  unlist() %&gt;%
+  stringr::str_c(collapse = &quot;&quot;)
+#&gt; [1] &quot;desserts&quot;</code></pre>
+</div>
+<div id="パタトクカシーー" class="section level3">
+<h3>01. 「パタトクカシーー」</h3>
+<pre class="r"><code>stringr::str_split(&quot;パタトクカシーー&quot;, pattern = &quot;&quot;) %&gt;%
+  purrr::map(~ purrr::pluck(.[c(TRUE, FALSE)])) %&gt;%
+  unlist() %&gt;%
+  stringr::str_c(collapse = &quot;&quot;)
+#&gt; [1] &quot;パトカー&quot;</code></pre>
+</div>
+<div id="パトカータクシーパタトクカシーー" class="section level3">
+<h3>02. 「パトカー」＋「タクシー」＝「パタトクカシーー」</h3>
+<pre class="r"><code>list(&quot;パトカー&quot;, &quot;タクシー&quot;) %&gt;%
+  purrr::map(~ stringr::str_split(., pattern = &quot;&quot;)) %&gt;%
+  purrr::flatten() %&gt;%
+  purrr::pmap(~ stringr::str_c(.x, .y, collapse = &quot;&quot;)) %&gt;%
+  unlist() %&gt;%
+  stringr::str_c(collapse = &quot;&quot;)
+#&gt; [1] &quot;パタトクカシーー&quot;</code></pre>
+</div>
+<div id="円周率" class="section level3">
+<h3>03. 円周率</h3>
+<pre class="r"><code>stringr::str_split(&quot;Now I need a drink, alcoholic of course, after the heavy lectures involving quantum mechanics.&quot;, pattern = &quot; &quot;) %&gt;%
+  purrr::flatten() %&gt;%
+  purrr::map(~ stringr::str_count(., pattern = &quot;[:alpha:]&quot;)) %&gt;%
+  unlist()
+#&gt;  [1] 3 1 4 1 5 9 2 6 5 3 5 8 9 7 9</code></pre>
+</div>
+<div id="元素記号" class="section level3">
+<h3>04. 元素記号</h3>
+<pre class="r"><code>stringr::str_split(&quot;Hi He Lied Because Boron Could Not Oxidize Fluorine. New Nations Might Also Sign Peace Security Clause. Arthur King Can.&quot;, pattern = &quot; &quot;) %&gt;%
+  purrr::flatten() %&gt;%
+  purrr::imap(~
+  dplyr::if_else(
+    .y %in% c(1, 5, 6, 7, 8, 9, 15, 16, 19),
+    stringr::str_sub(.x, 1, 1),
+    stringr::str_sub(.x, 1, 2)
+  )) %&gt;%
+  purrr::imap(function(x, i) {
+    names(x) &lt;- i
+    return(x)
+  }) %&gt;%
+  unlist()
+#&gt;    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16 
+#&gt;  &quot;H&quot; &quot;He&quot; &quot;Li&quot; &quot;Be&quot;  &quot;B&quot;  &quot;C&quot;  &quot;N&quot;  &quot;O&quot;  &quot;F&quot; &quot;Ne&quot; &quot;Na&quot; &quot;Mi&quot; &quot;Al&quot; &quot;Si&quot;  &quot;P&quot;  &quot;S&quot; 
+#&gt;   17   18   19   20 
+#&gt; &quot;Cl&quot; &quot;Ar&quot;  &quot;K&quot; &quot;Ca&quot;</code></pre>
+</div>
+<div id="n-gram" class="section level3">
+<h3>05. n-gram</h3>
+<pre class="r"><code>ngram &lt;- function(x, n = 2, sep = &quot; &quot;) {
+  stopifnot(is.character(x))
+  #### 先例がみんな`embed`を使っているが、ここでは使わない ####
+
+  tokens &lt;- unlist(stringr::str_split(x, pattern = sep))
+  len &lt;- length(tokens)
+
+  if (len &lt; n) {
+    res &lt;- character(0)
+  } else {
+    res &lt;- sapply(1:max(1, len - n + 1), function(i) {
+      stringr::str_c(tokens[i:min(len, i + n - 1)], collapse = &quot; &quot;)
+    })
+  }
+
+  return(res)
+}
+ngram(&quot;I am an NLPer&quot;)
+#&gt; [1] &quot;I am&quot;     &quot;am an&quot;    &quot;an NLPer&quot;</code></pre>
+</div>
+<div id="集合" class="section level3">
+<h3>06. 集合</h3>
+<p>回答略</p>
+</div>
+<div id="テンプレートによる文生成" class="section level3">
+<h3>07. テンプレートによる文生成</h3>
+<p>回答略</p>
+</div>
+<div id="暗号文" class="section level3">
+<h3>08. 暗号文</h3>
+<pre class="r"><code>cipher &lt;- function(str) {
+  f &lt;- purrr::as_mapper(~ 219 - .)
+  v &lt;- stringr::str_split(str, pattern = &quot;&quot;, simplify = TRUE)
+  res &lt;- sapply(v[1, ], function(char) {
+    dplyr::if_else(
+      stringr::str_detect(char, &quot;[:lower:]&quot;),
+      char %&gt;%
+        charToRaw() %&gt;%
+        as.integer() %&gt;%
+        f() %&gt;%
+        as.raw() %&gt;%
+        rawToChar(),
+      char
+    )
+  })
+  return(stringr::str_c(res, collapse = &quot;&quot;))
+}
+cipher(&quot;I couldn&#39;t believe that I could actually understand what I was reading : the phenomenal power of the human mind.&quot;)
+#&gt; [1] &quot;I xlfowm&#39;g yvorvev gszg I xlfow zxgfzoob fmwvihgzmw dszg I dzh ivzwrmt : gsv ksvmlnvmzo kldvi lu gsv sfnzm nrmw.&quot;</code></pre>
+</div>
+<div id="typoglycemia" class="section level3">
+<h3>09. Typoglycemia</h3>
+<pre class="r"><code>typoglycemia &lt;- function(str) {
+  f &lt;- function(char) {
+    subset &lt;- stringr::str_sub(char, 2, nchar(char) - 1) %&gt;%
+      stringr::str_split(pattern = &quot;&quot;) %&gt;%
+      purrr::flatten() %&gt;%
+      sample()
+    res &lt;- stringr::str_c(
+      c(
+        stringr::str_sub(char, 1, 1),
+        subset,
+        stringr::str_sub(char, nchar(char), nchar(char))
+      ),
+      collapse = &quot;&quot;
+    )
+    return(res)
+  }
+  res &lt;- stringr::str_split(str, pattern = &quot; &quot;) %&gt;%
+    purrr::flatten() %&gt;%
+    purrr::map(~
+    dplyr::if_else(
+      nchar(stringr::str_subset(., &quot;[:alpha:]|:&quot;)) &lt;= 4,
+      .,
+      f(.)
+    ))
+  return(stringr::str_c(res, collapse = &quot; &quot;))
+}
+typoglycemia(&quot;I couldn&#39;t believe that I could actually understand what I was reading : the phenomenal power of the human mind.&quot;)
+#&gt; [1] &quot;I culod&#39;nt bvlieee that I cloud allatcuy utsnnrdaed what I was radieng : the phnmoenael pwoer of the hamun mndi.&quot;</code></pre>
+</div>
+</div>
+<div id="unixコマンド" class="section level2">
+<h2>UNIXコマンド</h2>
+<p>確認はやりません。<del>だってWindowsだもん</del></p>
+<div id="section" class="section level3">
+<h3>10~15</h3>
+<p>素のテキストとして読んでもしょうがないので、以下のようなこと雰囲気でやります。</p>
+<ul>
+<li><ol start="10" style="list-style-type: decimal">
+<li>行数のカウント</li>
+</ol></li>
+<li><ol start="11" style="list-style-type: decimal">
+<li>タブをスペースに置換</li>
+</ol></li>
+<li><ol start="14" style="list-style-type: decimal">
+<li>先頭からN行を出力</li>
+</ol></li>
+<li><ol start="15" style="list-style-type: decimal">
+<li>末尾のN行を出力</li>
+</ol></li>
+</ul>
+<p>以下の２つはやりませんが、たぶん<code>fread(temp, select = c(1, 2))</code>みたいな感じで取れます。</p>
+<ul>
+<li><ol start="12" style="list-style-type: decimal">
+<li>1列目をcol1.txtに，2列目をcol2.txtに保存</li>
+</ol></li>
+<li><ol start="13" style="list-style-type: decimal">
+<li>col1.txtとcol2.txtをマージ</li>
+</ol></li>
+</ul>
+<pre class="r"><code>temp &lt;- tempfile(fileext = &quot;.txt&quot;)
+download.file(&quot;https://nlp100.github.io/data/popular-names.txt&quot;, temp)
+txt &lt;- temp %&gt;%
+  data.table::fread(
+    sep = &quot;\t&quot;,
+    quote = &quot;&quot;,
+    header = FALSE,
+    col.names = c(&quot;name&quot;, &quot;sex&quot;, &quot;num_of_people&quot;, &quot;year&quot;),
+    colClasses = list(&quot;character&quot; = 1, &quot;character&quot; = 2, &quot;integer&quot; = 3, &quot;integer&quot; = 4),
+    data.table = FALSE
+  )
+
+nrow(txt)
+#&gt; [1] 2780</code></pre>
+<pre class="r"><code>head(txt, 3)
+#&gt;   name sex num_of_people year
+#&gt; 1 Mary   F          7065 1880
+#&gt; 2 Anna   F          2604 1880
+#&gt; 3 Emma   F          2003 1880</code></pre>
+<pre class="r"><code>tail(txt, 3)
+#&gt;       name sex num_of_people year
+#&gt; 2778 Lucas   M         12585 2018
+#&gt; 2779 Mason   M         12435 2018
+#&gt; 2780 Logan   M         12352 2018</code></pre>
+</div>
+<div id="ファイルをn分割する" class="section level3">
+<h3>16. ファイルをN分割する</h3>
+<pre class="r"><code>split(txt, sort(rank(row.names(txt)) %% 5)) %&gt;%
+  purrr::map(~ head(.)) %&gt;%
+  print()
+#&gt; $`0`
+#&gt;        name sex num_of_people year
+#&gt; 1      Mary   F          7065 1880
+#&gt; 2      Anna   F          2604 1880
+#&gt; 3      Emma   F          2003 1880
+#&gt; 4 Elizabeth   F          1939 1880
+#&gt; 5    Minnie   F          1746 1880
+#&gt; 6  Margaret   F          1578 1880
+#&gt; 
+#&gt; $`1`
+#&gt;       name sex num_of_people year
+#&gt; 557 Joseph   M          3844 1907
+#&gt; 558  Frank   M          2943 1907
+#&gt; 559 Edward   M          2576 1907
+#&gt; 560  Henry   M          2203 1907
+#&gt; 561   Mary   F         18665 1908
+#&gt; 562  Helen   F          8439 1908
+#&gt; 
+#&gt; $`2`
+#&gt;         name sex num_of_people year
+#&gt; 1113    John   M         47499 1935
+#&gt; 1114 William   M         40198 1935
+#&gt; 1115 Richard   M         33945 1935
+#&gt; 1116 Charles   M         29983 1935
+#&gt; 1117  Donald   M         29661 1935
+#&gt; 1118  George   M         18559 1935
+#&gt; 
+#&gt; $`3`
+#&gt;         name sex num_of_people year
+#&gt; 1669  Sandra   F         21619 1963
+#&gt; 1670 Cynthia   F         21593 1963
+#&gt; 1671 Michael   M         83782 1963
+#&gt; 1672    John   M         78625 1963
+#&gt; 1673   David   M         78467 1963
+#&gt; 1674   James   M         71322 1963
+#&gt; 
+#&gt; $`4`
+#&gt;           name sex num_of_people year
+#&gt; 2225  Samantha   F         25645 1991
+#&gt; 2226     Sarah   F         25225 1991
+#&gt; 2227 Stephanie   F         22774 1991
+#&gt; 2228  Jennifer   F         20673 1991
+#&gt; 2229 Elizabeth   F         20392 1991
+#&gt; 2230     Emily   F         20308 1991</code></pre>
+</div>
+<div id="列目の文字列の異なり" class="section level3">
+<h3>17. １列目の文字列の異なり</h3>
+<p>省略</p>
+</div>
+<div id="各行を3コラム目の数値の降順にソート" class="section level3">
+<h3>18. 各行を3コラム目の数値の降順にソート</h3>
+<pre class="r"><code>txt %&gt;%
+  arrange(desc(num_of_people)) %&gt;%
+  head()
+#&gt;      name sex num_of_people year
+#&gt; 1   Linda   F         99689 1947
+#&gt; 2   Linda   F         96211 1948
+#&gt; 3   James   M         94757 1947
+#&gt; 4 Michael   M         92704 1957
+#&gt; 5  Robert   M         91640 1947
+#&gt; 6   Linda   F         91016 1949</code></pre>
+</div>
+<div id="各行の1コラム目の文字列の出現頻度を求め出現頻度の高い順に並べる" class="section level3">
+<h3>19. 各行の1コラム目の文字列の出現頻度を求め，出現頻度の高い順に並べる</h3>
+<pre class="r"><code>purrr::map_dfr(txt$name, function(name) {
+  stringr::str_split(name, pattern = &quot;&quot;, simplify = TRUE) %&gt;%
+    t() %&gt;%
+    as.data.frame(stringsAsFactors = FALSE)
+}) %&gt;%
+  dplyr::rename(string = V1) %&gt;%
+  dplyr::group_by(string) %&gt;%
+  dplyr::count(string, sort = TRUE) %&gt;%
+  head()
+#&gt; # A tibble: 6 x 2
+#&gt; # Groups:   string [6]
+#&gt;   string     n
+#&gt;   &lt;chr&gt;  &lt;int&gt;
+#&gt; 1 a       2194
+#&gt; 2 e       1554
+#&gt; 3 r       1270
+#&gt; 4 i       1183
+#&gt; 5 h       1018
+#&gt; 6 l        943</code></pre>
+</div>
+</div>
+<div id="正規表現" class="section level2">
+<h2>正規表現</h2>
+<p>自然言語処理とはいったい</p>
+<div id="jsonデータの読み込み" class="section level3">
+<h3>20. JSONデータの読み込み</h3>
+<pre class="r"><code>temp &lt;- tempfile(fileext = &quot;.gz&quot;)
+download.file(&quot;https://nlp100.github.io/data/jawiki-country.json.gz&quot;, temp)
+con &lt;- gzfile(description = temp, open = &quot;rb&quot;, encoding = &quot;UTF-8&quot;)
+jsonfile &lt;- readr::read_lines(con) %&gt;%
+  purrr::map_dfr(~
+  jsonlite::fromJSON(.))
+close(con)
+
+jsonfile %&gt;%
+  dplyr::filter(title == &quot;イギリス&quot;) %&gt;%
+  dplyr::pull(text) %&gt;%
+  glimpse() ## 長いので
+#&gt;  chr &quot;{{redirect|UK}}\n{{redirect|英国|春秋時代の諸侯国|英 (春秋)}}\n{{Otheruses|ヨーロッパの国|長崎県・熊本県の郷土&quot;| __truncated__</code></pre>
+</div>
+<div id="カテゴリ名を含む行を抽出" class="section level3">
+<h3>21. カテゴリ名を含む行を抽出</h3>
+<pre class="r"><code>lines &lt;- jsonfile %&gt;%
+  dplyr::filter(title == &quot;イギリス&quot;) %&gt;%
+  dplyr::pull(text) %&gt;%
+  readr::read_lines() %&gt;%
+  stringr::str_subset(stringr::fixed(&quot;[[Category:&quot;))
+lines
+#&gt; [1] &quot;[[Category:イギリス|*]]&quot;                
+#&gt; [2] &quot;[[Category:イギリス連邦加盟国]]&quot;        
+#&gt; [3] &quot;[[Category:英連邦王国|*]]&quot;              
+#&gt; [4] &quot;[[Category:G8加盟国]]&quot;                  
+#&gt; [5] &quot;[[Category:欧州連合加盟国|元]]&quot;         
+#&gt; [6] &quot;[[Category:海洋国家]]&quot;                  
+#&gt; [7] &quot;[[Category:現存する君主国]]&quot;            
+#&gt; [8] &quot;[[Category:島国]]&quot;                      
+#&gt; [9] &quot;[[Category:1801年に成立した国家・領域]]&quot;</code></pre>
+<p>以下、回答略</p>
+</div>
+</div>
+<div id="セッション情報" class="section level2">
+<h2>セッション情報</h2>
+<pre class="r"><code>devtools::session_info()
+#&gt; - Session info ---------------------------------------------------------------
+#&gt;  setting  value                       
+#&gt;  version  R version 4.0.2 (2020-06-22)
+#&gt;  os       Windows 10 x64              
+#&gt;  system   x86_64, mingw32             
+#&gt;  ui       RTerm                       
+#&gt;  language (EN)                        
+#&gt;  collate  Japanese_Japan.932          
+#&gt;  ctype    Japanese_Japan.932          
+#&gt;  tz       Asia/Tokyo                  
+#&gt;  date     2020-07-21                  
+#&gt; 
+#&gt; - Packages -------------------------------------------------------------------
+#&gt;  package     * version date       lib source        
+#&gt;  assertthat    0.2.1   2019-03-21 [1] CRAN (R 4.0.2)
+#&gt;  backports     1.1.8   2020-06-17 [1] CRAN (R 4.0.2)
+#&gt;  blob          1.2.1   2020-01-20 [1] CRAN (R 4.0.2)
+#&gt;  blogdown      0.20    2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;  bookdown      0.20    2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;  broom         0.7.0   2020-07-09 [1] CRAN (R 4.0.2)
+#&gt;  callr         3.4.3   2020-03-28 [1] CRAN (R 4.0.2)
+#&gt;  cellranger    1.1.0   2016-07-27 [1] CRAN (R 4.0.2)
+#&gt;  cli           2.0.2   2020-02-28 [1] CRAN (R 4.0.2)
+#&gt;  colorspace    1.4-1   2019-03-18 [1] CRAN (R 4.0.2)
+#&gt;  crayon        1.3.4   2017-09-16 [1] CRAN (R 4.0.2)
+#&gt;  data.table    1.12.8  2019-12-09 [1] CRAN (R 4.0.0)
+#&gt;  DBI           1.1.0   2019-12-15 [1] CRAN (R 4.0.2)
+#&gt;  dbplyr        1.4.4   2020-05-27 [1] CRAN (R 4.0.2)
+#&gt;  desc          1.2.0   2018-05-01 [1] CRAN (R 4.0.2)
+#&gt;  devtools      2.3.0   2020-04-10 [1] CRAN (R 4.0.2)
+#&gt;  digest        0.6.25  2020-02-23 [1] CRAN (R 4.0.2)
+#&gt;  dplyr       * 1.0.0   2020-05-29 [1] CRAN (R 4.0.2)
+#&gt;  ellipsis      0.3.1   2020-05-15 [1] CRAN (R 4.0.2)
+#&gt;  evaluate      0.14    2019-05-28 [1] CRAN (R 4.0.2)
+#&gt;  fansi         0.4.1   2020-01-08 [1] CRAN (R 4.0.2)
+#&gt;  forcats     * 0.5.0   2020-03-01 [1] CRAN (R 4.0.2)
+#&gt;  fs            1.4.2   2020-06-30 [1] CRAN (R 4.0.2)
+#&gt;  generics      0.0.2   2018-11-29 [1] CRAN (R 4.0.2)
+#&gt;  ggplot2     * 3.3.2   2020-06-19 [1] CRAN (R 4.0.2)
+#&gt;  glue          1.4.1   2020-05-13 [1] CRAN (R 4.0.2)
+#&gt;  gtable        0.3.0   2019-03-25 [1] CRAN (R 4.0.2)
+#&gt;  haven         2.3.1   2020-06-01 [1] CRAN (R 4.0.2)
+#&gt;  hms           0.5.3   2020-01-08 [1] CRAN (R 4.0.2)
+#&gt;  htmltools     0.5.0   2020-06-16 [1] CRAN (R 4.0.2)
+#&gt;  httr          1.4.1   2019-08-05 [1] CRAN (R 4.0.0)
+#&gt;  jsonlite      1.7.0   2020-06-25 [1] CRAN (R 4.0.2)
+#&gt;  knitr         1.29    2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;  lifecycle     0.2.0   2020-03-06 [1] CRAN (R 4.0.2)
+#&gt;  lubridate     1.7.9   2020-06-08 [1] CRAN (R 4.0.2)
+#&gt;  magrittr      1.5     2014-11-22 [1] CRAN (R 4.0.2)
+#&gt;  memoise       1.1.0   2017-04-21 [1] CRAN (R 4.0.2)
+#&gt;  modelr        0.1.8   2020-05-19 [1] CRAN (R 4.0.2)
+#&gt;  munsell       0.5.0   2018-06-12 [1] CRAN (R 4.0.2)
+#&gt;  pillar        1.4.6   2020-07-10 [1] CRAN (R 4.0.2)
+#&gt;  pkgbuild      1.1.0   2020-07-13 [1] CRAN (R 4.0.2)
+#&gt;  pkgconfig     2.0.3   2019-09-22 [1] CRAN (R 4.0.2)
+#&gt;  pkgload       1.1.0   2020-05-29 [1] CRAN (R 4.0.2)
+#&gt;  prettyunits   1.1.1   2020-01-24 [1] CRAN (R 4.0.2)
+#&gt;  processx      3.4.3   2020-07-05 [1] CRAN (R 4.0.2)
+#&gt;  ps            1.3.3   2020-05-08 [1] CRAN (R 4.0.2)
+#&gt;  purrr       * 0.3.4   2020-04-17 [1] CRAN (R 4.0.2)
+#&gt;  R.cache       0.14.0  2019-12-06 [1] CRAN (R 4.0.2)
+#&gt;  R.methodsS3   1.8.0   2020-02-14 [1] CRAN (R 4.0.0)
+#&gt;  R.oo          1.23.0  2019-11-03 [1] CRAN (R 4.0.0)
+#&gt;  R.utils       2.9.2   2019-12-08 [1] CRAN (R 4.0.2)
+#&gt;  R6            2.4.1   2019-11-12 [1] CRAN (R 4.0.2)
+#&gt;  Rcpp          1.0.5   2020-07-06 [1] CRAN (R 4.0.2)
+#&gt;  readr       * 1.3.1   2018-12-21 [1] CRAN (R 4.0.2)
+#&gt;  readxl        1.3.1   2019-03-13 [1] CRAN (R 4.0.2)
+#&gt;  rematch2      2.1.2   2020-05-01 [1] CRAN (R 4.0.2)
+#&gt;  remotes       2.1.1   2020-02-15 [1] CRAN (R 4.0.2)
+#&gt;  reprex        0.3.0   2019-05-16 [1] CRAN (R 4.0.2)
+#&gt;  rlang         0.4.7   2020-07-09 [1] CRAN (R 4.0.2)
+#&gt;  rmarkdown     2.3     2020-06-18 [1] CRAN (R 4.0.2)
+#&gt;  rprojroot     1.3-2   2018-01-03 [1] CRAN (R 4.0.2)
+#&gt;  rstudioapi    0.11    2020-02-07 [1] CRAN (R 4.0.2)
+#&gt;  rvest         0.3.5   2019-11-08 [1] CRAN (R 4.0.0)
+#&gt;  scales        1.1.1   2020-05-11 [1] CRAN (R 4.0.2)
+#&gt;  sessioninfo   1.1.1   2018-11-05 [1] CRAN (R 4.0.2)
+#&gt;  stringi       1.4.6   2020-02-17 [1] CRAN (R 4.0.0)
+#&gt;  stringr     * 1.4.0   2019-02-10 [1] CRAN (R 4.0.2)
+#&gt;  styler        1.3.2   2020-02-23 [1] CRAN (R 4.0.2)
+#&gt;  testthat      2.3.2   2020-03-02 [1] CRAN (R 4.0.2)
+#&gt;  tibble      * 3.0.3   2020-07-10 [1] CRAN (R 4.0.2)
+#&gt;  tidyr       * 1.1.0   2020-05-20 [1] CRAN (R 4.0.2)
+#&gt;  tidyselect    1.1.0   2020-05-11 [1] CRAN (R 4.0.2)
+#&gt;  tidyverse   * 1.3.0   2019-11-21 [1] CRAN (R 4.0.2)
+#&gt;  usethis       1.6.1   2020-04-29 [1] CRAN (R 4.0.2)
+#&gt;  utf8          1.1.4   2018-05-24 [1] CRAN (R 4.0.2)
+#&gt;  vctrs         0.3.2   2020-07-15 [1] CRAN (R 4.0.2)
+#&gt;  withr         2.2.0   2020-04-20 [1] CRAN (R 4.0.2)
+#&gt;  xfun          0.15    2020-06-21 [1] CRAN (R 4.0.2)
+#&gt;  xml2          1.3.2   2020-04-23 [1] CRAN (R 4.0.2)
+#&gt;  yaml          2.2.1   2020-02-01 [1] CRAN (R 4.0.0)
+#&gt; 
+#&gt; [1] C:/Users/user/Documents/R/win-library/4.0
+#&gt; [2] C:/Program Files/R/R-4.0.2/library</code></pre>
+</div>

@@ -1,0 +1,884 @@
+---
+title: 短歌のテキストマイニング
+author: paithiov909
+date: '2020-07-11'
+lastmod: "2020-07-21"
+slug: shinabitanori-tanka
+categories: []
+tags:
+  - NLP
+description: 'Rで短歌のテキストマイニング'
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="ファイルの読み込み" class="section level2">
+<h2>ファイルの読み込み</h2>
+<p>自作短歌のテキストを読み込んで前処理しておきます。</p>
+<pre class="r"><code>normalize &lt;- function(str) {
+  str %&gt;%
+    stringr::str_replace_all(&quot;\u2019&quot;, &quot;\&#39;&quot;) %&gt;%
+    stringr::str_replace_all(&quot;\u201d&quot;, &quot;\&quot;&quot;) %&gt;%
+    stringr::str_replace_all(&quot;[\u02d7\u058a\u2010\u2011\u2012\u2013\u2043\u207b\u208b\u2212]&quot;, &quot;-&quot;) %&gt;%
+    stringr::str_replace_all(&quot;[\ufe63\uff0d\uff70\u2014\u2015\u2500\u2501\u30fc]&quot;, enc2utf8(&quot;\u30fc&quot;)) %&gt;%
+    stringr::str_replace_all(&quot;[~\u223c\u223e\u301c\u3030\uff5e]&quot;, &quot;~&quot;) %&gt;%
+    stringr::str_remove_all(&quot;[:punct:]&quot;) %&gt;%
+    stringr::str_remove_all(&quot;[:blank:]&quot;) %&gt;%
+    stringr::str_remove_all(&quot;[:cntrl:]&quot;) %&gt;%
+    return()
+}
+
+csv &lt;- readr::read_csv(&quot;https://bit.ly/2ye2pT6&quot;) %&gt;%
+  dplyr::mutate(normalized = normalize(body)) %&gt;%
+  dplyr::select(id, normalized)
+#&gt; Parsed with column specification:
+#&gt; cols(
+#&gt;   id = col_double(),
+#&gt;   body = col_character()
+#&gt; )
+
+nrow(csv)
+#&gt; [1] 436</code></pre>
+</div>
+<div id="形態素解析" class="section level2">
+<h2>形態素解析</h2>
+<p>形態素解析の手段はなんでもよいのですが、今回は<a href="https://github.com/paithiov909/tangela">この自作パッケージ</a>を使います。このパッケージは<a href="https://github.com/atilika/kuromoji">atilika/kuromoji</a>をrJava経由で呼べるようにしたもので、形態素解析をおこなう関数<code>tangela::kuromoji</code>のみを提供するシンプルなものです。</p>
+<p>文字列はUTF-8として渡す前提で、戻り値のテキストのエンコーディングもUTF-8になります。</p>
+<pre class="r"><code>parseKuromoji &lt;- function(str) {
+  res &lt;- tangela::kuromoji(str)
+  res %&gt;%
+    purrr::imap_dfr(~
+    data.frame(
+      mid = .y,
+      Surface = .x$surface,
+      feature = .x$feature,
+      is_unk = .x$is_unk,
+      stringsAsFactors = FALSE
+    ) %&gt;%
+      tidyr::separate(feature, into = c(
+        &quot;POS1&quot;,
+        &quot;POS2&quot;,
+        &quot;POS3&quot;,
+        &quot;POS4&quot;,
+        &quot;X5StageUse1&quot;,
+        &quot;X5StageUse2&quot;,
+        &quot;Original&quot;,
+        &quot;Yomi1&quot;,
+        &quot;Yomi2&quot;
+      ), sep = &quot;,&quot;, fill = &quot;right&quot;))
+}
+
+res &lt;- csv$normalized %&gt;%
+  imap_dfr(function(str, idx) {
+    cols &lt;- parseKuromoji(str)
+    dplyr::bind_cols(
+      data.frame(id = rep(idx, nrow(cols))),
+      cols
+    )
+  }) %&gt;%
+  dplyr::mutate(mora = dplyr::if_else(
+    .data$is_unk == TRUE,
+    nchar(.data$Surface),
+    nchar(stringr::str_remove_all(.data$Yomi2, &quot;[\u30e3\u30e5\u30e7]&quot;))
+  )) %&gt;%
+  tibble::rowid_to_column()
+
+head(res)
+#&gt;   rowid id mid  Surface POS1     POS2 POS3 POS4 X5StageUse1 X5StageUse2
+#&gt; 1     1  1   1 ぐるぐる 副詞     一般    *    *           *           *
+#&gt; 2     2  1   2       と 助詞   副詞化    *    *           *           *
+#&gt; 3     3  1   3     山手 名詞 固有名詞 地域 一般           *           *
+#&gt; 4     4  1   4       線 名詞     接尾 一般    *           *           *
+#&gt; 5     5  1   5       は 助詞   係助詞    *    *           *           *
+#&gt; 6     6  1   6   ループ 名詞     一般    *    *           *           *
+#&gt;   Original    Yomi1    Yomi2 is_unk mora
+#&gt; 1 ぐるぐる グルグル グルグル  FALSE    4
+#&gt; 2       と       ト       ト  FALSE    1
+#&gt; 3     山手   ヤマテ   ヤマテ  FALSE    3
+#&gt; 4       線     セン     セン  FALSE    2
+#&gt; 5       は       ハ       ワ  FALSE    1
+#&gt; 6   ループ   ループ   ループ  FALSE    3</code></pre>
+</div>
+<div id="語彙の集計１" class="section level2">
+<h2>語彙の集計（１）</h2>
+<p>簡単に語彙の集計をしてみます。{RMeCab}を使わずに手軽に単語文書行列（Document Term Matrix）を作成する方法はいくつかありますが、ここではまずはじめに{textmineR}を使ってみます。文書を文字列ベクトルとして<code>textmineR::CreateDtm</code>に渡すだけです。</p>
+<p><code>textmineR::CreateDtm</code>に文書を渡すときにストップワードを指定できるので、指定してみています。日本語のストップワードはSlothlibなどが有名ですが、Rパッケージから利用できる面白いものとして、{rtweet}のデータセットである<code>stopwordslangs</code>があります。lang, word, pの３カラムからなるデータセットで、langとpでwordを絞り込んで使います。pは0~1の値で、1に近いほどよく使われる単語（英語だったら冠詞のaやtheみたいなやつ）になるみたいな感じです。狭い値の範囲にかなりの数の語彙があるので、p &gt;= 0.98くらいで絞り込んでもふつうに使える気がします。</p>
+<pre class="r"><code>stopwords &lt;- rtweet::stopwordslangs %&gt;%
+  dplyr::filter(lang == &quot;ja&quot;) %&gt;%
+  dplyr::filter(p &gt;= .98) %&gt;%
+  dplyr::pull(word)
+
+dtm &lt;- textmineR::CreateDtm( ## この関数はそれなりに重いです
+  res$Original,
+  doc_names = res$id,
+  ngram_window = c(1, 1),
+  stopword_vec = stopwords
+)</code></pre>
+<p>プロットしてみます。</p>
+<pre class="r"><code>dtm %&gt;%
+  textmineR::TermDocFreq() %&gt;%
+  dplyr::arrange(desc(term_freq)) %&gt;%
+  head() %&gt;%
+  ggplot(aes(x = reorder(term, -doc_freq), y = doc_freq)) +
+  geom_col() +
+  labs(x = &quot;word&quot;) +
+  theme_light()</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+</div>
+<div id="語彙の集計２" class="section level2">
+<h2>語彙の集計（２）</h2>
+<p>単語文書行列を作ったり、文書を便利に扱う別の手段として{quanteda}を使ってみます。{quanteda}パッケージ内では、単語文書行列を含めて、文書に紐づく特徴量を格納した行列一般のことをDocument Feature Matrix（DFM）と呼んでいます。ここではDFMを作ってワードクラウドを描くまでやってみます。</p>
+<p>{quanteda}では文書はコーパスというオブジェクトとして持ちます。ふつうに文字列ベクトルやデータフレームを渡して作成できます。</p>
+<pre class="r"><code>corp &lt;- res %&gt;%
+  dplyr::group_by(id) %&gt;%
+  dplyr::mutate(morphs = stringr::str_c(Surface, collapse = &quot; &quot;)) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(id, morphs) %&gt;%
+  dplyr::distinct() %&gt;%
+  dplyr::right_join(csv, by = &quot;id&quot;) %&gt;%
+  quanteda::corpus(docid_field = &quot;id&quot;, text_field = &quot;morphs&quot;)
+#&gt; Warning: NA is replaced by empty string
+
+quanteda::ndoc(corp)
+#&gt; [1] 436</code></pre>
+<p>{quanteda}はコーパスに収めた各文書内での位置情報を保持しながら文書をトークン化して扱うことができます。トークン化は日本語を含めて{stringi}と内臓している辞書を用いてイイ感じにおこなってくれるので、新聞記事のようなさほど砕けていない文章ならトークナイザを用意しなくてもこのパッケージ単体でトークン化することができます（私は使ったことないですが、{spacyr}と連携してPOS taggingしたりといった使い方も想定しているらしいです）。ただ、今回は先にKuromojiで形態素解析をおこなっているので、単純な半角スペース区切りでトークン化するように<code>quanteda::tokens(what = "fastestword")</code>に渡します。</p>
+<p>トークンオブジェクトは<code>quanteda::tokens_select</code>とそのショートハンドの関数でイイ感じに語彙を制限することができます。トークンオブジェクトを以下のようにパイプして、簡単にワードクラウドが描けます。</p>
+<pre class="r"><code>dic &lt;- res %&gt;%
+  dplyr::filter(POS1 == &quot;名詞&quot;) %&gt;%
+  dplyr::pull(Surface)
+
+toks &lt;- quanteda::tokens(corp, what = &quot;fastestword&quot;) %&gt;%
+  quanteda::tokens_keep(dic, valuetype = &quot;fixed&quot;) %&gt;%
+  quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;)
+
+toks %&gt;%
+  quanteda::dfm() %&gt;%
+  quanteda::textplot_wordcloud(
+    min_count = 2,
+    random_order = FALSE,
+    color = viridisLite::cividis(8)
+  )</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>このプロット内にたぶん「玉」という語がありますが、ただの「玉」なんて単語が出てくるような覚えはありません。おそらく分かち書きに失敗している単語でしょう。詳細を見てみるためにコロケーションの一部を確認してみます。</p>
+<pre class="r"><code>toks %&gt;%
+  quanteda::textstat_collocations(size = 2, min_count = 2) %&gt;%
+  as.data.frame(stringsAsFactors = FALSE)
+#&gt;                    collocation count count_nested length   lambda        z
+#&gt; 1                ロボット 篠原     3            0      2 7.387365 5.804044
+#&gt; 2                    ばい ばい     2            0      2 6.540068 5.398511
+#&gt; 3                    形状 新宿     2            0      2 8.151429 4.654065
+#&gt; 4                    ハト 群れ     2            0      2 8.151429 4.654065
+#&gt; 5                  チョコ パイ     2            0      2 8.151429 4.654065
+#&gt; 6                        〇 〇     2            0      2 8.151429 4.654065
+#&gt; 7                  しゃぼん 玉     2            0      2 7.639642 4.564775
+#&gt; 8                      山手 線     2            0      2 7.639642 4.564775
+#&gt; 9                新宿 ドリアン     2            0      2 7.639642 4.564775
+#&gt; 10                       悠 木     2            0      2 7.639642 4.564775
+#&gt; 11                   ウー ロン     2            0      2 9.251002 4.409761
+#&gt; 12                     洗濯 機     2            0      2 9.251002 4.409761
+#&gt; 13 木場 ステラウーパールーパー     2            0      2 9.251002 4.409761
+#&gt; 14                       木 碧     2            0      2 9.251002 4.409761
+#&gt; 15             スティック 形状     2            0      2 9.251002 4.409761
+#&gt; 16           サディ スティック     2            0      2 9.251002 4.409761
+#&gt; 17                   じん 今晩     2            0      2 9.251002 4.409761
+#&gt; 18               ヌード ビーチ     2            0      2 9.251002 4.409761</code></pre>
+<p>「悠木碧」とか「しゃぼん玉」とかが2語に分割されていることが確認できます。{quanteda}でこうした複数に分かれてしまったトークンをひとまとめに扱うには、次のようにします。</p>
+<pre class="r"><code>multiwords &lt;- c(&quot;悠 木 碧&quot;, &quot;しゃぼん 玉&quot;, &quot;山手 線&quot;, &quot;洗濯 機&quot;, &quot;サディ スティック&quot;)
+toks %&gt;%
+  quanteda::tokens_compound(pattern = quanteda::phrase(multiwords)) %&gt;%
+  quanteda::kwic(c(&quot;悠_木_碧&quot;, &quot;しゃぼん_玉&quot;))
+#&gt;                                                      
+#&gt;  [122, 3]     ふゆ ふゆ | しゃぼん_玉 |              
+#&gt;  [126, 2]          髪型 |  悠_木_碧   | 悠_木_碧 眼力
+#&gt;  [126, 3] 髪型 悠_木_碧 |  悠_木_碧   | 眼力         
+#&gt;  [388, 1]               | しゃぼん_玉 | 便り 道具</code></pre>
+<p>もう一度ワードクラウドを描いてみました。</p>
+<pre class="r"><code>toks %&gt;%
+  quanteda::tokens_compound(pattern = quanteda::phrase(multiwords)) %&gt;%
+  quanteda::dfm() %&gt;%
+  quanteda::textplot_wordcloud(
+    min_count = 2,
+    random_order = FALSE,
+    color = viridisLite::cividis(8)
+  )</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="aのbの出現位置" class="section level2">
+<h2>「AのB」の出現位置</h2>
+<p>ここから本題です。名詞で助詞の「の」が挟まれている「AのB」のようなかたちの表現を探索して、こういった表現が短歌のどの部分に出現するかを概観したいと思います。</p>
+<p>まず、「AのB」のようなかたちの表現を集めてみます。短歌は57577の定型詩で、音数（モーラ数）に注目すると便利なことがあるので、名詞はモーラ数に置き換えながら、このかたちの表現をマイニングします。</p>
+<pre class="r"><code>a_b &lt;- res %&gt;%
+  dplyr::filter(Surface == &quot;の&quot;) %&gt;%
+  dplyr::pull(rowid) %&gt;%
+  purrr::keep(~ res$POS1[. - 1] == &quot;名詞&quot; &amp; res$POS1[. + 1] == &quot;名詞&quot;) %&gt;%
+  purrr::map_chr(~ stringr::str_c(
+    res$mora[. - 1],
+    res$Surface[.],
+    res$mora[. + 1],
+    collapse = &quot;&quot;
+  )) %&gt;%
+  purrr::set_names(
+    res %&gt;%
+      dplyr::filter(Surface == &quot;の&quot;) %&gt;%
+      dplyr::pull(rowid) %&gt;%
+      purrr::keep(~ res$POS1[. - 1] == &quot;名詞&quot; &amp; res$POS1[. + 1] == &quot;名詞&quot;) %&gt;%
+      purrr::map_chr(~ stringr::str_c(
+        res$Surface[. - 1],
+        res$Surface[.],
+        res$Surface[. + 1],
+        collapse = &quot;&quot;
+      ))
+  )
+
+head(a_b)
+#&gt;                 僕らの夢                 夢の末路             こどものまま 
+#&gt;                   &quot;3の2&quot;                   &quot;2の3&quot;                   &quot;3の2&quot; 
+#&gt; ここいらのツクツクボウシ           ゼリーのにおい         ものの成れの果て 
+#&gt;                   &quot;4の7&quot;                   &quot;3の3&quot;                   &quot;2の5&quot;</code></pre>
+<p>同じモーラ数の表現ごとにカウントして可視化してみます。</p>
+<pre class="r"><code>res %&gt;%
+  dplyr::filter(Surface == &quot;の&quot;) %&gt;%
+  dplyr::pull(rowid) %&gt;%
+  purrr::keep(~ res$POS1[. - 1] == &quot;名詞&quot; &amp; res$POS1[. + 1] == &quot;名詞&quot;) %&gt;%
+  purrr::map_chr(~ stringr::str_c(
+    res$mora[. - 1],
+    res$Surface[.],
+    res$mora[. + 1],
+    collapse = &quot;&quot;
+  )) %&gt;%
+  as.data.frame(stringsAsFactors = FALSE) %&gt;%
+  dplyr::group_by_all() %&gt;%
+  dplyr::count() %&gt;%
+  dplyr::arrange(desc(n)) %&gt;%
+  head(15) %&gt;%
+  ggplot(aes(x = reorder(., -n), y = n)) +
+  geom_col() +
+  labs(x = &quot;AのB&quot;) +
+  theme_light()</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>「AのB」に相当する表現だけ「NのN」（Nはモーラ数）というかたちになるように分かち書きされた文字列ベクトルを作って、{quanteda}のコーパスに格納します。</p>
+<pre class="r"><code>`%without%` &lt;- purrr::negate(`%in%`)
+
+idx &lt;- res %&gt;%
+  dplyr::filter(Surface == &quot;の&quot;) %&gt;%
+  dplyr::pull(rowid) %&gt;%
+  purrr::keep(~ res$POS1[. - 1] == &quot;名詞&quot; &amp; res$POS1[. + 1] == &quot;名詞&quot;)
+
+corp &lt;- idx %&gt;%
+  purrr::map_dfr(~
+  data.frame(
+    rowid = .,
+    compound = stringr::str_c(
+      res$mora[. - 1],
+      res$Surface[.],
+      res$mora[. + 1],
+      collapse = &quot;&quot;
+    ),
+    stringsAsFactors = FALSE
+  )) %&gt;%
+  dplyr::right_join(
+    res %&gt;%
+      dplyr::filter(rowid %without% c(idx - 1, idx + 1)) %&gt;%
+      dplyr::mutate(compound = Surface),
+    by = &quot;rowid&quot;
+  ) %&gt;%
+  dplyr::group_by(id) %&gt;%
+  dplyr::mutate(morphs = stringr::str_c(
+    dplyr::if_else(
+      is.na(compound.x),
+      compound.y,
+      compound.x
+    ),
+    collapse = &quot; &quot;
+  )) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(id, morphs) %&gt;%
+  dplyr::distinct() %&gt;%
+  dplyr::right_join(csv, by = &quot;id&quot;) %&gt;%
+  quanteda::corpus(docid_field = &quot;id&quot;, text_field = &quot;morphs&quot;)
+#&gt; Warning: NA is replaced by empty string
+
+quanteda::ndoc(corp)
+#&gt; [1] 436</code></pre>
+<p>少しだけKWICで確認してみます。</p>
+<pre class="r"><code>corp %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;) %&gt;%
+  quanteda::kwic(pattern = &quot;[1-9]+の[0-9]+&quot;, valuetype = &quot;regex&quot;) %&gt;%
+  head(30) %&gt;%
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">docname</th>
+<th align="right">from</th>
+<th align="right">to</th>
+<th align="left">pre</th>
+<th align="left">keyword</th>
+<th align="left">post</th>
+<th align="left">pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">3の2</td>
+<td align="left">2の3 ぐるぐる と 山手 線</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="left">3の2</td>
+<td align="left">2の3</td>
+<td align="left">ぐるぐる と 山手 線 は</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">3の2</td>
+<td align="left">いつ まで も で いる</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">3</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">4の7</td>
+<td align="left">は 律儀 に も ツクツクボウシ</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">6</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">3の3</td>
+<td align="left">なんで だ か 鼻腔 に</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">7</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">2の5</td>
+<td align="left">ヒマワリ と 呼ぶ べき 枯れ</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">9</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">2の3</td>
+<td align="left">3の4 今度 こそ ちゃんと 世界</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">9</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="left">2の3</td>
+<td align="left">3の4</td>
+<td align="left">今度 こそ ちゃんと 世界 を</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">10</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">3の2</td>
+<td align="left">夏 という 夏 が 纏わり</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">11</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">3の2</td>
+<td align="left">あと すこし 経て ば 始発</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">17</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">3の2</td>
+<td align="left">3の3 コンビニ で は 買え</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">17</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="left">3の2</td>
+<td align="left">3の3</td>
+<td align="left">コンビニ で は 買え なく</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">18</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">4の2</td>
+<td align="left">は タクラマカン 砂漠 とか まで</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">21</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">2の4</td>
+<td align="left">2の3 が 新宿 三 丁目</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">21</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="left">2の4</td>
+<td align="left">2の3</td>
+<td align="left">が 新宿 三 丁目 を</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">22</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">2の2</td>
+<td align="left">4の4 説明 しよ う くん</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">22</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="left">2の2</td>
+<td align="left">4の4</td>
+<td align="left">説明 しよ う くん は</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">23</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">4の4</td>
+<td align="left">くん は 世界一 きれい な</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">25</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">4の2</td>
+<td align="left">を 曲がっ て ゆく 彼</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">27</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">2の3</td>
+<td align="left">不確か な こと 不確か な</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">29</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">6の2</td>
+<td align="left">2の4 たま しい と 呼び</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">29</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="left">6の2</td>
+<td align="left">2の4</td>
+<td align="left">たま しい と 呼び うる</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">30</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">2の3</td>
+<td align="left">4の3 こう やっ て を</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">30</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="left">2の3</td>
+<td align="left">4の3</td>
+<td align="left">こう やっ て を を</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">32</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">4の4</td>
+<td align="left">くん は また ひとつ ふわ</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">33</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">2の3</td>
+<td align="left">は ひとつ だけ ほど ほど</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">34</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">3の2</td>
+<td align="left">2の2 町 は もう 魔法</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">34</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="left">3の2</td>
+<td align="left">2の2</td>
+<td align="left">町 は もう 魔法 大人</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="odd">
+<td align="left">35</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">2の2</td>
+<td align="left">ミィ ちゃん は さ と</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+<tr class="even">
+<td align="left">38</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="left"></td>
+<td align="left">4の2</td>
+<td align="left">が たた ない それ だけ</td>
+<td align="left">[1-9]+の[0-9]+</td>
+</tr>
+</tbody>
+</table>
+<div id="の2" class="section level3">
+<h3>3の2</h3>
+<p>カウントが多かったものから順に、3の2から4の4まで、短歌のなかでの実際の位置を確認してみましょう。以下にあげる図の黒い線が引かれているあたりがその表現の各短歌内における出現箇所です。下図を見ると、3の2は三句と四句あたりが多そうだけど、わりとまんべんなくあるっぽいです。二句三句をまたぐようなあたりにはなさそう。</p>
+<pre class="r"><code>toks &lt;- corp %&gt;%
+  quanteda::tokens(what = &quot;fastestword&quot;)
+quanteda::textplot_xray(
+  quanteda::kwic(toks, pattern = &quot;3の2&quot;, valuetype = &quot;regex&quot;)
+)</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<pre class="r"><code>a_b %&gt;%
+  purrr::keep(. == &quot;3の2&quot;)
+#&gt;     僕らの夢 こどものまま   プールの後     今宵の僕     理想の恋     少女の夢 
+#&gt;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot; 
+#&gt; トイレのなか   凶器のよう コップのフチ       桜の花     吐息の泡   綿毛のよう 
+#&gt;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot; 
+#&gt;   野山のよう   保身のため   詩人の戯画 ウンコのよう     遠くの海   少女のよう 
+#&gt;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot; 
+#&gt;   昨日のこと サナギのよう     少女の髪 みかんのすじ   文庫のなか   ホントの夜 
+#&gt;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot; 
+#&gt;   あいつの頬 すすきのため   迷子のまま     魔界の塔     僕らの夢     私のため 
+#&gt;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot; 
+#&gt;     阿吽の右 手つきのよう     私のせい   未明の意味   猫背のきみ   余韻のよう 
+#&gt;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot; 
+#&gt;   香りのパン   邪神のたま キャベツの芯 
+#&gt;       &quot;3の2&quot;       &quot;3の2&quot;       &quot;3の2&quot;</code></pre>
+</div>
+<div id="の3" class="section level3">
+<h3>2の3</h3>
+<pre class="r"><code>quanteda::textplot_xray(
+  quanteda::kwic(toks, pattern = &quot;2の3&quot;, valuetype = &quot;regex&quot;)
+)</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<pre class="r"><code>a_b %&gt;%
+  purrr::keep(. == &quot;2の3&quot;)
+#&gt;       夢の末路   ためのレース       駅の付近       線の車体     ビルの谷間 
+#&gt;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot; 
+#&gt;       彼の任務   はりのビール     味のポテチ     ずみの余生     鳥のことば 
+#&gt;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot; 
+#&gt;       花の名前       夢の残滓     犬のウンコ       夏の記憶     夜のデネブ 
+#&gt;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot; 
+#&gt;     貴女の夜会     汁のあさり     ための器官     たちの短歌       夏の祭り 
+#&gt;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot; 
+#&gt;     ための土筆     猫のしっぽ   タブのかたち         親の力   しそのまんま 
+#&gt;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot; 
+#&gt;     ボスの手前   たちのおでこ     ひとの小指 きょうのところ       恋の便り 
+#&gt;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot; 
+#&gt;     げんの言語       冬の星座       量の放屁   旬のキャベツ 
+#&gt;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;         &quot;2の3&quot;</code></pre>
+</div>
+<div id="の2-1" class="section level3">
+<h3>2の2</h3>
+<pre class="r"><code>quanteda::textplot_xray(
+  quanteda::kwic(toks, pattern = &quot;2の2&quot;, valuetype = &quot;regex&quot;)
+)</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<pre class="r"><code>a_b %&gt;%
+  purrr::keep(. == &quot;2の2&quot;)
+#&gt;     天の声   夢のなか   僕のもの     西の空     夏の風     春の夜 茶屋の富士 
+#&gt;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot; 
+#&gt;     俺の横   どこの星   光のよう   頃のおれ   ための風   歳のとき   夏の果て 
+#&gt;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot; 
+#&gt;   森のがん   森のなか     下の髭   沿いの海   色のロー   ほうの顔   鹿のフン 
+#&gt;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot; 
+#&gt;     春の海     豆の味     JKの愛   積みの夜 ハトの群れ ハトの群れ 魔女のキキ 
+#&gt;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot;     &quot;2の2&quot; 
+#&gt;   霊の祖父   街のどこ 
+#&gt;     &quot;2の2&quot;     &quot;2の2&quot;</code></pre>
+</div>
+<div id="の3-1" class="section level3">
+<h3>4の3</h3>
+<p>明らかに偏りがあります。初句に多い。</p>
+<pre class="r"><code>quanteda::textplot_xray(
+  quanteda::kwic(toks, pattern = &quot;4の3&quot;, valuetype = &quot;fixed&quot;)
+)</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<pre class="r"><code>a_b %&gt;%
+  purrr::keep(. == &quot;4の3&quot;)
+#&gt;     ビックロの袋     全国のユカイ       青春の不在       八月の野球 
+#&gt;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot; 
+#&gt;     前川の日焼け   たんぽぽの綿毛       深緑の野山 ドラゴンのうんこ 
+#&gt;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot; 
+#&gt;     硝煙のにおい   グラビアの少女     春先のつがい レトルトのカレー 
+#&gt;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot; 
+#&gt;       諸々の事情     風鈴のかたち アルパカの気持ち     常夏のイオン 
+#&gt;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot; 
+#&gt;   あじさいの木陰       狛犬の阿吽     ロリータの頁     靴下の煮付け 
+#&gt;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot; 
+#&gt;   ココイチの笑顔   あめんぼの吐息   マネキンの右手   メンヘラの思念 
+#&gt;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot; 
+#&gt;       初恋の余韻 シャンプーの香り       冬型の気圧     コリオリの力 
+#&gt;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot;           &quot;4の3&quot;</code></pre>
+</div>
+<div id="の2-2" class="section level3">
+<h3>4の2</h3>
+<p>やはり4モーラはじまりのためか初句が多いようす。</p>
+<pre class="r"><code>quanteda::textplot_xray(
+  quanteda::kwic(toks, pattern = &quot;4の2&quot;, valuetype = &quot;fixed&quot;)
+)</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<pre class="r"><code>a_b %&gt;%
+  purrr::keep(. == &quot;4の2&quot;)
+#&gt;         運命の人       伊勢丹の角     メレンゲの角         隆聖の声 
+#&gt;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot; 
+#&gt;         体格の猫   メキシコのカン     思い出のメタ       朝焼けの空 
+#&gt;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot; 
+#&gt;         噴水の水         我々の夏         東京の空         初恋の人 
+#&gt;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot; 
+#&gt;         貝殻の中   じゃがいもの皮         大抵の敵         水性の青 
+#&gt;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot; 
+#&gt;           唇の下         怪獣の一       白鳥の群れ       回送の文字 
+#&gt;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot; 
+#&gt; いちじくのジャム       最愛のひと   しろくまのくせ         改札の前 
+#&gt;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot;           &quot;4の2&quot; 
+#&gt;       恋愛のコツ       失恋のなみ 
+#&gt;           &quot;4の2&quot;           &quot;4の2&quot;</code></pre>
+</div>
+<div id="の4" class="section level3">
+<h3>2の4</h3>
+<p>三句あたりが多い気がする。</p>
+<pre class="r"><code>quanteda::textplot_xray(
+  quanteda::kwic(toks, pattern = &quot;2の4&quot;, valuetype = &quot;fixed&quot;)
+)</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<pre class="r"><code>a_b %&gt;%
+  purrr::keep(. == &quot;2の4&quot;)
+#&gt;         冬の足音         棚の最奥     色のハムカツ         状の物体 
+#&gt;           &quot;2の4&quot;           &quot;2の4&quot;           &quot;2の4&quot;           &quot;2の4&quot; 
+#&gt;   ためのポエジー   ときのかなしみ     性の生きもの     房のハバネロ 
+#&gt;           &quot;2の4&quot;           &quot;2の4&quot;           &quot;2の4&quot;           &quot;2の4&quot; 
+#&gt;         感の象徴   塔のミニチュア       色の足取り     奈良の春日野 
+#&gt;           &quot;2の4&quot;           &quot;2の4&quot;           &quot;2の4&quot;           &quot;2の4&quot; 
+#&gt;         人の少年     本のコンビニ ときのテンション       内の喜多村 
+#&gt;           &quot;2の4&quot;           &quot;2の4&quot;           &quot;2の4&quot;           &quot;2の4&quot; 
+#&gt;     ただの夕焼け     12のポエジー 
+#&gt;           &quot;2の4&quot;           &quot;2の4&quot;</code></pre>
+</div>
+<div id="の3-2" class="section level3">
+<h3>3の3</h3>
+<pre class="r"><code>quanteda::textplot_xray(
+  quanteda::kwic(toks, pattern = &quot;3の3&quot;, valuetype = &quot;fixed&quot;)
+)</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<pre class="r"><code>a_b %&gt;%
+  purrr::keep(. == &quot;3の3&quot;)
+#&gt; ゼリーのにおい   理想のトマト       宇宙の渚   胃酸のにおい   ビーチの作法 
+#&gt;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot; 
+#&gt;   硝子のさかな カレーのパウチ   ティーの温度       昨日の私     祭りの射的 
+#&gt;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot; 
+#&gt;       桜の老樹       私の味方 ブランのしびれ   ポテトの塩気   しっぽの動き 
+#&gt;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot; 
+#&gt;   馴染みの本屋       少女の聖       本気の照 
+#&gt;         &quot;3の3&quot;         &quot;3の3&quot;         &quot;3の3&quot;</code></pre>
+</div>
+<div id="の4-1" class="section level3">
+<h3>4の4</h3>
+<pre class="r"><code>quanteda::textplot_xray(
+  quanteda::kwic(toks, pattern = &quot;4の4&quot;, valuetype = &quot;fixed&quot;)
+)</code></pre>
+<p><img src="/post/shinabitanori-tanka_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<pre class="r"><code>a_b %&gt;%
+  purrr::keep(. == &quot;4の4&quot;)
+#&gt;     ロボットの篠原     ロボットの篠原     ロボットの篠原       自転車の重心 
+#&gt;             &quot;4の4&quot;             &quot;4の4&quot;             &quot;4の4&quot;             &quot;4の4&quot; 
+#&gt;       税務署の建物         我々の劣等       分間の夕暮れ コンビニのおにぎり 
+#&gt;             &quot;4の4&quot;             &quot;4の4&quot;             &quot;4の4&quot;             &quot;4の4&quot; 
+#&gt;         北国の出身         人生の灯台 
+#&gt;             &quot;4の4&quot;             &quot;4の4&quot;</code></pre>
+</div>
+</div>
+<div id="セッション情報" class="section level2">
+<h2>セッション情報</h2>
+<pre class="r"><code>devtools::session_info()
+#&gt; - Session info ---------------------------------------------------------------
+#&gt;  setting  value                       
+#&gt;  version  R version 4.0.2 (2020-06-22)
+#&gt;  os       Windows 10 x64              
+#&gt;  system   x86_64, mingw32             
+#&gt;  ui       RTerm                       
+#&gt;  language (EN)                        
+#&gt;  collate  Japanese_Japan.932          
+#&gt;  ctype    Japanese_Japan.932          
+#&gt;  tz       Asia/Tokyo                  
+#&gt;  date     2020-07-21                  
+#&gt; 
+#&gt; - Packages -------------------------------------------------------------------
+#&gt;  ! package      * version  date       lib source        
+#&gt;    assertthat     0.2.1    2019-03-21 [1] CRAN (R 4.0.2)
+#&gt;    backports      1.1.8    2020-06-17 [1] CRAN (R 4.0.2)
+#&gt;    blob           1.2.1    2020-01-20 [1] CRAN (R 4.0.2)
+#&gt;    blogdown       0.20     2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;    bookdown       0.20     2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;    broom          0.7.0    2020-07-09 [1] CRAN (R 4.0.2)
+#&gt;    callr          3.4.3    2020-03-28 [1] CRAN (R 4.0.2)
+#&gt;    cellranger     1.1.0    2016-07-27 [1] CRAN (R 4.0.2)
+#&gt;    cli            2.0.2    2020-02-28 [1] CRAN (R 4.0.2)
+#&gt;    colorspace     1.4-1    2019-03-18 [1] CRAN (R 4.0.2)
+#&gt;    crayon         1.3.4    2017-09-16 [1] CRAN (R 4.0.2)
+#&gt;    curl           4.3      2019-12-02 [1] CRAN (R 4.0.2)
+#&gt;    data.table     1.12.8   2019-12-09 [1] CRAN (R 4.0.0)
+#&gt;    DBI            1.1.0    2019-12-15 [1] CRAN (R 4.0.2)
+#&gt;    dbplyr         1.4.4    2020-05-27 [1] CRAN (R 4.0.2)
+#&gt;    desc           1.2.0    2018-05-01 [1] CRAN (R 4.0.2)
+#&gt;    devtools       2.3.0    2020-04-10 [1] CRAN (R 4.0.2)
+#&gt;    digest         0.6.25   2020-02-23 [1] CRAN (R 4.0.2)
+#&gt;    dplyr        * 1.0.0    2020-05-29 [1] CRAN (R 4.0.2)
+#&gt;    ellipsis       0.3.1    2020-05-15 [1] CRAN (R 4.0.2)
+#&gt;    evaluate       0.14     2019-05-28 [1] CRAN (R 4.0.2)
+#&gt;    fansi          0.4.1    2020-01-08 [1] CRAN (R 4.0.2)
+#&gt;    farver         2.0.3    2020-01-16 [1] CRAN (R 4.0.2)
+#&gt;    fastmatch      1.1-0    2017-01-28 [1] CRAN (R 4.0.0)
+#&gt;    float          0.2-4    2020-04-22 [1] CRAN (R 4.0.0)
+#&gt;    forcats      * 0.5.0    2020-03-01 [1] CRAN (R 4.0.2)
+#&gt;    fs             1.4.2    2020-06-30 [1] CRAN (R 4.0.2)
+#&gt;    generics       0.0.2    2018-11-29 [1] CRAN (R 4.0.2)
+#&gt;    ggplot2      * 3.3.2    2020-06-19 [1] CRAN (R 4.0.2)
+#&gt;    glue           1.4.1    2020-05-13 [1] CRAN (R 4.0.2)
+#&gt;    gtable         0.3.0    2019-03-25 [1] CRAN (R 4.0.2)
+#&gt;    haven          2.3.1    2020-06-01 [1] CRAN (R 4.0.2)
+#&gt;    highr          0.8      2019-03-20 [1] CRAN (R 4.0.2)
+#&gt;    hms            0.5.3    2020-01-08 [1] CRAN (R 4.0.2)
+#&gt;    htmltools      0.5.0    2020-06-16 [1] CRAN (R 4.0.2)
+#&gt;    httr           1.4.1    2019-08-05 [1] CRAN (R 4.0.0)
+#&gt;    jsonlite       1.7.0    2020-06-25 [1] CRAN (R 4.0.2)
+#&gt;    knitr          1.29     2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;    labeling       0.3      2014-08-23 [1] CRAN (R 4.0.0)
+#&gt;    lattice        0.20-41  2020-04-02 [2] CRAN (R 4.0.2)
+#&gt;    lgr            0.3.4    2020-03-20 [1] CRAN (R 4.0.2)
+#&gt;    lifecycle      0.2.0    2020-03-06 [1] CRAN (R 4.0.2)
+#&gt;    lubridate      1.7.9    2020-06-08 [1] CRAN (R 4.0.2)
+#&gt;    magrittr       1.5      2014-11-22 [1] CRAN (R 4.0.2)
+#&gt;    Matrix         1.2-18   2019-11-27 [2] CRAN (R 4.0.2)
+#&gt;    memoise        1.1.0    2017-04-21 [1] CRAN (R 4.0.2)
+#&gt;    mlapi          0.1.0    2017-12-17 [1] CRAN (R 4.0.2)
+#&gt;    modelr         0.1.8    2020-05-19 [1] CRAN (R 4.0.2)
+#&gt;    munsell        0.5.0    2018-06-12 [1] CRAN (R 4.0.2)
+#&gt;    pillar         1.4.6    2020-07-10 [1] CRAN (R 4.0.2)
+#&gt;    pkgbuild       1.1.0    2020-07-13 [1] CRAN (R 4.0.2)
+#&gt;    pkgconfig      2.0.3    2019-09-22 [1] CRAN (R 4.0.2)
+#&gt;    pkgload        1.1.0    2020-05-29 [1] CRAN (R 4.0.2)
+#&gt;    prettyunits    1.1.1    2020-01-24 [1] CRAN (R 4.0.2)
+#&gt;    processx       3.4.3    2020-07-05 [1] CRAN (R 4.0.2)
+#&gt;    ps             1.3.3    2020-05-08 [1] CRAN (R 4.0.2)
+#&gt;    purrr        * 0.3.4    2020-04-17 [1] CRAN (R 4.0.2)
+#&gt;    quanteda       2.1.0    2020-07-05 [1] CRAN (R 4.0.2)
+#&gt;    R.cache        0.14.0   2019-12-06 [1] CRAN (R 4.0.2)
+#&gt;    R.methodsS3    1.8.0    2020-02-14 [1] CRAN (R 4.0.0)
+#&gt;    R.oo           1.23.0   2019-11-03 [1] CRAN (R 4.0.0)
+#&gt;    R.utils        2.9.2    2019-12-08 [1] CRAN (R 4.0.2)
+#&gt;    R6             2.4.1    2019-11-12 [1] CRAN (R 4.0.2)
+#&gt;    Rcpp           1.0.5    2020-07-06 [1] CRAN (R 4.0.2)
+#&gt;  D RcppParallel   5.0.2    2020-06-24 [1] CRAN (R 4.0.2)
+#&gt;    RcppProgress   0.4.2    2020-02-06 [1] CRAN (R 4.0.2)
+#&gt;    readr        * 1.3.1    2018-12-21 [1] CRAN (R 4.0.2)
+#&gt;    readxl         1.3.1    2019-03-13 [1] CRAN (R 4.0.2)
+#&gt;    remotes        2.1.1    2020-02-15 [1] CRAN (R 4.0.2)
+#&gt;    reprex         0.3.0    2019-05-16 [1] CRAN (R 4.0.2)
+#&gt;    RhpcBLASctl    0.20-137 2020-05-17 [1] CRAN (R 4.0.0)
+#&gt;    rlang          0.4.7    2020-07-09 [1] CRAN (R 4.0.2)
+#&gt;    rmarkdown      2.3      2020-06-18 [1] CRAN (R 4.0.2)
+#&gt;    rprojroot      1.3-2    2018-01-03 [1] CRAN (R 4.0.2)
+#&gt;    rsparse        0.4.0    2020-04-01 [1] CRAN (R 4.0.2)
+#&gt;    rstudioapi     0.11     2020-02-07 [1] CRAN (R 4.0.2)
+#&gt;    rtweet         0.7.0    2020-01-08 [1] CRAN (R 4.0.2)
+#&gt;    rvest          0.3.5    2019-11-08 [1] CRAN (R 4.0.0)
+#&gt;    scales         1.1.1    2020-05-11 [1] CRAN (R 4.0.2)
+#&gt;    sessioninfo    1.1.1    2018-11-05 [1] CRAN (R 4.0.2)
+#&gt;    stopwords      2.0      2020-04-14 [1] CRAN (R 4.0.2)
+#&gt;    stringi        1.4.6    2020-02-17 [1] CRAN (R 4.0.0)
+#&gt;    stringr      * 1.4.0    2019-02-10 [1] CRAN (R 4.0.2)
+#&gt;    styler         1.3.2    2020-02-23 [1] CRAN (R 4.0.2)
+#&gt;    testthat       2.3.2    2020-03-02 [1] CRAN (R 4.0.2)
+#&gt;    text2vec       0.6      2020-02-18 [1] CRAN (R 4.0.2)
+#&gt;    textmineR      3.0.4    2019-04-18 [1] CRAN (R 4.0.2)
+#&gt;    tibble       * 3.0.3    2020-07-10 [1] CRAN (R 4.0.2)
+#&gt;    tidyr        * 1.1.0    2020-05-20 [1] CRAN (R 4.0.2)
+#&gt;    tidyselect     1.1.0    2020-05-11 [1] CRAN (R 4.0.2)
+#&gt;    tidyverse    * 1.3.0    2019-11-21 [1] CRAN (R 4.0.2)
+#&gt;    usethis        1.6.1    2020-04-29 [1] CRAN (R 4.0.2)
+#&gt;    vctrs          0.3.2    2020-07-15 [1] CRAN (R 4.0.2)
+#&gt;    viridisLite    0.3.0    2018-02-01 [1] CRAN (R 4.0.2)
+#&gt;    withr          2.2.0    2020-04-20 [1] CRAN (R 4.0.2)
+#&gt;    xfun           0.15     2020-06-21 [1] CRAN (R 4.0.2)
+#&gt;    xml2           1.3.2    2020-04-23 [1] CRAN (R 4.0.2)
+#&gt;    yaml           2.2.1    2020-02-01 [1] CRAN (R 4.0.0)
+#&gt; 
+#&gt; [1] C:/Users/user/Documents/R/win-library/4.0
+#&gt; [2] C:/Program Files/R/R-4.0.2/library
+#&gt; 
+#&gt;  D -- DLL MD5 mismatch, broken installation.</code></pre>
+</div>
