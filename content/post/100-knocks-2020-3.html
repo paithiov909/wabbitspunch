@@ -1,0 +1,457 @@
+---
+title: Rで言語処理100本ノックを解くわけがない（３）
+author: paithiov909
+date: '2020-07-11'
+lastmod: "2020-07-21"
+slug: 100-knocks-2020-3
+categories: []
+tags:
+  - NLP
+description: 'Rで言語処理100本ノック 2020（３）'
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="係り受け解析" class="section level2">
+<h2>係り受け解析</h2>
+<pre class="r"><code>temp &lt;- tempfile(fileext = &quot;.txt&quot;)
+download.file(&quot;https://nlp100.github.io/data/neko.txt&quot;, temp)
+neko &lt;- readtext::readtext(temp, encoding = &quot;UTF-8&quot;)
+neko$text[1] %&gt;%
+  readr::read_lines(skip_empty_rows = TRUE) %&gt;%
+  length()
+#&gt; [1] 9210</code></pre>
+<div id="係り受け解析結果の読み込み形態素" class="section level3">
+<h3>40. 係り受け解析結果の読み込み（形態素）</h3>
+<p>ここでも<a href="https://paithiov909.github.io/pipian/">オレオレパッケージ</a>を使います。設問の通りにクラスを実装したりはしませんが、だいたい似たような情報を出力できます。ただし、ここでは解析するのはごく一部だけにしています。</p>
+<pre class="r"><code>res &lt;- neko$text[1] %&gt;%
+  readr::read_lines(skip_empty_rows = TRUE)
+res &lt;- res[1:30] %&gt;%
+  iconv(from = &quot;UTF-8&quot;, to = &quot;CP932&quot;) %&gt;%
+  pipian::cabochaFlatXML()
+
+res &lt;- pipian::CabochaR(res)$as_tibble()
+head(res)
+#&gt; # A tibble: 6 x 20
+#&gt;   sentence_idx chunk_idx D1    D2    rel   score head  func  tok_idx ne_value
+#&gt;          &lt;int&gt;     &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;   
+#&gt; 1            1         3 0     -1    D     0.00~ 0     0           0 O       
+#&gt; 2            2         6 0     2     D     -0.7~ 0     0           0 O       
+#&gt; 3            2         8 1     2     D     -0.7~ 1     2           1 O       
+#&gt; 4            2         8 1     2     D     -0.7~ 1     2           2 O       
+#&gt; 5            2        11 2     -1    D     0.00~ 3     5           3 O       
+#&gt; 6            2        11 2     -1    D     0.00~ 3     5           4 O       
+#&gt; # ... with 10 more variables: word &lt;chr&gt;, POS1 &lt;chr&gt;, POS2 &lt;chr&gt;, POS3 &lt;chr&gt;,
+#&gt; #   POS4 &lt;chr&gt;, X5StageUse1 &lt;chr&gt;, X5StageUse2 &lt;chr&gt;, Original &lt;chr&gt;,
+#&gt; #   Yomi1 &lt;chr&gt;, Yomi2 &lt;chr&gt;</code></pre>
+<p>3文目の形態素列</p>
+<pre class="r"><code>res %&gt;%
+  dplyr::filter(sentence_idx == 3) %&gt;%
+  dplyr::select(word)
+#&gt; # A tibble: 5 x 1
+#&gt;   word 
+#&gt;   &lt;chr&gt;
+#&gt; 1 名前 
+#&gt; 2 は   
+#&gt; 3 まだ 
+#&gt; 4 無い 
+#&gt; 5 。</code></pre>
+</div>
+<div id="係り受け解析結果の読み込み文節係り受け" class="section level3">
+<h3>41. 係り受け解析結果の読み込み（文節・係り受け）</h3>
+<p>省きます（必要なとき都度探す感じで）。</p>
+</div>
+<div id="係り元と係り先の文節の表示" class="section level3">
+<h3>42. 係り元と係り先の文節の表示</h3>
+<pre class="r"><code>memo &lt;- res %&gt;%
+  dplyr::filter(POS1 != &quot;記号&quot;) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::mutate(
+    chunk = stringr::str_c(
+      word,
+      collapse = &quot;&quot;
+    )
+  ) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, chunk) %&gt;%
+  dplyr::distinct()
+
+memo %&gt;%
+  dplyr::filter(D2 != -1) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx, D1) %&gt;%
+  dplyr::mutate(collocation = stringr::str_c(
+    chunk,
+    memo$chunk[memo$sentence_idx == .data$sentence_idx &amp; memo$D1 == .data$D2],
+    sep = &quot; &quot;
+  )) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(chunk, collocation) %&gt;%
+  head()
+#&gt; # A tibble: 6 x 2
+#&gt;   chunk    collocation    
+#&gt;   &lt;chr&gt;    &lt;chr&gt;          
+#&gt; 1 吾輩は   吾輩は 猫である
+#&gt; 2 名前は   名前は 無い    
+#&gt; 3 まだ     まだ 無い      
+#&gt; 4 どこで   どこで 生れたか
+#&gt; 5 生れたか 生れたか つかぬ
+#&gt; 6 とんと   とんと つかぬ</code></pre>
+</div>
+<div id="名詞を含む文節が動詞を含む文節に係るものを抽出" class="section level3">
+<h3>43. 名詞を含む文節が動詞を含む文節に係るものを抽出</h3>
+<pre class="r"><code>memo &lt;- res %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::mutate(
+    chunk = stringr::str_c(
+      word,
+      collapse = &quot;&quot;
+    )
+  ) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::mutate(tag = POS1 == &quot;動詞&quot;) %&gt;%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, chunk, POS1, tag) %&gt;%
+  dplyr::distinct()
+
+memo %&gt;%
+  dplyr::filter(POS1 == &quot;名詞&quot;) %&gt;%
+  dplyr::filter(D2 != -1) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx, D1) %&gt;%
+  dplyr::mutate(collocation = stringr::str_c(
+    chunk,
+    memo$chunk[memo$sentence_idx == .data$sentence_idx &amp; memo$D1 == .data$D2 &amp; memo$tag == TRUE],
+    sep = &quot; &quot;
+  )) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(chunk, collocation) %&gt;%
+  dplyr::filter(chunk != collocation) %&gt;%
+  head()
+#&gt; # A tibble: 6 x 2
+#&gt;   chunk        collocation                
+#&gt;   &lt;chr&gt;        &lt;chr&gt;                      
+#&gt; 1 　どこで     　どこで 生れたか          
+#&gt; 2 見当が       見当が つかぬ。            
+#&gt; 3 所で         所で 泣いて                
+#&gt; 4 いた事だけは いた事だけは 記憶している。
+#&gt; 5 吾輩は       吾輩は 見た。              
+#&gt; 6 ここで       ここで 始めて</code></pre>
+</div>
+<div id="係り受け木の可視化" class="section level3">
+<h3>44. 係り受け木の可視化</h3>
+<p>そういう関数があるのでサボります。</p>
+<pre class="r"><code>graph &lt;- neko$text[1] %&gt;%
+  readr::read_lines(skip_empty_rows = TRUE)
+tbl &lt;- graph[12] %&gt;%
+  iconv(from = &quot;UTF-8&quot;, to = &quot;CP932&quot;) %&gt;%
+  pipian::CabochaTbl()
+tbl$plot()</code></pre>
+<p><img src="/post/100-knocks-2020-3_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="動詞の格パターンの抽出" class="section level3">
+<h3>45. 動詞の格パターンの抽出</h3>
+<pre class="r"><code>memo &lt;- res %&gt;%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, POS1, Original)
+
+pattern &lt;- memo %&gt;%
+  dplyr::filter(POS1 == &quot;動詞&quot;) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx, D1) %&gt;%
+  dplyr::group_map(~ .x %&gt;%
+    dplyr::mutate(collocation = stringr::str_c(
+      &quot;&quot;,
+      memo$Original[memo$sentence_idx == .y$sentence_idx &amp; memo$D2 == .y$D1 &amp; memo$POS1 == &quot;助詞&quot;],
+      collapse = &quot; &quot;
+    ))) %&gt;%
+  purrr::map_dfr(~.) %&gt;%
+  dplyr::select(Original, collocation)
+
+pattern
+#&gt; # A tibble: 75 x 2
+#&gt;    Original collocation 
+#&gt;    &lt;chr&gt;    &lt;chr&gt;       
+#&gt;  1 生れる   &quot;で&quot;        
+#&gt;  2 つく     &quot;か が&quot;     
+#&gt;  3 する     &quot;&quot;          
+#&gt;  4 泣く     &quot;で&quot;        
+#&gt;  5 する     &quot;て だけ は&quot;
+#&gt;  6 いる     &quot;て だけ は&quot;
+#&gt;  7 始める   &quot;で&quot;        
+#&gt;  8 見る     &quot;は を&quot;     
+#&gt;  9 聞く     &quot;で&quot;        
+#&gt; 10 捕える   &quot;を&quot;        
+#&gt; # ... with 65 more rows</code></pre>
+<p>「する」「見る」「与える」という動詞の格パターン</p>
+<pre class="r"><code>pattern %&gt;%
+  dplyr::filter(Original %in% c(&quot;する&quot;, &quot;見る&quot;, &quot;与える&quot;)) %&gt;%
+  dplyr::group_by(Original, collocation) %&gt;%
+  dplyr::count()
+#&gt; # A tibble: 12 x 3
+#&gt; # Groups:   Original, collocation [12]
+#&gt;    Original collocation      n
+#&gt;    &lt;chr&gt;    &lt;chr&gt;        &lt;int&gt;
+#&gt;  1 する     &quot;&quot;               4
+#&gt;  2 する     &quot;が&quot;             2
+#&gt;  3 する     &quot;が と で&quot;       1
+#&gt;  4 する     &quot;て だけ は&quot;     1
+#&gt;  5 する     &quot;と が&quot;          1
+#&gt;  6 する     &quot;まで は&quot;        1
+#&gt;  7 する     &quot;も&quot;             1
+#&gt;  8 する     &quot;をもって&quot;       1
+#&gt;  9 見る     &quot;て&quot;             2
+#&gt; 10 見る     &quot;て を&quot;          1
+#&gt; 11 見る     &quot;の&quot;             1
+#&gt; 12 見る     &quot;は を&quot;          1</code></pre>
+</div>
+<div id="動詞の格フレーム情報の抽出" class="section level3">
+<h3>46. 動詞の格フレーム情報の抽出</h3>
+<p>これを見ると「だけは」みたいな助詞の連続が要件通りに表示できていないことがわかりますが、もう疲れたのであきらめます。</p>
+<pre class="r"><code>memo &lt;- res %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::mutate(
+    chunk = stringr::str_c(
+      word,
+      collapse = &quot;&quot;
+    )
+  ) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, POS1, Original, chunk)
+
+pattern &lt;- memo %&gt;%
+  dplyr::filter(POS1 == &quot;動詞&quot;) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx, D1) %&gt;%
+  dplyr::group_map(~ .x %&gt;%
+    dplyr::mutate(collocation = stringr::str_c(
+      &quot;&quot;,
+      memo$Original[memo$sentence_idx == .y$sentence_idx &amp; memo$D2 == .y$D1 &amp; memo$POS1 == &quot;助詞&quot;],
+      collapse = &quot; &quot;
+    )) %&gt;%
+    dplyr::mutate(chunk = stringr::str_c(
+      &quot;&quot;,
+      memo$chunk[memo$sentence_idx == .y$sentence_idx &amp; memo$D2 == .y$D1 &amp; memo$POS1 == &quot;助詞&quot;],
+      collapse = &quot; &quot;
+    ))) %&gt;%
+  purrr::map_dfr(~.) %&gt;%
+  dplyr::select(Original, collocation, chunk)
+
+pattern
+#&gt; # A tibble: 75 x 3
+#&gt;    Original collocation  chunk                             
+#&gt;    &lt;chr&gt;    &lt;chr&gt;        &lt;chr&gt;                             
+#&gt;  1 生れる   &quot;で&quot;         &quot;　どこで&quot;                        
+#&gt;  2 つく     &quot;か が&quot;      &quot;生れたか 見当が&quot;                 
+#&gt;  3 する     &quot;&quot;           &quot;&quot;                                
+#&gt;  4 泣く     &quot;で&quot;         &quot;所で&quot;                            
+#&gt;  5 する     &quot;て だけ は&quot; &quot;泣いて いた事だけは いた事だけは&quot;
+#&gt;  6 いる     &quot;て だけ は&quot; &quot;泣いて いた事だけは いた事だけは&quot;
+#&gt;  7 始める   &quot;で&quot;         &quot;ここで&quot;                          
+#&gt;  8 見る     &quot;は を&quot;      &quot;吾輩は ものを&quot;                   
+#&gt;  9 聞く     &quot;で&quot;         &quot;あとで&quot;                          
+#&gt; 10 捕える   &quot;を&quot;         &quot;我々を&quot;                          
+#&gt; # ... with 65 more rows</code></pre>
+</div>
+<div id="機能動詞構文のマイニング" class="section level3">
+<h3>47. 機能動詞構文のマイニング</h3>
+<p>「サ変接続名詞 + を -&gt; 動詞」という表現だけを抽出すると、ここで解析した範囲には存在しないようなので、サ変接続名詞が含まれる文節すべてについてマイニングします。</p>
+<pre class="r"><code>memo &lt;- res %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::mutate(
+    chunk = stringr::str_c(
+      word,
+      collapse = &quot;&quot;
+    )
+  ) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, POS1, POS2, Original, chunk)
+
+pattern &lt;- memo %&gt;%
+  dplyr::filter(POS2 == &quot;サ変接続&quot;) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::mutate(surface_form = stringr::str_c(
+    chunk,
+    collapse = &quot;&quot;
+  )) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx, D1) %&gt;%
+  dplyr::group_map(~ .x %&gt;%
+    dplyr::mutate(collocation = stringr::str_c(
+      &quot;&quot;,
+      memo$Original[memo$sentence_idx == .y$sentence_idx &amp; memo$D2 == .y$D1 &amp; memo$POS1 == &quot;助詞&quot;],
+      collapse = &quot; &quot;
+    )) %&gt;%
+    dplyr::mutate(chunk = stringr::str_c(
+      &quot;&quot;,
+      memo$chunk[memo$sentence_idx == .y$sentence_idx &amp; memo$D2 == .y$D1 &amp; memo$POS1 == &quot;助詞&quot;],
+      collapse = &quot; &quot;
+    ))) %&gt;%
+  purrr::map_dfr(~.) %&gt;%
+  dplyr::select(surface_form, collocation, chunk)
+
+pattern
+#&gt; # A tibble: 7 x 3
+#&gt;   surface_form       collocation        chunk                                   
+#&gt;   &lt;chr&gt;              &lt;chr&gt;              &lt;chr&gt;                                   
+#&gt; 1 見当が             &quot;&quot;                 &quot;&quot;                                      
+#&gt; 2 記憶している。     &quot;て だけ は&quot;       &quot;泣いて いた事だけは いた事だけは&quot;      
+#&gt; 3 話である。         &quot;という は という&quot; &quot;書生というのは 書生というのは 食うという&quot;~
+#&gt; 4 装飾されべきはずの &quot;をもって&quot;         &quot;第一毛をもって&quot;                        
+#&gt; 5 突起している。     &quot;が&quot;               &quot;真中が&quot;                                
+#&gt; 6 運転し始めた。     &quot;が と で&quot;         &quot;おったが、 すると 速力で&quot;              
+#&gt; 7 記憶しているが     &quot;まで は&quot;          &quot;それまでは それまでは&quot;</code></pre>
+<ol start="48" style="list-style-type: decimal">
+<li>名詞から根へのパスの抽出</li>
+</ol>
+<p><del>めちゃくちゃwarning出る</del></p>
+<pre class="r"><code>memo &lt;- res %&gt;%
+  dplyr::mutate_at(c(&quot;D1&quot;, &quot;D2&quot;), as.integer) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::mutate(
+    chunk = stringr::str_c(
+      word,
+      collapse = &quot;&quot;
+    )
+  ) %&gt;%
+  dplyr::ungroup() %&gt;%
+  dplyr::select(sentence_idx, chunk_idx, D1, D2, POS1, Original, chunk) %&gt;%
+  dplyr::distinct(chunk, .keep_all = TRUE)
+
+pattern &lt;- memo %&gt;%
+  dplyr::filter(POS1 == &quot;名詞&quot;) %&gt;%
+  dplyr::group_by(sentence_idx, chunk_idx) %&gt;%
+  dplyr::group_map(~ .x %&gt;%
+    dplyr::mutate(path = stringr::str_c(
+      memo$chunk[
+        memo$sentence_idx == .y$sentence_idx &amp;
+          memo$chunk_idx &gt;= .y$chunk_idx &amp;
+          (memo$D2 &gt; .x$D1 || memo$D2 == -1L)
+      ],
+      collapse = &quot; -&gt; &quot;
+    ))) %&gt;%
+  purrr::map_dfr(~.) %&gt;%
+  dplyr::select(path)
+
+pattern
+#&gt; # A tibble: 92 x 1
+#&gt;    path                                                                         
+#&gt;    &lt;chr&gt;                                                                        
+#&gt;  1 一                                                                           
+#&gt;  2 吾輩は -&gt; 猫である。                                                         
+#&gt;  3 猫である。                                                                   
+#&gt;  4 名前は -&gt; まだ -&gt; 無い。                                                     
+#&gt;  5 見当が -&gt; つかぬ。                                                           
+#&gt;  6 何でも -&gt; 薄暗い -&gt; じめじめした -&gt; 所で -&gt; 泣いて -&gt; いた事だけは -&gt; 記憶している。~
+#&gt;  7 所で -&gt; 泣いて -&gt; いた事だけは -&gt; 記憶している。                             
+#&gt;  8 いた事だけは -&gt; 記憶している。                                               
+#&gt;  9 記憶している。                                                               
+#&gt; 10 ここで -&gt; 始めて -&gt; 人間という -&gt; ものを -&gt; 見た。                           
+#&gt; # ... with 82 more rows</code></pre>
+<ol start="49" style="list-style-type: decimal">
+<li>名詞間の係り受けパスの抽出</li>
+</ol>
+<p>疲れたので省略</p>
+</div>
+</div>
+<div id="セッション情報" class="section level2">
+<h2>セッション情報</h2>
+<pre class="r"><code>devtools::session_info()
+#&gt; - Session info ---------------------------------------------------------------
+#&gt;  setting  value                       
+#&gt;  version  R version 4.0.2 (2020-06-22)
+#&gt;  os       Windows 10 x64              
+#&gt;  system   x86_64, mingw32             
+#&gt;  ui       RTerm                       
+#&gt;  language (EN)                        
+#&gt;  collate  Japanese_Japan.932          
+#&gt;  ctype    Japanese_Japan.932          
+#&gt;  tz       Asia/Tokyo                  
+#&gt;  date     2020-07-21                  
+#&gt; 
+#&gt; - Packages -------------------------------------------------------------------
+#&gt;  package     * version  date       lib source                             
+#&gt;  assertthat    0.2.1    2019-03-21 [1] CRAN (R 4.0.2)                     
+#&gt;  backports     1.1.8    2020-06-17 [1] CRAN (R 4.0.2)                     
+#&gt;  bitops        1.0-6    2013-08-17 [1] CRAN (R 4.0.0)                     
+#&gt;  blob          1.2.1    2020-01-20 [1] CRAN (R 4.0.2)                     
+#&gt;  blogdown      0.20     2020-06-23 [1] CRAN (R 4.0.2)                     
+#&gt;  bookdown      0.20     2020-06-23 [1] CRAN (R 4.0.2)                     
+#&gt;  broom         0.7.0    2020-07-09 [1] CRAN (R 4.0.2)                     
+#&gt;  callr         3.4.3    2020-03-28 [1] CRAN (R 4.0.2)                     
+#&gt;  cellranger    1.1.0    2016-07-27 [1] CRAN (R 4.0.2)                     
+#&gt;  cli           2.0.2    2020-02-28 [1] CRAN (R 4.0.2)                     
+#&gt;  colorspace    1.4-1    2019-03-18 [1] CRAN (R 4.0.2)                     
+#&gt;  crayon        1.3.4    2017-09-16 [1] CRAN (R 4.0.2)                     
+#&gt;  data.table    1.12.8   2019-12-09 [1] CRAN (R 4.0.0)                     
+#&gt;  DBI           1.1.0    2019-12-15 [1] CRAN (R 4.0.2)                     
+#&gt;  dbplyr        1.4.4    2020-05-27 [1] CRAN (R 4.0.2)                     
+#&gt;  desc          1.2.0    2018-05-01 [1] CRAN (R 4.0.2)                     
+#&gt;  devtools      2.3.0    2020-04-10 [1] CRAN (R 4.0.2)                     
+#&gt;  digest        0.6.25   2020-02-23 [1] CRAN (R 4.0.2)                     
+#&gt;  dplyr       * 1.0.0    2020-05-29 [1] CRAN (R 4.0.2)                     
+#&gt;  ellipsis      0.3.1    2020-05-15 [1] CRAN (R 4.0.2)                     
+#&gt;  evaluate      0.14     2019-05-28 [1] CRAN (R 4.0.2)                     
+#&gt;  fansi         0.4.1    2020-01-08 [1] CRAN (R 4.0.2)                     
+#&gt;  flatxml       0.0.2    2018-07-08 [1] CRAN (R 4.0.2)                     
+#&gt;  forcats     * 0.5.0    2020-03-01 [1] CRAN (R 4.0.2)                     
+#&gt;  fs            1.4.2    2020-06-30 [1] CRAN (R 4.0.2)                     
+#&gt;  generics      0.0.2    2018-11-29 [1] CRAN (R 4.0.2)                     
+#&gt;  ggplot2     * 3.3.2    2020-06-19 [1] CRAN (R 4.0.2)                     
+#&gt;  glue          1.4.1    2020-05-13 [1] CRAN (R 4.0.2)                     
+#&gt;  gtable        0.3.0    2019-03-25 [1] CRAN (R 4.0.2)                     
+#&gt;  haven         2.3.1    2020-06-01 [1] CRAN (R 4.0.2)                     
+#&gt;  hms           0.5.3    2020-01-08 [1] CRAN (R 4.0.2)                     
+#&gt;  htmltools     0.5.0    2020-06-16 [1] CRAN (R 4.0.2)                     
+#&gt;  httr          1.4.1    2019-08-05 [1] CRAN (R 4.0.0)                     
+#&gt;  igraph        1.2.5    2020-03-19 [1] CRAN (R 4.0.2)                     
+#&gt;  jsonlite      1.7.0    2020-06-25 [1] CRAN (R 4.0.2)                     
+#&gt;  knitr         1.29     2020-06-23 [1] CRAN (R 4.0.2)                     
+#&gt;  lifecycle     0.2.0    2020-03-06 [1] CRAN (R 4.0.2)                     
+#&gt;  lubridate     1.7.9    2020-06-08 [1] CRAN (R 4.0.2)                     
+#&gt;  magrittr      1.5      2014-11-22 [1] CRAN (R 4.0.2)                     
+#&gt;  memoise       1.1.0    2017-04-21 [1] CRAN (R 4.0.2)                     
+#&gt;  modelr        0.1.8    2020-05-19 [1] CRAN (R 4.0.2)                     
+#&gt;  munsell       0.5.0    2018-06-12 [1] CRAN (R 4.0.2)                     
+#&gt;  pillar        1.4.6    2020-07-10 [1] CRAN (R 4.0.2)                     
+#&gt;  pipian        0.2.1    2020-07-15 [1] Github (paithiov909/pipian@f08b049)
+#&gt;  pkgbuild      1.1.0    2020-07-13 [1] CRAN (R 4.0.2)                     
+#&gt;  pkgconfig     2.0.3    2019-09-22 [1] CRAN (R 4.0.2)                     
+#&gt;  pkgload       1.1.0    2020-05-29 [1] CRAN (R 4.0.2)                     
+#&gt;  prettyunits   1.1.1    2020-01-24 [1] CRAN (R 4.0.2)                     
+#&gt;  processx      3.4.3    2020-07-05 [1] CRAN (R 4.0.2)                     
+#&gt;  ps            1.3.3    2020-05-08 [1] CRAN (R 4.0.2)                     
+#&gt;  purrr       * 0.3.4    2020-04-17 [1] CRAN (R 4.0.2)                     
+#&gt;  R.cache       0.14.0   2019-12-06 [1] CRAN (R 4.0.2)                     
+#&gt;  R.methodsS3   1.8.0    2020-02-14 [1] CRAN (R 4.0.0)                     
+#&gt;  R.oo          1.23.0   2019-11-03 [1] CRAN (R 4.0.0)                     
+#&gt;  R.utils       2.9.2    2019-12-08 [1] CRAN (R 4.0.2)                     
+#&gt;  R6            2.4.1    2019-11-12 [1] CRAN (R 4.0.2)                     
+#&gt;  Rcpp          1.0.5    2020-07-06 [1] CRAN (R 4.0.2)                     
+#&gt;  RCurl         1.98-1.2 2020-04-18 [1] CRAN (R 4.0.0)                     
+#&gt;  readr       * 1.3.1    2018-12-21 [1] CRAN (R 4.0.2)                     
+#&gt;  readtext      0.76     2020-03-04 [1] CRAN (R 4.0.2)                     
+#&gt;  readxl        1.3.1    2019-03-13 [1] CRAN (R 4.0.2)                     
+#&gt;  remotes       2.1.1    2020-02-15 [1] CRAN (R 4.0.2)                     
+#&gt;  reprex        0.3.0    2019-05-16 [1] CRAN (R 4.0.2)                     
+#&gt;  rlang         0.4.7    2020-07-09 [1] CRAN (R 4.0.2)                     
+#&gt;  rmarkdown     2.3      2020-06-18 [1] CRAN (R 4.0.2)                     
+#&gt;  rprojroot     1.3-2    2018-01-03 [1] CRAN (R 4.0.2)                     
+#&gt;  rstudioapi    0.11     2020-02-07 [1] CRAN (R 4.0.2)                     
+#&gt;  rvest         0.3.5    2019-11-08 [1] CRAN (R 4.0.0)                     
+#&gt;  scales        1.1.1    2020-05-11 [1] CRAN (R 4.0.2)                     
+#&gt;  sessioninfo   1.1.1    2018-11-05 [1] CRAN (R 4.0.2)                     
+#&gt;  stringi       1.4.6    2020-02-17 [1] CRAN (R 4.0.0)                     
+#&gt;  stringr     * 1.4.0    2019-02-10 [1] CRAN (R 4.0.2)                     
+#&gt;  styler        1.3.2    2020-02-23 [1] CRAN (R 4.0.2)                     
+#&gt;  testthat      2.3.2    2020-03-02 [1] CRAN (R 4.0.2)                     
+#&gt;  tibble      * 3.0.3    2020-07-10 [1] CRAN (R 4.0.2)                     
+#&gt;  tidyr       * 1.1.0    2020-05-20 [1] CRAN (R 4.0.2)                     
+#&gt;  tidyselect    1.1.0    2020-05-11 [1] CRAN (R 4.0.2)                     
+#&gt;  tidyverse   * 1.3.0    2019-11-21 [1] CRAN (R 4.0.2)                     
+#&gt;  usethis       1.6.1    2020-04-29 [1] CRAN (R 4.0.2)                     
+#&gt;  utf8          1.1.4    2018-05-24 [1] CRAN (R 4.0.2)                     
+#&gt;  vctrs         0.3.2    2020-07-15 [1] CRAN (R 4.0.2)                     
+#&gt;  withr         2.2.0    2020-04-20 [1] CRAN (R 4.0.2)                     
+#&gt;  xfun          0.15     2020-06-21 [1] CRAN (R 4.0.2)                     
+#&gt;  xml2          1.3.2    2020-04-23 [1] CRAN (R 4.0.2)                     
+#&gt;  yaml          2.2.1    2020-02-01 [1] CRAN (R 4.0.0)                     
+#&gt; 
+#&gt; [1] C:/Users/user/Documents/R/win-library/4.0
+#&gt; [2] C:/Program Files/R/R-4.0.2/library</code></pre>
+</div>

@@ -1,0 +1,28 @@
+---
+title: 短歌の構文マイニング（２）
+author: paithiov909
+date: '2020-07-21'
+lastmod: "`r Sys.Date()`"
+slug: analysis-utanohi-2
+categories: []
+tags:
+  - NLP
+description: '準備中'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  tidy = "styler",
+  collapse = TRUE,
+  comment = "#>"
+)
+
+stopifnot(require(tidyverse))
+```
+
+## セッション情報
+
+```{r}
+sessioninfo::session_info()
+```
+
