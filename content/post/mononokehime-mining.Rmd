@@ -163,7 +163,7 @@ extract_collocation <- function(d) {
         ifelse(
           cond,
           stringr::str_c(
-            keys,
+            keys[, 1],
             ":",
             sentence %>%
               dplyr::mutate(heading = lag(token, 1)) %>%

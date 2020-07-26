@@ -2,7 +2,7 @@
 title: もののけ姫を題材にした格パターンマイニングのお試し
 author: paithiov909
 date: '2020-07-19'
-lastmod: "2020-07-21"
+lastmod: "2020-07-22"
 slug: mononokehime-mining
 categories: []
 tags:
@@ -842,7 +842,7 @@ extract_collocation &lt;- function(d) {
         ifelse(
           cond,
           stringr::str_c(
-            keys,
+            keys[, 1],
             &quot;:&quot;,
             sentence %&gt;%
               dplyr::mutate(heading = lag(token, 1)) %&gt;%
@@ -870,9 +870,9 @@ extract_collocation &lt;- function(d) {
 
 extract_collocation(d)
 #&gt; # A tibble: 1 x 1
-#&gt;   collocation                                         
-#&gt;   &lt;chr&gt;                                               
-#&gt; 1 doc1 : 紙 を 飛行機 に する;1 : 紙 を 飛行機 に する</code></pre>
+#&gt;   collocation                
+#&gt;   &lt;chr&gt;                      
+#&gt; 1 doc1 : 紙 を 飛行機 に する</code></pre>
 <p>こうなる。</p>
 <pre class="r"><code>annotation %&gt;%
   extract_collocation() %&gt;%
@@ -886,34 +886,34 @@ extract_collocation(d)
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">191 : 骨 を タタリ神 に する;2 : くだき肉 を タタリ神 に する</td>
+<td align="left">191 : 骨 を タタリ神 に する;191 : くだき肉 を タタリ神 に する</td>
 </tr>
 <tr class="even">
-<td align="left">205 : 森 を タタリ神 に する;1 : 呪い を タタリ神 に する</td>
+<td align="left">205 : 森 を タタリ神 に する;205 : 呪い を タタリ神 に する</td>
 </tr>
 <tr class="odd">
-<td align="left">211 : 力 を ここ に する;4 : 力 を ここ に する</td>
+<td align="left">211 : 力 を ここ に する</td>
 </tr>
 <tr class="even">
-<td align="left">282 : 山犬 を 嫁 に する;3 : 山犬 を 嫁 に する</td>
+<td align="left">282 : 山犬 を 嫁 に する</td>
 </tr>
 <tr class="odd">
-<td align="left">298 : おもどり を 敵 に する;1 : おもどり を 敵 に する</td>
+<td align="left">298 : おもどり を 敵 に する</td>
 </tr>
 <tr class="even">
-<td align="left">374 : 母さん を バカ に する;1 : 母さん を バカ に する</td>
+<td align="left">374 : 母さん を バカ に する</td>
 </tr>
 <tr class="odd">
-<td align="left">569 : 場 を 見殺し に する;1 : 場 を 見殺し に する</td>
+<td align="left">569 : 場 を 見殺し に する</td>
 </tr>
 <tr class="even">
-<td align="left">570 : 帰り を おくれ に する;1 : 帰り を おくれ に する</td>
+<td align="left">570 : 帰り を おくれ に する</td>
 </tr>
 <tr class="odd">
-<td align="left">669 : 備え を 女たち に する;1 : 備え を 女たち に する</td>
+<td align="left">669 : 備え を 女たち に する</td>
 </tr>
 <tr class="even">
-<td align="left">808 : ここ を 村 に する;5 : ここ を 村 に する</td>
+<td align="left">808 : ここ を 村 に する</td>
 </tr>
 </tbody>
 </table>
@@ -931,7 +931,7 @@ extract_collocation(d)
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-07-21                  
+#&gt;  date     2020-07-22                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  package      * version  date       lib source        
