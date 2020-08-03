@@ -15,7 +15,7 @@ buildFuture = true
 rssLimit = 10
 
 [permalinks]
-    post = "/posts/:slug/"
+    posts = "/posts/:slug/"
 
 [params]
     description = "Rでもにょる自然言語処理"
