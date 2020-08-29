@@ -148,7 +148,7 @@ df <- imap_dfr(doc_headings, function(idx, i){
         )
     )
 }) %>%
-    tidyr::separate(title, c("title", "author"), sep = "[:blank:]+")
+    tidyr::separate(title, c("title", "author"), sep = "[[:blank:]]+")
 ```
 
 {googledrive}でドライブに保存しておきます。

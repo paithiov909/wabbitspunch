@@ -2,7 +2,7 @@
 title: 短歌時評のテキスト解析（２）
 author: paithiov909
 date: '2020-07-11'
-lastmod: "2020-07-21"
+lastmod: "2020-08-29"
 slug: analysis-tanka-jihyo
 categories: []
 tags:
@@ -121,8 +121,10 @@ corp %&gt;%
   quanteda::tokens_remove(stopwords, valuetype = &quot;fixed&quot;) %&gt;%
   quanteda::dfm(groups = &quot;source&quot;) %&gt;%
   quanteda::dfm_trim(min_termfreq = 12L) %&gt;%
-  quanteda::textplot_wordcloud(comparison = TRUE, color = viridis::cividis(2))</code></pre>
-<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+  quanteda::textplot_wordcloud(comparison = TRUE, color = viridis::cividis(2))
+#&gt; Warning in wordcloud_comparison(x, min_size, max_size, min_count, max_words, :
+#&gt; 受け入れ could not be fit on page. It will not be plotted.</code></pre>
+<p><img src="/posts/tanka-jihyo-01_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 </div>
 <div id="出現頻度の集計" class="section level2">
 <h2>出現頻度の集計</h2>
@@ -141,7 +143,7 @@ corp %&gt;%
     rotate = TRUE
   ) +
   theme_bw()</code></pre>
-<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="/posts/tanka-jihyo-01_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 </div>
 <div id="keyness" class="section level2">
 <h2>Keyness</h2>
@@ -151,7 +153,7 @@ corp %&gt;%
   quanteda::dfm(groups = &quot;source&quot;) %&gt;%
   quanteda::textstat_keyness() %&gt;%
   quanteda::textplot_keyness(n = 16L)</code></pre>
-<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="/posts/tanka-jihyo-01_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>
 <div id="共起ネットワーク" class="section level2">
 <h2>共起ネットワーク</h2>
@@ -165,7 +167,7 @@ corp %&gt;%
   quanteda::dfm_trim(min_termfreq = 50L) %&gt;%
   quanteda::fcm() %&gt;%
   quanteda::textplot_network(min_freq = .8)</code></pre>
-<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="/posts/tanka-jihyo-01_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 </div>
 <div id="未来" class="section level3">
 <h3>未来</h3>
@@ -177,7 +179,7 @@ corp %&gt;%
   quanteda::dfm_trim(min_termfreq = 20L) %&gt;%
   quanteda::fcm() %&gt;%
   quanteda::textplot_network(min_freq = .8)</code></pre>
-<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="/posts/tanka-jihyo-01_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 </div>
 </div>
 <div id="クラスタリング" class="section level2">
@@ -214,7 +216,7 @@ ggplot(ggdendro::segment(d)) +
   coord_flip() +
   scale_y_reverse(expand = c(.2, 0)) +
   ggdendro::theme_dendro()</code></pre>
-<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-10-1.png" width="1344" /></p>
+<p><img src="/posts/tanka-jihyo-01_files/figure-html/unnamed-chunk-10-1.png" width="1344" /></p>
 </div>
 <div id="ldalatent-dirichlet-allocation" class="section level2">
 <h2>LDA（Latent Dirichlet Allocation）</h2>
@@ -250,244 +252,244 @@ m$phi %&gt;%
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">づら</td>
-<td align="left">川野</td>
-<td align="left">渡辺</td>
+<td align="left">ｉ</td>
 <td align="left">震災</td>
-<td align="left">批評</td>
-<td align="left">子規</td>
+<td align="left">評論</td>
+<td align="left">ノスタルジー</td>
+<td align="left">ニューウェーブ</td>
+<td align="left">文語</td>
 </tr>
 <tr class="even">
 <td align="left">杉原</td>
-<td align="left">穂</td>
-<td align="left">沖縄</td>
-<td align="left">当事者</td>
-<td align="left">評論</td>
-<td align="left">ニューウェーブ</td>
+<td align="left">口語</td>
+<td align="left">川野</td>
+<td align="left">中止</td>
+<td align="left">母</td>
+<td align="left">名詞</td>
 </tr>
 <tr class="odd">
-<td align="left">韓国</td>
-<td align="left">ノスタルジー</td>
-<td align="left">写生</td>
-<td align="left">口語</td>
-<td align="left">時評</td>
+<td align="left">ａ</td>
+<td align="left">当事者</td>
+<td align="left">子規</td>
+<td align="left">要請</td>
+<td align="left">不能</td>
+<td align="left">服部</td>
+</tr>
+<tr class="even">
+<td align="left">桜</td>
+<td align="left">白秋</td>
+<td align="left">戦後</td>
+<td align="left">内山</td>
+<td align="left">塚本</td>
+<td align="left">虚構</td>
+</tr>
+<tr class="odd">
+<td align="left">結社</td>
+<td align="left">文語</td>
+<td align="left">批評</td>
+<td align="left">モノ</td>
+<td align="left">沖縄</td>
 <td align="left">賞</td>
 </tr>
 <tr class="even">
-<td align="left">塚本</td>
-<td align="left">村</td>
-<td align="left">父</td>
-<td align="left">文語</td>
-<td align="left">ｉ</td>
-<td align="left">山田</td>
-</tr>
-<tr class="odd">
-<td align="left">竹山</td>
-<td align="left">吉川</td>
-<td align="left">白鳥</td>
-<td align="left">名詞</td>
-<td align="left">ａ</td>
-<td align="left">白秋</td>
-</tr>
-<tr class="even">
-<td align="left">瀬戸</td>
-<td align="left">近代</td>
-<td align="left">悲歌</td>
-<td align="left">大衆</td>
-<td align="left">読者</td>
-<td align="left">文語</td>
-</tr>
-<tr class="odd">
-<td align="left">安永</td>
-<td align="left">不能</td>
-<td align="left">首</td>
+<td align="left">妊娠</td>
 <td align="left">被災</td>
-<td align="left">座談</td>
-<td align="left">母</td>
-</tr>
-<tr class="even">
-<td align="left">評伝</td>
-<td align="left">万葉集</td>
-<td align="left">冬</td>
-<td align="left">書きことば</td>
-<td align="left">桜</td>
-<td align="left">中止</td>
-</tr>
-<tr class="odd">
-<td align="left">モノ</td>
-<td align="left">過去</td>
-<td align="left">皇后</td>
+<td align="left">近代</td>
 <td align="left">富山</td>
-<td align="left">永井</td>
-<td align="left">要請</td>
-</tr>
-<tr class="even">
-<td align="left">構造</td>
-<td align="left">古典</td>
-<td align="left">石井</td>
-<td align="left">小池</td>
-<td align="left">田中</td>
-<td align="left">連作</td>
+<td align="left">文法</td>
+<td align="left">大森</td>
 </tr>
 <tr class="odd">
 <td align="left">表記</td>
-<td align="left">歌集</td>
-<td align="left">磯江</td>
-<td align="left">梯</td>
-<td align="left">創作</td>
-<td align="left">加藤</td>
-</tr>
-<tr class="even">
-<td align="left">阿木</td>
-<td align="left">レトリック</td>
-<td align="left">口語</td>
-<td align="left">中村</td>
-<td align="left">議論</td>
-<td align="left">決定</td>
-</tr>
-<tr class="odd">
-<td align="left">津</td>
-<td align="left">和歌</td>
-<td align="left">牛尾</td>
-<td align="left">斉藤</td>
-<td align="left">結社</td>
-<td align="left">学生</td>
-</tr>
-<tr class="even">
-<td align="left">染野</td>
-<td align="left">自然</td>
-<td align="left">牧水</td>
-<td align="left">狂歌</td>
-<td align="left">文法</td>
-<td align="left">荻原</td>
-</tr>
-<tr class="odd">
-<td align="left">辞</td>
-<td align="left">現実</td>
-<td align="left">森岡</td>
-<td align="left">日系</td>
-<td align="left">俳句</td>
-<td align="left">茂吉</td>
-</tr>
-<tr class="even">
-<td align="left">原爆</td>
-<td align="left">両義</td>
-<td align="left">ゆく</td>
-<td align="left">●</td>
-<td align="left">前衛</td>
-<td align="left">河野</td>
-</tr>
-<tr class="odd">
+<td align="left">父</td>
+<td align="left">づら</td>
 <td align="left">仲田</td>
-<td align="left">戦後</td>
-<td align="left">陛下</td>
-<td align="left">|</td>
-<td align="left">妊娠</td>
-<td align="left">虚構</td>
+<td align="left">評伝</td>
+<td align="left">構造</td>
 </tr>
 <tr class="even">
-<td align="left">内山</td>
-<td align="left">アイディア</td>
-<td align="left">セクハラ</td>
-<td align="left">文学</td>
-<td align="left">主義</td>
-<td align="left">侃</td>
+<td align="left">〇</td>
+<td align="left">原発</td>
+<td align="left">韓国</td>
+<td align="left">●</td>
+<td align="left">辞</td>
+<td align="left">受賞</td>
 </tr>
 <tr class="odd">
-<td align="left">暴力</td>
-<td align="left">社会</td>
-<td align="left">殺し</td>
-<td align="left">１</td>
-<td align="left">塚</td>
+<td align="left">賞</td>
+<td align="left">書きことば</td>
+<td align="left">特集</td>
+<td align="left">決定</td>
+<td align="left">永井</td>
+<td align="left">世代</td>
+</tr>
+<tr class="even">
+<td align="left">学生</td>
+<td align="left">梯</td>
+<td align="left">論</td>
+<td align="left">連作</td>
+<td align="left">加藤</td>
+<td align="left">両義</td>
+</tr>
+<tr class="odd">
+<td align="left">瀬戸</td>
+<td align="left">歌集</td>
+<td align="left">座談</td>
+<td align="left">折</td>
+<td align="left">河野</td>
 <td align="left">旧</td>
 </tr>
 <tr class="even">
-<td align="left">塚</td>
-<td align="left">詠わ</td>
-<td align="left">方向</td>
+<td align="left">書籍</td>
 <td align="left">詠う</td>
-<td align="left">〇</td>
-<td align="left">裡</td>
+<td align="left">竹山</td>
+<td align="left">過去</td>
+<td align="left">創作</td>
+<td align="left">価値</td>
 </tr>
 <tr class="odd">
-<td align="left">身銭</td>
-<td align="left">志向</td>
-<td align="left">事故</td>
-<td align="left">在住</td>
-<td align="left">特集</td>
-<td align="left">折</td>
+<td align="left">著作</td>
+<td align="left">中村</td>
+<td align="left">安永</td>
+<td align="left">枡</td>
+<td align="left">音読</td>
+<td align="left">基準</td>
 </tr>
 <tr class="even">
-<td align="left">島田</td>
-<td align="left">詩型</td>
-<td align="left">虚構</td>
-<td align="left">服部</td>
-<td align="left">作者</td>
+<td align="left">阿木</td>
+<td align="left">狂歌</td>
+<td align="left">詩歌</td>
+<td align="left">歌集</td>
+<td align="left">記号</td>
+<td align="left">石井</td>
+</tr>
+<tr class="odd">
+<td align="left">電子</td>
+<td align="left">写生</td>
+<td align="left">万葉集</td>
+<td align="left">句</td>
+<td align="left">前衛</td>
+<td align="left">アイディア</td>
+</tr>
+<tr class="even">
+<td align="left">田中</td>
+<td align="left">|</td>
+<td align="left">語</td>
+<td align="left">大会</td>
+<td align="left">渡辺</td>
+<td align="left">時評</td>
+</tr>
+<tr class="odd">
+<td align="left">山田</td>
+<td align="left">佐藤</td>
+<td align="left">和歌</td>
+<td align="left">異化</td>
+<td align="left">表現</td>
+<td align="left">寺井</td>
+</tr>
+<tr class="even">
+<td align="left">アンソロジー</td>
+<td align="left">老い</td>
+<td align="left">読者</td>
+<td align="left">ディストピア</td>
+<td align="left">荻原</td>
 <td align="left">外部</td>
 </tr>
 <tr class="odd">
-<td align="left">詩歌</td>
-<td align="left">香川</td>
-<td align="left">秋</td>
-<td align="left">原発</td>
-<td align="left">客観</td>
-<td align="left">枡</td>
+<td align="left">裡</td>
+<td align="left">ことば</td>
+<td align="left">葛原</td>
+<td align="left">歌会</td>
+<td align="left">邦雄</td>
+<td align="left">小池</td>
 </tr>
 <tr class="even">
-<td align="left">分断</td>
-<td align="left">時代</td>
-<td align="left">刊</td>
-<td align="left">海外</td>
-<td align="left">松村</td>
-<td align="left">基準</td>
-</tr>
-<tr class="odd">
-<td align="left">論理</td>
-<td align="left">天皇</td>
-<td align="left">岡野</td>
-<td align="left">教育</td>
-<td align="left">著作</td>
-<td align="left">万葉</td>
-</tr>
-<tr class="even">
-<td align="left">批判</td>
-<td align="left">記号</td>
-<td align="left">植物</td>
-<td align="left">契約</td>
-<td align="left">資料</td>
+<td align="left">身銭</td>
+<td align="left">皇后</td>
+<td align="left">主義</td>
+<td align="left">石川</td>
+<td align="left">母親</td>
 <td align="left">新人</td>
 </tr>
 <tr class="odd">
-<td align="left">差別</td>
-<td align="left">共同</td>
-<td align="left">句</td>
-<td align="left">物語</td>
-<td align="left">戦後</td>
-<td align="left">治郎</td>
+<td align="left">黒瀬</td>
+<td align="left">大震災</td>
+<td align="left">吉川</td>
+<td align="left">啄木</td>
+<td align="left">穂</td>
+<td align="left">暴力</td>
 </tr>
 <tr class="even">
-<td align="left">扇風機</td>
-<td align="left">告げ</td>
-<td align="left">怒り</td>
-<td align="left">永田</td>
-<td align="left">歌壇</td>
-<td align="left">同人</td>
+<td align="left">塚</td>
+<td align="left">復興</td>
+<td align="left">シンポジウム</td>
+<td align="left">穂</td>
+<td align="left">戦争</td>
+<td align="left">現実</td>
 </tr>
 <tr class="odd">
-<td align="left">一司</td>
-<td align="left">現代</td>
-<td align="left">軸</td>
-<td align="left">復興</td>
-<td align="left">執筆</td>
-<td align="left">韻律</td>
+<td align="left">津</td>
+<td align="left">中澤</td>
+<td align="left">原爆</td>
+<td align="left">扇風機</td>
+<td align="left">韻文</td>
+<td align="left">批評</td>
 </tr>
 <tr class="even">
-<td align="left">愚鈍</td>
-<td align="left">略</td>
-<td align="left">父親</td>
+<td align="left">語彙</td>
 <td align="left">処分</td>
-<td align="left">担当</td>
-<td align="left">九</td>
+<td align="left">言語</td>
+<td align="left">笠木</td>
+<td align="left">小池</td>
+<td align="left">作者</td>
+</tr>
+<tr class="odd">
+<td align="left">歌集</td>
+<td align="left">赤彦</td>
+<td align="left">伝統</td>
+<td align="left">むし</td>
+<td align="left">大衆</td>
+<td align="left">教育</td>
+</tr>
+<tr class="even">
+<td align="left">出版</td>
+<td align="left">磯江</td>
+<td align="left">議論</td>
+<td align="left">ユートピア</td>
+<td align="left">アマチュア</td>
+<td align="left">馬場</td>
+</tr>
+<tr class="odd">
+<td align="left">岡井</td>
+<td align="left">在住</td>
+<td align="left">韻律</td>
+<td align="left">受かる</td>
+<td align="left">介護</td>
+<td align="left">文体</td>
+</tr>
+<tr class="even">
+<td align="left">セクハラ</td>
+<td align="left">永田</td>
+<td align="left">客観</td>
+<td align="left">１</td>
+<td align="left">口語</td>
+<td align="left">喩</td>
+</tr>
+<tr class="odd">
+<td align="left">森</td>
+<td align="left">大口</td>
+<td align="left">場</td>
+<td align="left">展示</td>
+<td align="left">韻律</td>
+<td align="left">染野</td>
+</tr>
+<tr class="even">
+<td align="left">ａｉ</td>
+<td align="left">詠</td>
+<td align="left">自然</td>
+<td align="left">新鮮</td>
+<td align="left">未</td>
+<td align="left">日系</td>
 </tr>
 </tbody>
 </table>
@@ -500,7 +502,8 @@ m$phi %&gt;%
 ) %&gt;%
   LDAvis::serVis(open.browser = FALSE, out.dir = file.path(getwd(), &quot;cache&quot;))
 #&gt; Warning in dir.create(out.dir): &#39;C:
-#&gt; \Users\user\Documents\GitHub\wabbitspunch\content\post\cache&#39; はすでに存在します
+#&gt; \Users\user\Documents\GitHub\wabbitspunch\content\posts\cache&#39; はすでに存在しま
+#&gt; す
 #&gt;  要求されたパッケージ servr をロード中です
 
 readr::read_lines_raw(file.path(getwd(), &quot;cache&quot;, &quot;lda.json&quot;)) %&gt;%
@@ -544,16 +547,16 @@ glove &lt;- text2vec::GlobalVectors$new(
 wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [20:25:57.064] epoch 1, loss 0.1654 
-#&gt; INFO  [20:25:57.581] epoch 2, loss 0.0870 
-#&gt; INFO  [20:25:58.080] epoch 3, loss 0.0709 
-#&gt; INFO  [20:25:58.525] epoch 4, loss 0.0614 
-#&gt; INFO  [20:25:58.952] epoch 5, loss 0.0547 
-#&gt; INFO  [20:25:59.445] epoch 6, loss 0.0497 
-#&gt; INFO  [20:25:59.919] epoch 7, loss 0.0456 
-#&gt; INFO  [20:26:00.385] epoch 8, loss 0.0424 
-#&gt; INFO  [20:26:00.850] epoch 9, loss 0.0396 
-#&gt; INFO  [20:26:01.319] epoch 10, loss 0.0373</code></pre>
+#&gt; INFO  [11:11:30.050] epoch 1, loss 0.1617 
+#&gt; INFO  [11:11:30.566] epoch 2, loss 0.0864 
+#&gt; INFO  [11:11:31.066] epoch 3, loss 0.0706 
+#&gt; INFO  [11:11:31.597] epoch 4, loss 0.0613 
+#&gt; INFO  [11:11:32.130] epoch 5, loss 0.0547 
+#&gt; INFO  [11:11:32.645] epoch 6, loss 0.0497 
+#&gt; INFO  [11:11:33.145] epoch 7, loss 0.0457 
+#&gt; INFO  [11:11:33.661] epoch 8, loss 0.0424 
+#&gt; INFO  [11:11:34.161] epoch 9, loss 0.0396 
+#&gt; INFO  [11:11:34.645] epoch 10, loss 0.0373</code></pre>
 <pre class="r"><code>getRtsneAsTbl &lt;- function(tbl, dim = 2, perp = 30) {
   tsn &lt;- tbl %&gt;% Rtsne::Rtsne(dim = dim, perplexity = perp)
   tsny &lt;- tsn$Y
@@ -589,7 +592,7 @@ vec %&gt;%
   geom_point() +
   ggrepel::geom_text_repel(aes(label = rowname)) +
   theme_light()</code></pre>
-<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p><img src="/posts/tanka-jihyo-01_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 </div>
 <div id="塔のみ" class="section level3">
 <h3>塔のみ</h3>
@@ -619,16 +622,16 @@ glove &lt;- text2vec::GlobalVectors$new(
 wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [20:26:07.821] epoch 1, loss 0.1688 
-#&gt; INFO  [20:26:08.197] epoch 2, loss 0.0869 
-#&gt; INFO  [20:26:08.542] epoch 3, loss 0.0704 
-#&gt; INFO  [20:26:08.908] epoch 4, loss 0.0609 
-#&gt; INFO  [20:26:09.280] epoch 5, loss 0.0541 
-#&gt; INFO  [20:26:09.613] epoch 6, loss 0.0489 
-#&gt; INFO  [20:26:09.973] epoch 7, loss 0.0448 
-#&gt; INFO  [20:26:10.310] epoch 8, loss 0.0414 
-#&gt; INFO  [20:26:10.633] epoch 9, loss 0.0386 
-#&gt; INFO  [20:26:10.976] epoch 10, loss 0.0362</code></pre>
+#&gt; INFO  [11:11:41.373] epoch 1, loss 0.1651 
+#&gt; INFO  [11:11:41.764] epoch 2, loss 0.0868 
+#&gt; INFO  [11:11:42.232] epoch 3, loss 0.0705 
+#&gt; INFO  [11:11:42.623] epoch 4, loss 0.0609 
+#&gt; INFO  [11:11:42.985] epoch 5, loss 0.0541 
+#&gt; INFO  [11:11:43.375] epoch 6, loss 0.0488 
+#&gt; INFO  [11:11:43.766] epoch 7, loss 0.0446 
+#&gt; INFO  [11:11:44.125] epoch 8, loss 0.0412 
+#&gt; INFO  [11:11:44.563] epoch 9, loss 0.0383 
+#&gt; INFO  [11:11:44.938] epoch 10, loss 0.0358</code></pre>
 <pre class="r"><code>vec &lt;- vocab %&gt;%
   dplyr::anti_join(
     y = tibble::tibble(words = stopwords),
@@ -656,7 +659,7 @@ vec %&gt;%
   geom_point() +
   ggrepel::geom_text_repel(aes(label = rowname)) +
   theme_light()</code></pre>
-<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p><img src="/posts/tanka-jihyo-01_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 </div>
 <div id="未来のみ" class="section level3">
 <h3>未来のみ</h3>
@@ -686,16 +689,16 @@ glove &lt;- text2vec::GlobalVectors$new(
 wv &lt;- glove$fit_transform(x = tcm, n_iter = 10L) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [20:26:16.519] epoch 1, loss 0.1788 
-#&gt; INFO  [20:26:16.646] epoch 2, loss 0.0865 
-#&gt; INFO  [20:26:16.745] epoch 3, loss 0.0684 
-#&gt; INFO  [20:26:16.848] epoch 4, loss 0.0581 
-#&gt; INFO  [20:26:16.965] epoch 5, loss 0.0509 
-#&gt; INFO  [20:26:17.076] epoch 6, loss 0.0454 
-#&gt; INFO  [20:26:17.191] epoch 7, loss 0.0410 
-#&gt; INFO  [20:26:17.325] epoch 8, loss 0.0374 
-#&gt; INFO  [20:26:17.427] epoch 9, loss 0.0343 
-#&gt; INFO  [20:26:17.533] epoch 10, loss 0.0317</code></pre>
+#&gt; INFO  [11:11:50.390] epoch 1, loss 0.1768 
+#&gt; INFO  [11:11:50.548] epoch 2, loss 0.0865 
+#&gt; INFO  [11:11:50.673] epoch 3, loss 0.0685 
+#&gt; INFO  [11:11:50.814] epoch 4, loss 0.0583 
+#&gt; INFO  [11:11:50.919] epoch 5, loss 0.0510 
+#&gt; INFO  [11:11:51.029] epoch 6, loss 0.0455 
+#&gt; INFO  [11:11:51.138] epoch 7, loss 0.0411 
+#&gt; INFO  [11:11:51.247] epoch 8, loss 0.0375 
+#&gt; INFO  [11:11:51.372] epoch 9, loss 0.0344 
+#&gt; INFO  [11:11:51.497] epoch 10, loss 0.0318</code></pre>
 <pre class="r"><code>vec &lt;- vocab %&gt;%
   dplyr::anti_join(
     y = tibble::tibble(words = stopwords),
@@ -723,7 +726,7 @@ vec %&gt;%
   geom_point() +
   ggrepel::geom_text_repel(aes(label = rowname)) +
   theme_light()</code></pre>
-<p><img src="/post/tanka-jihyo-01_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p><img src="/posts/tanka-jihyo-01_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 </div>
 </div>
 <div id="セッション情報" class="section level2">
@@ -739,7 +742,7 @@ vec %&gt;%
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-07-21                  
+#&gt;  date     2020-08-29                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  ! package        * version  date       lib source        
@@ -752,7 +755,7 @@ vec %&gt;%
 #&gt;    bookdown         0.20     2020-06-23 [1] CRAN (R 4.0.2)
 #&gt;    broom            0.7.0    2020-07-09 [1] CRAN (R 4.0.2)
 #&gt;    callr            3.4.3    2020-03-28 [1] CRAN (R 4.0.2)
-#&gt;    car              3.0-8    2020-05-21 [1] CRAN (R 4.0.2)
+#&gt;    car              3.0-9    2020-08-11 [1] CRAN (R 4.0.2)
 #&gt;    carData          3.0-4    2020-05-22 [1] CRAN (R 4.0.0)
 #&gt;    cellranger       1.1.0    2016-07-27 [1] CRAN (R 4.0.2)
 #&gt;    cli              2.0.2    2020-02-28 [1] CRAN (R 4.0.2)
@@ -760,13 +763,13 @@ vec %&gt;%
 #&gt;    colorspace       1.4-1    2019-03-18 [1] CRAN (R 4.0.2)
 #&gt;    crayon           1.3.4    2017-09-16 [1] CRAN (R 4.0.2)
 #&gt;    curl             4.3      2019-12-02 [1] CRAN (R 4.0.2)
-#&gt;    data.table       1.12.8   2019-12-09 [1] CRAN (R 4.0.0)
+#&gt;    data.table       1.13.0   2020-07-24 [1] CRAN (R 4.0.2)
 #&gt;    DBI              1.1.0    2019-12-15 [1] CRAN (R 4.0.2)
 #&gt;    dbplyr           1.4.4    2020-05-27 [1] CRAN (R 4.0.2)
 #&gt;    desc             1.2.0    2018-05-01 [1] CRAN (R 4.0.2)
-#&gt;    devtools         2.3.0    2020-04-10 [1] CRAN (R 4.0.2)
+#&gt;    devtools         2.3.1    2020-07-21 [1] CRAN (R 4.0.2)
 #&gt;    digest           0.6.25   2020-02-23 [1] CRAN (R 4.0.2)
-#&gt;    dplyr          * 1.0.0    2020-05-29 [1] CRAN (R 4.0.2)
+#&gt;    dplyr          * 1.0.1    2020-07-31 [1] CRAN (R 4.0.2)
 #&gt;    ellipsis         0.3.1    2020-05-15 [1] CRAN (R 4.0.2)
 #&gt;    evaluate         0.14     2019-05-28 [1] CRAN (R 4.0.2)
 #&gt;    fansi            0.4.1    2020-01-08 [1] CRAN (R 4.0.2)
@@ -775,10 +778,10 @@ vec %&gt;%
 #&gt;    float            0.2-4    2020-04-22 [1] CRAN (R 4.0.0)
 #&gt;    forcats        * 0.5.0    2020-03-01 [1] CRAN (R 4.0.2)
 #&gt;    foreign          0.8-80   2020-05-24 [2] CRAN (R 4.0.2)
-#&gt;    fs               1.4.2    2020-06-30 [1] CRAN (R 4.0.2)
+#&gt;    fs               1.5.0    2020-07-31 [1] CRAN (R 4.0.2)
 #&gt;    gargle           0.5.0    2020-05-06 [1] CRAN (R 4.0.2)
 #&gt;    generics         0.0.2    2018-11-29 [1] CRAN (R 4.0.2)
-#&gt;    ggdendro         0.1-20   2016-04-27 [1] CRAN (R 4.0.2)
+#&gt;    ggdendro         0.1.21   2020-08-11 [1] CRAN (R 4.0.2)
 #&gt;    ggplot2        * 3.3.2    2020-06-19 [1] CRAN (R 4.0.2)
 #&gt;    ggpubr           0.4.0    2020-06-27 [1] CRAN (R 4.0.2)
 #&gt;    ggrepel          0.8.2    2020-03-08 [1] CRAN (R 4.0.2)
@@ -792,7 +795,7 @@ vec %&gt;%
 #&gt;    hms              0.5.3    2020-01-08 [1] CRAN (R 4.0.2)
 #&gt;    htmltools        0.5.0    2020-06-16 [1] CRAN (R 4.0.2)
 #&gt;    httpuv           1.5.4    2020-06-06 [1] CRAN (R 4.0.2)
-#&gt;    httr             1.4.1    2019-08-05 [1] CRAN (R 4.0.0)
+#&gt;    httr             1.4.2    2020-07-20 [1] CRAN (R 4.0.2)
 #&gt;    jsonlite         1.7.0    2020-06-25 [1] CRAN (R 4.0.2)
 #&gt;    knitr            1.29     2020-06-23 [1] CRAN (R 4.0.2)
 #&gt;    labeling         0.3      2014-08-23 [1] CRAN (R 4.0.0)
@@ -821,9 +824,9 @@ vec %&gt;%
 #&gt;    promises         1.1.1    2020-06-09 [1] CRAN (R 4.0.2)
 #&gt;    proxy            0.4-24   2020-04-25 [1] CRAN (R 4.0.2)
 #&gt;    proxyC           0.1.5    2019-07-21 [1] CRAN (R 4.0.2)
-#&gt;    ps               1.3.3    2020-05-08 [1] CRAN (R 4.0.2)
+#&gt;    ps               1.3.4    2020-08-11 [1] CRAN (R 4.0.2)
 #&gt;    purrr          * 0.3.4    2020-04-17 [1] CRAN (R 4.0.2)
-#&gt;    quanteda         2.1.0    2020-07-05 [1] CRAN (R 4.0.2)
+#&gt;    quanteda         2.1.1    2020-07-27 [1] CRAN (R 4.0.2)
 #&gt;    R.cache          0.14.0   2019-12-06 [1] CRAN (R 4.0.2)
 #&gt;    R.methodsS3      1.8.0    2020-02-14 [1] CRAN (R 4.0.0)
 #&gt;    R.oo             1.23.0   2019-11-03 [1] CRAN (R 4.0.0)
@@ -835,7 +838,7 @@ vec %&gt;%
 #&gt;    readr          * 1.3.1    2018-12-21 [1] CRAN (R 4.0.2)
 #&gt;    readxl           1.3.1    2019-03-13 [1] CRAN (R 4.0.2)
 #&gt;    rematch2         2.1.2    2020-05-01 [1] CRAN (R 4.0.2)
-#&gt;    remotes          2.1.1    2020-02-15 [1] CRAN (R 4.0.2)
+#&gt;    remotes          2.2.0    2020-07-21 [1] CRAN (R 4.0.2)
 #&gt;    reprex           0.3.0    2019-05-16 [1] CRAN (R 4.0.2)
 #&gt;    RhpcBLASctl      0.20-137 2020-05-17 [1] CRAN (R 4.0.0)
 #&gt;    rio              0.5.16   2018-11-26 [1] CRAN (R 4.0.2)
@@ -848,9 +851,9 @@ vec %&gt;%
 #&gt;    rstudioapi       0.11     2020-02-07 [1] CRAN (R 4.0.2)
 #&gt;    Rtsne            0.15     2018-11-10 [1] CRAN (R 4.0.2)
 #&gt;    rtweet           0.7.0    2020-01-08 [1] CRAN (R 4.0.2)
-#&gt;    rvest            0.3.5    2019-11-08 [1] CRAN (R 4.0.0)
+#&gt;    rvest            0.3.6    2020-07-25 [1] CRAN (R 4.0.2)
 #&gt;    scales           1.1.1    2020-05-11 [1] CRAN (R 4.0.2)
-#&gt;    servr            0.17     2020-05-26 [1] CRAN (R 4.0.2)
+#&gt;    servr            0.18     2020-07-28 [1] CRAN (R 4.0.2)
 #&gt;    sessioninfo      1.1.1    2018-11-05 [1] CRAN (R 4.0.2)
 #&gt;    sna              2.5      2019-12-10 [1] CRAN (R 4.0.2)
 #&gt;    statnet.common   4.3.0    2019-06-02 [1] CRAN (R 4.0.2)
@@ -862,7 +865,7 @@ vec %&gt;%
 #&gt;    text2vec         0.6      2020-02-18 [1] CRAN (R 4.0.2)
 #&gt;    textmineR        3.0.4    2019-04-18 [1] CRAN (R 4.0.2)
 #&gt;    tibble         * 3.0.3    2020-07-10 [1] CRAN (R 4.0.2)
-#&gt;    tidyr          * 1.1.0    2020-05-20 [1] CRAN (R 4.0.2)
+#&gt;    tidyr          * 1.1.1    2020-07-31 [1] CRAN (R 4.0.2)
 #&gt;    tidyselect       1.1.0    2020-05-11 [1] CRAN (R 4.0.2)
 #&gt;    tidyverse      * 1.3.0    2019-11-21 [1] CRAN (R 4.0.2)
 #&gt;    usethis          1.6.1    2020-04-29 [1] CRAN (R 4.0.2)
@@ -871,10 +874,10 @@ vec %&gt;%
 #&gt;    viridis          0.5.1    2018-03-29 [1] CRAN (R 4.0.2)
 #&gt;    viridisLite      0.3.0    2018-02-01 [1] CRAN (R 4.0.2)
 #&gt;    withr            2.2.0    2020-04-20 [1] CRAN (R 4.0.2)
-#&gt;    xfun             0.15     2020-06-21 [1] CRAN (R 4.0.2)
+#&gt;    xfun             0.16     2020-07-24 [1] CRAN (R 4.0.2)
 #&gt;    xml2             1.3.2    2020-04-23 [1] CRAN (R 4.0.2)
 #&gt;    yaml             2.2.1    2020-02-01 [1] CRAN (R 4.0.0)
-#&gt;    zip              2.0.4    2019-09-01 [1] CRAN (R 4.0.2)
+#&gt;    zip              2.1.0    2020-08-10 [1] CRAN (R 4.0.2)
 #&gt; 
 #&gt; [1] C:/Users/user/Documents/R/win-library/4.0
 #&gt; [2] C:/Program Files/R/R-4.0.2/library

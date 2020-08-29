@@ -2,7 +2,7 @@
 title: 短歌時評のテキスト解析（１）
 author: paithiov909
 date: '2020-07-11'
-lastmod: "2020-07-21"
+lastmod: "2020-08-29"
 slug: scraping-tanka-jihyo
 categories: []
 tags:
@@ -87,12 +87,12 @@ headings &lt;- session %&gt;%
   purrr::discard(. == &quot;&quot;)
 
 head(headings)
-#&gt; [1] &quot;『「声」を集める』山崎聡子&quot;            
-#&gt; [2] &quot;『「不要不急」に思うこと』山崎聡子&quot;    
-#&gt; [3] &quot;『乱反射する「母」と「ラブ」』山崎聡子&quot;
-#&gt; [4] &quot;『「わたし」のいるところ』山崎聡子&quot;    
-#&gt; [5] &quot;『すべて失うも良し』高島裕&quot;            
-#&gt; [6] &quot;『他者としての韓国』高島裕&quot;</code></pre>
+#&gt; [1] &quot;きらめきの「その後」山崎聡子&quot;          
+#&gt; [2] &quot;『「声」を集める』山崎聡子&quot;            
+#&gt; [3] &quot;『「不要不急」に思うこと』山崎聡子&quot;    
+#&gt; [4] &quot;『乱反射する「母」と「ラブ」』山崎聡子&quot;
+#&gt; [5] &quot;『「わたし」のいるところ』山崎聡子&quot;    
+#&gt; [6] &quot;『すべて失うも良し』高島裕&quot;</code></pre>
 </div>
 <div id="整形" class="section level3">
 <h3>整形</h3>
@@ -142,8 +142,9 @@ df &lt;- imap_dfr(doc_headings, function(idx, i) {
     )
   )
 }) %&gt;%
-  tidyr::separate(title, c(&quot;title&quot;, &quot;author&quot;), sep = &quot;[:blank:]+&quot;)
-#&gt; Warning: Expected 2 pieces. Additional pieces discarded in 1 rows [1].</code></pre>
+  tidyr::separate(title, c(&quot;title&quot;, &quot;author&quot;), sep = &quot;[[:blank:]]+&quot;)
+#&gt; Warning: Expected 2 pieces. Missing pieces filled with `NA` in 63 rows [1, 2, 3,
+#&gt; 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
 <p>{googledrive}でドライブに保存しておきます。</p>
 </div>
 </div>
@@ -259,7 +260,7 @@ links &lt;- session %&gt;%
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-07-21                  
+#&gt;  date     2020-08-29                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  package     * version date       lib source        
@@ -279,14 +280,14 @@ links &lt;- session %&gt;%
 #&gt;  DBI           1.1.0   2019-12-15 [1] CRAN (R 4.0.2)
 #&gt;  dbplyr        1.4.4   2020-05-27 [1] CRAN (R 4.0.2)
 #&gt;  desc          1.2.0   2018-05-01 [1] CRAN (R 4.0.2)
-#&gt;  devtools      2.3.0   2020-04-10 [1] CRAN (R 4.0.2)
+#&gt;  devtools      2.3.1   2020-07-21 [1] CRAN (R 4.0.2)
 #&gt;  digest        0.6.25  2020-02-23 [1] CRAN (R 4.0.2)
-#&gt;  dplyr       * 1.0.0   2020-05-29 [1] CRAN (R 4.0.2)
+#&gt;  dplyr       * 1.0.1   2020-07-31 [1] CRAN (R 4.0.2)
 #&gt;  ellipsis      0.3.1   2020-05-15 [1] CRAN (R 4.0.2)
 #&gt;  evaluate      0.14    2019-05-28 [1] CRAN (R 4.0.2)
 #&gt;  fansi         0.4.1   2020-01-08 [1] CRAN (R 4.0.2)
 #&gt;  forcats     * 0.5.0   2020-03-01 [1] CRAN (R 4.0.2)
-#&gt;  fs            1.4.2   2020-06-30 [1] CRAN (R 4.0.2)
+#&gt;  fs            1.5.0   2020-07-31 [1] CRAN (R 4.0.2)
 #&gt;  gargle        0.5.0   2020-05-06 [1] CRAN (R 4.0.2)
 #&gt;  generics      0.0.2   2018-11-29 [1] CRAN (R 4.0.2)
 #&gt;  ggplot2     * 3.3.2   2020-06-19 [1] CRAN (R 4.0.2)
@@ -296,7 +297,7 @@ links &lt;- session %&gt;%
 #&gt;  haven         2.3.1   2020-06-01 [1] CRAN (R 4.0.2)
 #&gt;  hms           0.5.3   2020-01-08 [1] CRAN (R 4.0.2)
 #&gt;  htmltools     0.5.0   2020-06-16 [1] CRAN (R 4.0.2)
-#&gt;  httr          1.4.1   2019-08-05 [1] CRAN (R 4.0.0)
+#&gt;  httr          1.4.2   2020-07-20 [1] CRAN (R 4.0.2)
 #&gt;  jsonlite      1.7.0   2020-06-25 [1] CRAN (R 4.0.2)
 #&gt;  knitr         1.29    2020-06-23 [1] CRAN (R 4.0.2)
 #&gt;  lifecycle     0.2.0   2020-03-06 [1] CRAN (R 4.0.2)
@@ -312,7 +313,7 @@ links &lt;- session %&gt;%
 #&gt;  pkgload       1.1.0   2020-05-29 [1] CRAN (R 4.0.2)
 #&gt;  prettyunits   1.1.1   2020-01-24 [1] CRAN (R 4.0.2)
 #&gt;  processx      3.4.3   2020-07-05 [1] CRAN (R 4.0.2)
-#&gt;  ps            1.3.3   2020-05-08 [1] CRAN (R 4.0.2)
+#&gt;  ps            1.3.4   2020-08-11 [1] CRAN (R 4.0.2)
 #&gt;  purrr       * 0.3.4   2020-04-17 [1] CRAN (R 4.0.2)
 #&gt;  R.cache       0.14.0  2019-12-06 [1] CRAN (R 4.0.2)
 #&gt;  R.methodsS3   1.8.0   2020-02-14 [1] CRAN (R 4.0.0)
@@ -322,13 +323,13 @@ links &lt;- session %&gt;%
 #&gt;  Rcpp          1.0.5   2020-07-06 [1] CRAN (R 4.0.2)
 #&gt;  readr       * 1.3.1   2018-12-21 [1] CRAN (R 4.0.2)
 #&gt;  readxl        1.3.1   2019-03-13 [1] CRAN (R 4.0.2)
-#&gt;  remotes       2.1.1   2020-02-15 [1] CRAN (R 4.0.2)
+#&gt;  remotes       2.2.0   2020-07-21 [1] CRAN (R 4.0.2)
 #&gt;  reprex        0.3.0   2019-05-16 [1] CRAN (R 4.0.2)
 #&gt;  rlang         0.4.7   2020-07-09 [1] CRAN (R 4.0.2)
 #&gt;  rmarkdown     2.3     2020-06-18 [1] CRAN (R 4.0.2)
 #&gt;  rprojroot     1.3-2   2018-01-03 [1] CRAN (R 4.0.2)
 #&gt;  rstudioapi    0.11    2020-02-07 [1] CRAN (R 4.0.2)
-#&gt;  rvest         0.3.5   2019-11-08 [1] CRAN (R 4.0.0)
+#&gt;  rvest         0.3.6   2020-07-25 [1] CRAN (R 4.0.2)
 #&gt;  scales        1.1.1   2020-05-11 [1] CRAN (R 4.0.2)
 #&gt;  selectr       0.4-2   2019-11-20 [1] CRAN (R 4.0.2)
 #&gt;  sessioninfo   1.1.1   2018-11-05 [1] CRAN (R 4.0.2)
@@ -337,13 +338,13 @@ links &lt;- session %&gt;%
 #&gt;  styler        1.3.2   2020-02-23 [1] CRAN (R 4.0.2)
 #&gt;  testthat      2.3.2   2020-03-02 [1] CRAN (R 4.0.2)
 #&gt;  tibble      * 3.0.3   2020-07-10 [1] CRAN (R 4.0.2)
-#&gt;  tidyr       * 1.1.0   2020-05-20 [1] CRAN (R 4.0.2)
+#&gt;  tidyr       * 1.1.1   2020-07-31 [1] CRAN (R 4.0.2)
 #&gt;  tidyselect    1.1.0   2020-05-11 [1] CRAN (R 4.0.2)
 #&gt;  tidyverse   * 1.3.0   2019-11-21 [1] CRAN (R 4.0.2)
 #&gt;  usethis       1.6.1   2020-04-29 [1] CRAN (R 4.0.2)
 #&gt;  vctrs         0.3.2   2020-07-15 [1] CRAN (R 4.0.2)
 #&gt;  withr         2.2.0   2020-04-20 [1] CRAN (R 4.0.2)
-#&gt;  xfun          0.15    2020-06-21 [1] CRAN (R 4.0.2)
+#&gt;  xfun          0.16    2020-07-24 [1] CRAN (R 4.0.2)
 #&gt;  xml2          1.3.2   2020-04-23 [1] CRAN (R 4.0.2)
 #&gt;  yaml          2.2.1   2020-02-01 [1] CRAN (R 4.0.0)
 #&gt; 

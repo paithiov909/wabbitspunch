@@ -178,8 +178,6 @@ neko_txt_mecab %>%
 
 ### 39. Zipfの法則
 
-~~ずっと雰囲気で書いている ggplot2なんもわからん~~
-
 ```{r}
 count <- neko_txt_mecab %>%
     dplyr::group_by(Base) %>%

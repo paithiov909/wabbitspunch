@@ -2,7 +2,7 @@
 title: Rからおこなう係り受けを考慮したテキストの感情分析
 author: paithiov909
 date: '2020-07-11'
-lastmod: "2020-07-21"
+lastmod: "2020-08-29"
 slug: sentiment-analysis
 categories: []
 tags:
@@ -131,7 +131,7 @@ nrow(pntable)
   dplyr::distinct(X1, .keep_all = TRUE)
 
 nrow(pnt)
-#&gt; [1] 3967</code></pre>
+#&gt; [1] 3968</code></pre>
 </div>
 <div id="係り受け解析" class="section level2">
 <h2>係り受け解析</h2>
@@ -160,7 +160,7 @@ li[[3]]$tbl
 #&gt; 6 5     -1    0.000000  なくないですか</code></pre>
 <p>ここでは関係ないですが、木構造のプロットもできます。</p>
 <pre class="r"><code>li[[3]]$plot()</code></pre>
-<p><img src="/post/sentiment-analysis.ja_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="/posts/sentiment-analysis.ja_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 </div>
 <div id="特性値を計算する方法" class="section level2">
 <h2>特性値を計算する方法</h2>
@@ -216,41 +216,41 @@ li[[3]]$tbl
 #&gt; Call `lifecycle::last_warnings()` to see where this warning was generated.
 
 head(tbl)
-#&gt; # A tibble: 6 x 3,974
-#&gt;     did id    link  score morphs count tag   sim_傷害 sim_つんつん sim_佳作
-#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;    &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;
-#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE         0        0            0
-#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE         0        0            0
-#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE         0       -0.497        0
-#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE         0        0            0
-#&gt; 5     2 0     1     1.83~ 俺の       0 TRUE         0        0            0
-#&gt; 6     2 1     5     -0.9~ 妹が       0 TRUE         0        0            0
-#&gt; # ... with 3,964 more variables: sim_怪しむ &lt;dbl&gt;, sim_いびり出す &lt;dbl&gt;,
-#&gt; #   sim_枕 &lt;dbl&gt;, sim_驚風 &lt;dbl&gt;, sim_傑 &lt;dbl&gt;, sim_劣等 &lt;dbl&gt;, sim_滾る &lt;dbl&gt;,
-#&gt; #   sim_底翳 &lt;dbl&gt;, sim_種 &lt;dbl&gt;, sim_弄ぶ &lt;dbl&gt;, sim_好手 &lt;dbl&gt;,
-#&gt; #   sim_自恣 &lt;dbl&gt;, sim_どやす &lt;dbl&gt;, sim_水分 &lt;dbl&gt;, sim_激賞 &lt;dbl&gt;,
-#&gt; #   sim_健勝 &lt;dbl&gt;, sim_軽軽 &lt;dbl&gt;, sim_寒村 &lt;dbl&gt;, sim_決する &lt;dbl&gt;,
-#&gt; #   sim_ぎゅうぎゅう &lt;dbl&gt;, sim_薄ら寒い &lt;dbl&gt;, sim_濫伐 &lt;dbl&gt;,
-#&gt; #   sim_ぶらぶら病 &lt;dbl&gt;, sim_不都合 &lt;dbl&gt;, sim_晦冥 &lt;dbl&gt;, sim_自責 &lt;dbl&gt;,
-#&gt; #   sim_面当て &lt;dbl&gt;, sim_誠意 &lt;dbl&gt;, sim_患部 &lt;dbl&gt;, sim_感嘆 &lt;dbl&gt;,
-#&gt; #   sim_和睦 &lt;dbl&gt;, sim_低能 &lt;dbl&gt;, sim_絞首 &lt;dbl&gt;, sim_代る代る &lt;dbl&gt;,
-#&gt; #   sim_舌打ち &lt;dbl&gt;, sim_楽しむ &lt;dbl&gt;, sim_切れ端 &lt;dbl&gt;, sim_艶 &lt;dbl&gt;,
-#&gt; #   sim_弊習 &lt;dbl&gt;, sim_述べる &lt;dbl&gt;, sim_小物 &lt;dbl&gt;, sim_過大 &lt;dbl&gt;,
-#&gt; #   sim_英図 &lt;dbl&gt;, sim_血 &lt;dbl&gt;, sim_安安 &lt;dbl&gt;, sim_悪漢 &lt;dbl&gt;,
-#&gt; #   sim_才気 &lt;dbl&gt;, sim_公憤 &lt;dbl&gt;, sim_箱 &lt;dbl&gt;, sim_誤謬 &lt;dbl&gt;,
-#&gt; #   sim_眼力 &lt;dbl&gt;, sim_神韻 &lt;dbl&gt;, sim_材料 &lt;dbl&gt;, sim_見紛う &lt;dbl&gt;,
-#&gt; #   sim_良貨 &lt;dbl&gt;, sim_蓖麻 &lt;dbl&gt;, sim_恩給 &lt;dbl&gt;, sim_隔たる &lt;dbl&gt;,
-#&gt; #   sim_昔 &lt;dbl&gt;, sim_強震 &lt;dbl&gt;, sim_付け火 &lt;dbl&gt;, sim_祝 &lt;dbl&gt;,
-#&gt; #   sim_リョーマチ &lt;dbl&gt;, sim_寿老人 &lt;dbl&gt;, sim_忘我 &lt;dbl&gt;, sim_鮮魚 &lt;dbl&gt;,
-#&gt; #   sim_胡散臭い &lt;dbl&gt;, sim_ぐずつく &lt;dbl&gt;, sim_同慶 &lt;dbl&gt;, sim_晒す &lt;dbl&gt;,
-#&gt; #   sim_抹香臭い &lt;dbl&gt;, sim_適時 &lt;dbl&gt;, sim_強健 &lt;dbl&gt;, sim_扱う &lt;dbl&gt;,
-#&gt; #   sim_纏繞 &lt;dbl&gt;, sim_嗜虐 &lt;dbl&gt;, sim_期待 &lt;dbl&gt;, sim_客 &lt;dbl&gt;,
-#&gt; #   sim_後腐れ &lt;dbl&gt;, sim_憂鬱 &lt;dbl&gt;, sim_根気 &lt;dbl&gt;, sim_月 &lt;dbl&gt;,
-#&gt; #   sim_食用 &lt;dbl&gt;, sim_不穏 &lt;dbl&gt;, sim_共助 &lt;dbl&gt;, sim_すかっと &lt;dbl&gt;,
-#&gt; #   sim_絹緞 &lt;dbl&gt;, sim_去る &lt;dbl&gt;, sim_好評 &lt;dbl&gt;, sim_一人相撲 &lt;dbl&gt;,
-#&gt; #   sim_後悔 &lt;dbl&gt;, sim_鬼才 &lt;dbl&gt;, sim_もじもじ &lt;dbl&gt;, sim_片手落ち &lt;dbl&gt;,
-#&gt; #   sim_貯留 &lt;dbl&gt;, sim_若緑 &lt;dbl&gt;, sim_蔑如 &lt;dbl&gt;, sim_熟練工 &lt;dbl&gt;,
-#&gt; #   sim_大剛 &lt;dbl&gt;, sim_乗る &lt;dbl&gt;, ...</code></pre>
+#&gt; # A tibble: 6 x 3,975
+#&gt;     did id    link  score morphs count tag   sim_利剣 sim_金毘羅 sim_下手
+#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;    &lt;dbl&gt;      &lt;dbl&gt;    &lt;dbl&gt;
+#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE         0          0        0
+#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE         0          0        0
+#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE         0          0        0
+#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE         0          0        0
+#&gt; 5     2 0     1     1.83~ 俺の       0 TRUE         0          0        0
+#&gt; 6     2 1     5     -0.9~ 妹が       0 TRUE         0          0        0
+#&gt; # ... with 3,965 more variables: sim_死去 &lt;dbl&gt;, sim_災 &lt;dbl&gt;,
+#&gt; #   sim_行倒れ &lt;dbl&gt;, sim_刑罰 &lt;dbl&gt;, sim_靴 &lt;dbl&gt;, sim_俚言 &lt;dbl&gt;,
+#&gt; #   sim_門閥 &lt;dbl&gt;, sim_愁眉 &lt;dbl&gt;, sim_照れ臭い &lt;dbl&gt;, sim_名折れ &lt;dbl&gt;,
+#&gt; #   sim_虐使 &lt;dbl&gt;, sim_化膿 &lt;dbl&gt;, sim_嗜眠 &lt;dbl&gt;, sim_才略 &lt;dbl&gt;,
+#&gt; #   sim_口才 &lt;dbl&gt;, sim_悲しむ &lt;dbl&gt;, sim_狭窄 &lt;dbl&gt;, sim_推重 &lt;dbl&gt;,
+#&gt; #   sim_織物 &lt;dbl&gt;, sim_はしたない &lt;dbl&gt;, sim_運座 &lt;dbl&gt;, sim_神佑 &lt;dbl&gt;,
+#&gt; #   sim_訓育 &lt;dbl&gt;, sim_入魂 &lt;dbl&gt;, sim_三 &lt;dbl&gt;, sim_砂糖 &lt;dbl&gt;,
+#&gt; #   sim_済度 &lt;dbl&gt;, sim_むず痒い &lt;dbl&gt;, sim_思う &lt;dbl&gt;, sim_長煩い &lt;dbl&gt;,
+#&gt; #   sim_儀式張る &lt;dbl&gt;, sim_娯楽 &lt;dbl&gt;, sim_大望 &lt;dbl&gt;, sim_弱化 &lt;dbl&gt;,
+#&gt; #   sim_当て擦る &lt;dbl&gt;, sim_驍名 &lt;dbl&gt;, sim_懐かしい &lt;dbl&gt;, sim_別品 &lt;dbl&gt;,
+#&gt; #   sim_手酷い &lt;dbl&gt;, sim_愛想笑い &lt;dbl&gt;, sim_美酒 &lt;dbl&gt;, sim_トレード &lt;dbl&gt;,
+#&gt; #   sim_拾屋 &lt;dbl&gt;, sim_救民 &lt;dbl&gt;, sim_種種 &lt;dbl&gt;, sim_壊す &lt;dbl&gt;,
+#&gt; #   sim_決断 &lt;dbl&gt;, sim_恐恐 &lt;dbl&gt;, sim_国士無双 &lt;dbl&gt;, sim_雑言 &lt;dbl&gt;,
+#&gt; #   sim_矢頃 &lt;dbl&gt;, sim_貧者 &lt;dbl&gt;, sim_松 &lt;dbl&gt;, sim_ぷんぷん &lt;dbl&gt;,
+#&gt; #   sim_上げる &lt;dbl&gt;, sim_嘲笑 &lt;dbl&gt;, sim_難儀 &lt;dbl&gt;, sim_貧乏 &lt;dbl&gt;,
+#&gt; #   sim_甘んずる &lt;dbl&gt;, sim_緊縛 &lt;dbl&gt;, sim_喜寿 &lt;dbl&gt;, sim_釣 &lt;dbl&gt;,
+#&gt; #   sim_失神 &lt;dbl&gt;, sim_浅い &lt;dbl&gt;, sim_折紙付 &lt;dbl&gt;, sim_しみったれる &lt;dbl&gt;,
+#&gt; #   sim_アイボリー &lt;dbl&gt;, sim_天佑 &lt;dbl&gt;, sim_生れる &lt;dbl&gt;, sim_間 &lt;dbl&gt;,
+#&gt; #   sim_仕る &lt;dbl&gt;, sim_奨励 &lt;dbl&gt;, sim_囲う &lt;dbl&gt;, sim_叱り付ける &lt;dbl&gt;,
+#&gt; #   sim_おしら様 &lt;dbl&gt;, sim_方方 &lt;dbl&gt;, sim_物悲しい &lt;dbl&gt;, sim_思う様 &lt;dbl&gt;,
+#&gt; #   sim_貧乏籤 &lt;dbl&gt;, sim_陋巷 &lt;dbl&gt;, sim_頌徳 &lt;dbl&gt;, sim_だらしない &lt;dbl&gt;,
+#&gt; #   sim_改善 &lt;dbl&gt;, sim_高ぶる &lt;dbl&gt;, sim_八苦 &lt;dbl&gt;, sim_飢死 &lt;dbl&gt;,
+#&gt; #   sim_罰する &lt;dbl&gt;, sim_初初しい &lt;dbl&gt;, sim_危害 &lt;dbl&gt;, sim_向上 &lt;dbl&gt;,
+#&gt; #   sim_寝込む &lt;dbl&gt;, sim_怖じ気立つ &lt;dbl&gt;, sim_妙 &lt;dbl&gt;, sim_空世辞 &lt;dbl&gt;,
+#&gt; #   sim_有徳 &lt;dbl&gt;, sim_疑る &lt;dbl&gt;, sim_泡銭 &lt;dbl&gt;, sim_無調法 &lt;dbl&gt;,
+#&gt; #   sim_正 &lt;dbl&gt;, sim_物足りない &lt;dbl&gt;, ...</code></pre>
 <p>文中に否定表現があった場合、各文節についてその否定表現がその文節の係り先にあるかを判定するために、文の木構造においてその文節からターゲットとなる否定表現までの最短経路を求めています。グラフ理論はまったくのド素人なのですが、おそらく文の木構造というのはどこから入っても閉路のない有向グラフとかいうやつなので、その文節の係り先にある＝その文節からの最短経路があると考えることができるはずです。</p>
 <pre class="r"><code>vpath &lt;- tbl %&gt;%
   dplyr::group_by(did) %&gt;%
@@ -285,41 +285,41 @@ vpath[[1]]
 })
 
 head(tbl)
-#&gt; # A tibble: 6 x 3,977
-#&gt;     did id    link  score morphs count tag   sim_傷害 sim_つんつん sim_佳作
-#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;    &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;
-#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE         0        0            0
-#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE         0        0            0
-#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE         0       -0.497        0
-#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE         0        0            0
-#&gt; 5     2 0     1     1.83~ 俺の       0 FALSE        0        0            0
-#&gt; 6     2 1     5     -0.9~ 妹が       0 FALSE        0        0            0
-#&gt; # ... with 3,967 more variables: sim_怪しむ &lt;dbl&gt;, sim_いびり出す &lt;dbl&gt;,
-#&gt; #   sim_枕 &lt;dbl&gt;, sim_驚風 &lt;dbl&gt;, sim_傑 &lt;dbl&gt;, sim_劣等 &lt;dbl&gt;, sim_滾る &lt;dbl&gt;,
-#&gt; #   sim_底翳 &lt;dbl&gt;, sim_種 &lt;dbl&gt;, sim_弄ぶ &lt;dbl&gt;, sim_好手 &lt;dbl&gt;,
-#&gt; #   sim_自恣 &lt;dbl&gt;, sim_どやす &lt;dbl&gt;, sim_水分 &lt;dbl&gt;, sim_激賞 &lt;dbl&gt;,
-#&gt; #   sim_健勝 &lt;dbl&gt;, sim_軽軽 &lt;dbl&gt;, sim_寒村 &lt;dbl&gt;, sim_決する &lt;dbl&gt;,
-#&gt; #   sim_ぎゅうぎゅう &lt;dbl&gt;, sim_薄ら寒い &lt;dbl&gt;, sim_濫伐 &lt;dbl&gt;,
-#&gt; #   sim_ぶらぶら病 &lt;dbl&gt;, sim_不都合 &lt;dbl&gt;, sim_晦冥 &lt;dbl&gt;, sim_自責 &lt;dbl&gt;,
-#&gt; #   sim_面当て &lt;dbl&gt;, sim_誠意 &lt;dbl&gt;, sim_患部 &lt;dbl&gt;, sim_感嘆 &lt;dbl&gt;,
-#&gt; #   sim_和睦 &lt;dbl&gt;, sim_低能 &lt;dbl&gt;, sim_絞首 &lt;dbl&gt;, sim_代る代る &lt;dbl&gt;,
-#&gt; #   sim_舌打ち &lt;dbl&gt;, sim_楽しむ &lt;dbl&gt;, sim_切れ端 &lt;dbl&gt;, sim_艶 &lt;dbl&gt;,
-#&gt; #   sim_弊習 &lt;dbl&gt;, sim_述べる &lt;dbl&gt;, sim_小物 &lt;dbl&gt;, sim_過大 &lt;dbl&gt;,
-#&gt; #   sim_英図 &lt;dbl&gt;, sim_血 &lt;dbl&gt;, sim_安安 &lt;dbl&gt;, sim_悪漢 &lt;dbl&gt;,
-#&gt; #   sim_才気 &lt;dbl&gt;, sim_公憤 &lt;dbl&gt;, sim_箱 &lt;dbl&gt;, sim_誤謬 &lt;dbl&gt;,
-#&gt; #   sim_眼力 &lt;dbl&gt;, sim_神韻 &lt;dbl&gt;, sim_材料 &lt;dbl&gt;, sim_見紛う &lt;dbl&gt;,
-#&gt; #   sim_良貨 &lt;dbl&gt;, sim_蓖麻 &lt;dbl&gt;, sim_恩給 &lt;dbl&gt;, sim_隔たる &lt;dbl&gt;,
-#&gt; #   sim_昔 &lt;dbl&gt;, sim_強震 &lt;dbl&gt;, sim_付け火 &lt;dbl&gt;, sim_祝 &lt;dbl&gt;,
-#&gt; #   sim_リョーマチ &lt;dbl&gt;, sim_寿老人 &lt;dbl&gt;, sim_忘我 &lt;dbl&gt;, sim_鮮魚 &lt;dbl&gt;,
-#&gt; #   sim_胡散臭い &lt;dbl&gt;, sim_ぐずつく &lt;dbl&gt;, sim_同慶 &lt;dbl&gt;, sim_晒す &lt;dbl&gt;,
-#&gt; #   sim_抹香臭い &lt;dbl&gt;, sim_適時 &lt;dbl&gt;, sim_強健 &lt;dbl&gt;, sim_扱う &lt;dbl&gt;,
-#&gt; #   sim_纏繞 &lt;dbl&gt;, sim_嗜虐 &lt;dbl&gt;, sim_期待 &lt;dbl&gt;, sim_客 &lt;dbl&gt;,
-#&gt; #   sim_後腐れ &lt;dbl&gt;, sim_憂鬱 &lt;dbl&gt;, sim_根気 &lt;dbl&gt;, sim_月 &lt;dbl&gt;,
-#&gt; #   sim_食用 &lt;dbl&gt;, sim_不穏 &lt;dbl&gt;, sim_共助 &lt;dbl&gt;, sim_すかっと &lt;dbl&gt;,
-#&gt; #   sim_絹緞 &lt;dbl&gt;, sim_去る &lt;dbl&gt;, sim_好評 &lt;dbl&gt;, sim_一人相撲 &lt;dbl&gt;,
-#&gt; #   sim_後悔 &lt;dbl&gt;, sim_鬼才 &lt;dbl&gt;, sim_もじもじ &lt;dbl&gt;, sim_片手落ち &lt;dbl&gt;,
-#&gt; #   sim_貯留 &lt;dbl&gt;, sim_若緑 &lt;dbl&gt;, sim_蔑如 &lt;dbl&gt;, sim_熟練工 &lt;dbl&gt;,
-#&gt; #   sim_大剛 &lt;dbl&gt;, sim_乗る &lt;dbl&gt;, ...</code></pre>
+#&gt; # A tibble: 6 x 3,978
+#&gt;     did id    link  score morphs count tag   sim_利剣 sim_金毘羅 sim_下手
+#&gt;   &lt;int&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;int&gt; &lt;lgl&gt;    &lt;dbl&gt;      &lt;dbl&gt;    &lt;dbl&gt;
+#&gt; 1     1 0     1     1.81~ 俺の       0 TRUE         0          0        0
+#&gt; 2     1 1     3     -1.9~ 妹は       0 TRUE         0          0        0
+#&gt; 3     1 2     3     -1.9~ こんなに~     0 TRUE         0          0        0
+#&gt; 4     1 3     -1    0.00~ 可愛い     0 TRUE         0          0        0
+#&gt; 5     2 0     1     1.83~ 俺の       0 FALSE        0          0        0
+#&gt; 6     2 1     5     -0.9~ 妹が       0 FALSE        0          0        0
+#&gt; # ... with 3,968 more variables: sim_死去 &lt;dbl&gt;, sim_災 &lt;dbl&gt;,
+#&gt; #   sim_行倒れ &lt;dbl&gt;, sim_刑罰 &lt;dbl&gt;, sim_靴 &lt;dbl&gt;, sim_俚言 &lt;dbl&gt;,
+#&gt; #   sim_門閥 &lt;dbl&gt;, sim_愁眉 &lt;dbl&gt;, sim_照れ臭い &lt;dbl&gt;, sim_名折れ &lt;dbl&gt;,
+#&gt; #   sim_虐使 &lt;dbl&gt;, sim_化膿 &lt;dbl&gt;, sim_嗜眠 &lt;dbl&gt;, sim_才略 &lt;dbl&gt;,
+#&gt; #   sim_口才 &lt;dbl&gt;, sim_悲しむ &lt;dbl&gt;, sim_狭窄 &lt;dbl&gt;, sim_推重 &lt;dbl&gt;,
+#&gt; #   sim_織物 &lt;dbl&gt;, sim_はしたない &lt;dbl&gt;, sim_運座 &lt;dbl&gt;, sim_神佑 &lt;dbl&gt;,
+#&gt; #   sim_訓育 &lt;dbl&gt;, sim_入魂 &lt;dbl&gt;, sim_三 &lt;dbl&gt;, sim_砂糖 &lt;dbl&gt;,
+#&gt; #   sim_済度 &lt;dbl&gt;, sim_むず痒い &lt;dbl&gt;, sim_思う &lt;dbl&gt;, sim_長煩い &lt;dbl&gt;,
+#&gt; #   sim_儀式張る &lt;dbl&gt;, sim_娯楽 &lt;dbl&gt;, sim_大望 &lt;dbl&gt;, sim_弱化 &lt;dbl&gt;,
+#&gt; #   sim_当て擦る &lt;dbl&gt;, sim_驍名 &lt;dbl&gt;, sim_懐かしい &lt;dbl&gt;, sim_別品 &lt;dbl&gt;,
+#&gt; #   sim_手酷い &lt;dbl&gt;, sim_愛想笑い &lt;dbl&gt;, sim_美酒 &lt;dbl&gt;, sim_トレード &lt;dbl&gt;,
+#&gt; #   sim_拾屋 &lt;dbl&gt;, sim_救民 &lt;dbl&gt;, sim_種種 &lt;dbl&gt;, sim_壊す &lt;dbl&gt;,
+#&gt; #   sim_決断 &lt;dbl&gt;, sim_恐恐 &lt;dbl&gt;, sim_国士無双 &lt;dbl&gt;, sim_雑言 &lt;dbl&gt;,
+#&gt; #   sim_矢頃 &lt;dbl&gt;, sim_貧者 &lt;dbl&gt;, sim_松 &lt;dbl&gt;, sim_ぷんぷん &lt;dbl&gt;,
+#&gt; #   sim_上げる &lt;dbl&gt;, sim_嘲笑 &lt;dbl&gt;, sim_難儀 &lt;dbl&gt;, sim_貧乏 &lt;dbl&gt;,
+#&gt; #   sim_甘んずる &lt;dbl&gt;, sim_緊縛 &lt;dbl&gt;, sim_喜寿 &lt;dbl&gt;, sim_釣 &lt;dbl&gt;,
+#&gt; #   sim_失神 &lt;dbl&gt;, sim_浅い &lt;dbl&gt;, sim_折紙付 &lt;dbl&gt;, sim_しみったれる &lt;dbl&gt;,
+#&gt; #   sim_アイボリー &lt;dbl&gt;, sim_天佑 &lt;dbl&gt;, sim_生れる &lt;dbl&gt;, sim_間 &lt;dbl&gt;,
+#&gt; #   sim_仕る &lt;dbl&gt;, sim_奨励 &lt;dbl&gt;, sim_囲う &lt;dbl&gt;, sim_叱り付ける &lt;dbl&gt;,
+#&gt; #   sim_おしら様 &lt;dbl&gt;, sim_方方 &lt;dbl&gt;, sim_物悲しい &lt;dbl&gt;, sim_思う様 &lt;dbl&gt;,
+#&gt; #   sim_貧乏籤 &lt;dbl&gt;, sim_陋巷 &lt;dbl&gt;, sim_頌徳 &lt;dbl&gt;, sim_だらしない &lt;dbl&gt;,
+#&gt; #   sim_改善 &lt;dbl&gt;, sim_高ぶる &lt;dbl&gt;, sim_八苦 &lt;dbl&gt;, sim_飢死 &lt;dbl&gt;,
+#&gt; #   sim_罰する &lt;dbl&gt;, sim_初初しい &lt;dbl&gt;, sim_危害 &lt;dbl&gt;, sim_向上 &lt;dbl&gt;,
+#&gt; #   sim_寝込む &lt;dbl&gt;, sim_怖じ気立つ &lt;dbl&gt;, sim_妙 &lt;dbl&gt;, sim_空世辞 &lt;dbl&gt;,
+#&gt; #   sim_有徳 &lt;dbl&gt;, sim_疑る &lt;dbl&gt;, sim_泡銭 &lt;dbl&gt;, sim_無調法 &lt;dbl&gt;,
+#&gt; #   sim_正 &lt;dbl&gt;, sim_物足りない &lt;dbl&gt;, ...</code></pre>
 <p>整形して表示してみます。</p>
 <pre class="r"><code>res &lt;- tbl %&gt;%
   dplyr::group_by(did) %&gt;%
@@ -349,32 +349,32 @@ knitr::kable(res)</code></pre>
 <tbody>
 <tr class="odd">
 <td align="right">1</td>
-<td align="right">-16.351095</td>
+<td align="right">-18.403742</td>
 <td align="left">俺の妹はこんなに可愛い</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
-<td align="right">-6.737163</td>
+<td align="right">-8.369091</td>
 <td align="left">俺の妹がこんなに可愛いわけがない</td>
 </tr>
 <tr class="odd">
 <td align="right">3</td>
-<td align="right">-27.606258</td>
+<td align="right">-28.474053</td>
 <td align="left">俺の妹がこんなに可愛いわけがなくないですか</td>
 </tr>
 <tr class="even">
 <td align="right">4</td>
-<td align="right">12.053288</td>
+<td align="right">9.751247</td>
 <td align="left">俺の妹がこんなに可愛くないわけがない</td>
 </tr>
 <tr class="odd">
 <td align="right">5</td>
-<td align="right">-6.724040</td>
+<td align="right">-9.577737</td>
 <td align="left">必ずしも可愛くなくないこともない</td>
 </tr>
 <tr class="even">
 <td align="right">6</td>
-<td align="right">-30.879399</td>
+<td align="right">-33.867726</td>
 <td align="left">必ずしも可愛くなくないこともないかもしれないな</td>
 </tr>
 </tbody>
@@ -469,7 +469,7 @@ knitr::kable(res)</code></pre>
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-07-21                  
+#&gt;  date     2020-08-29                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  package     * version date       lib source                             
@@ -488,13 +488,13 @@ knitr::kable(res)</code></pre>
 #&gt;  DBI           1.1.0   2019-12-15 [1] CRAN (R 4.0.2)                     
 #&gt;  dbplyr        1.4.4   2020-05-27 [1] CRAN (R 4.0.2)                     
 #&gt;  digest        0.6.25  2020-02-23 [1] CRAN (R 4.0.2)                     
-#&gt;  dplyr       * 1.0.0   2020-05-29 [1] CRAN (R 4.0.2)                     
+#&gt;  dplyr       * 1.0.1   2020-07-31 [1] CRAN (R 4.0.2)                     
 #&gt;  ellipsis      0.3.1   2020-05-15 [1] CRAN (R 4.0.2)                     
 #&gt;  evaluate      0.14    2019-05-28 [1] CRAN (R 4.0.2)                     
 #&gt;  fansi         0.4.1   2020-01-08 [1] CRAN (R 4.0.2)                     
-#&gt;  flatxml       0.0.2   2018-07-08 [1] CRAN (R 4.0.2)                     
+#&gt;  flatxml       0.1.0   2020-07-24 [1] CRAN (R 4.0.2)                     
 #&gt;  forcats     * 0.5.0   2020-03-01 [1] CRAN (R 4.0.2)                     
-#&gt;  fs            1.4.2   2020-06-30 [1] CRAN (R 4.0.2)                     
+#&gt;  fs            1.5.0   2020-07-31 [1] CRAN (R 4.0.2)                     
 #&gt;  generics      0.0.2   2018-11-29 [1] CRAN (R 4.0.2)                     
 #&gt;  ggplot2     * 3.3.2   2020-06-19 [1] CRAN (R 4.0.2)                     
 #&gt;  glue          1.4.1   2020-05-13 [1] CRAN (R 4.0.2)                     
@@ -503,7 +503,7 @@ knitr::kable(res)</code></pre>
 #&gt;  highr         0.8     2019-03-20 [1] CRAN (R 4.0.2)                     
 #&gt;  hms           0.5.3   2020-01-08 [1] CRAN (R 4.0.2)                     
 #&gt;  htmltools     0.5.0   2020-06-16 [1] CRAN (R 4.0.2)                     
-#&gt;  httr          1.4.1   2019-08-05 [1] CRAN (R 4.0.0)                     
+#&gt;  httr          1.4.2   2020-07-20 [1] CRAN (R 4.0.2)                     
 #&gt;  igraph        1.2.5   2020-03-19 [1] CRAN (R 4.0.2)                     
 #&gt;  jsonlite      1.7.0   2020-06-25 [1] CRAN (R 4.0.2)                     
 #&gt;  knitr         1.29    2020-06-23 [1] CRAN (R 4.0.2)                     
@@ -513,7 +513,7 @@ knitr::kable(res)</code></pre>
 #&gt;  modelr        0.1.8   2020-05-19 [1] CRAN (R 4.0.2)                     
 #&gt;  munsell       0.5.0   2018-06-12 [1] CRAN (R 4.0.2)                     
 #&gt;  pillar        1.4.6   2020-07-10 [1] CRAN (R 4.0.2)                     
-#&gt;  pipian        0.2.1   2020-07-15 [1] Github (paithiov909/pipian@f08b049)
+#&gt;  pipian        0.2.3   2020-08-11 [1] Github (paithiov909/pipian@7097360)
 #&gt;  pkgconfig     2.0.3   2019-09-22 [1] CRAN (R 4.0.2)                     
 #&gt;  purrr       * 0.3.4   2020-04-17 [1] CRAN (R 4.0.2)                     
 #&gt;  R.cache       0.14.0  2019-12-06 [1] CRAN (R 4.0.2)                     
@@ -528,7 +528,7 @@ knitr::kable(res)</code></pre>
 #&gt;  rlang         0.4.7   2020-07-09 [1] CRAN (R 4.0.2)                     
 #&gt;  rmarkdown     2.3     2020-06-18 [1] CRAN (R 4.0.2)                     
 #&gt;  rstudioapi    0.11    2020-02-07 [1] CRAN (R 4.0.2)                     
-#&gt;  rvest         0.3.5   2019-11-08 [1] CRAN (R 4.0.0)                     
+#&gt;  rvest         0.3.6   2020-07-25 [1] CRAN (R 4.0.2)                     
 #&gt;  scales        1.1.1   2020-05-11 [1] CRAN (R 4.0.2)                     
 #&gt;  sessioninfo   1.1.1   2018-11-05 [1] CRAN (R 4.0.2)                     
 #&gt;  stringdist    0.9.6   2020-07-16 [1] CRAN (R 4.0.2)                     
@@ -536,14 +536,14 @@ knitr::kable(res)</code></pre>
 #&gt;  stringr     * 1.4.0   2019-02-10 [1] CRAN (R 4.0.2)                     
 #&gt;  styler        1.3.2   2020-02-23 [1] CRAN (R 4.0.2)                     
 #&gt;  tibble      * 3.0.3   2020-07-10 [1] CRAN (R 4.0.2)                     
-#&gt;  tidyr       * 1.1.0   2020-05-20 [1] CRAN (R 4.0.2)                     
+#&gt;  tidyr       * 1.1.1   2020-07-31 [1] CRAN (R 4.0.2)                     
 #&gt;  tidyselect    1.1.0   2020-05-11 [1] CRAN (R 4.0.2)                     
 #&gt;  tidyverse   * 1.3.0   2019-11-21 [1] CRAN (R 4.0.2)                     
 #&gt;  utf8          1.1.4   2018-05-24 [1] CRAN (R 4.0.2)                     
 #&gt;  V8            3.2.0   2020-06-19 [1] CRAN (R 4.0.2)                     
 #&gt;  vctrs         0.3.2   2020-07-15 [1] CRAN (R 4.0.2)                     
 #&gt;  withr         2.2.0   2020-04-20 [1] CRAN (R 4.0.2)                     
-#&gt;  xfun          0.15    2020-06-21 [1] CRAN (R 4.0.2)                     
+#&gt;  xfun          0.16    2020-07-24 [1] CRAN (R 4.0.2)                     
 #&gt;  xml2          1.3.2   2020-04-23 [1] CRAN (R 4.0.2)                     
 #&gt;  yaml          2.2.1   2020-02-01 [1] CRAN (R 4.0.0)                     
 #&gt; 
