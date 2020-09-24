@@ -2,7 +2,7 @@
 title: Rによるテキスト解析
 author: paithiov909
 date: '2020-07-11'
-lastmod: "2020-08-29"
+lastmod: "2020-09-24"
 slug: shinabitanori-google-docs
 categories: []
 tags:
@@ -17,7 +17,7 @@ description: 'Rでテキストマイニング'
 <h2>Googleドキュメントの読み込み</h2>
 <p>これまで自分が書いてきた文章について、テキスト解析をしてみます。ここで分析している文章はQrunchにあるブログで読むことができます。</p>
 <blockquote>
-<p><a href="https://shinabitanori.qrunch.io/">あきる野市立希望的観測所</a></p>
+<p><a href="https://note.com/shinabitanori">さちこ｜note</a></p>
 </blockquote>
 <p>これまでに書いた文章はいくつかの場所にバックアップを取っていて、Googleドキュメントにもバックアップがあります。今回はそれらを{googledrive}で取得し、{readtext}で読み込みます。</p>
 <p><code>googledrive::drive_download</code>はディレクトリごとダウンロードしたりはできないようなので、特定のディレクトリにあるファイルのリスト（dribble）を<code>dplyr::rowwise</code>で行ごとに渡して<code>dplyr::do</code>のなかでダウンロードしています（<code>dplyr::rowwise() %&gt;% dplyr::do()</code>という流れで処理するやり方は手元にあるdplyr v0.8.0の時点ですでにquestioningなので、将来的に使えなくなる可能性があります）。</p>
@@ -29,6 +29,7 @@ description: 'Rでテキストマイニング'
     overwrite = TRUE,
     verbose = FALSE
   ))
+#&gt; Auto-refreshing stale OAuth token.
 shinabitanori &lt;- googledrive::drive_ls(&quot;Documents/shinabitanori/&quot;) %&gt;%
   dplyr::rowwise() %&gt;%
   dplyr::do(googledrive::drive_download(
@@ -49,7 +50,7 @@ df[1, ]
 #&gt; # Rowwise: 
 #&gt;   rowid doc      name       local_path                                          
 #&gt;   &lt;int&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;                                               
-#&gt; 1     1 aquarium nfe7f3c14~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\RtmpYNabMc/~</code></pre>
+#&gt; 1     1 aquarium nfe7f3c14~ &quot;C:\\Users\\user\\AppData\\Local\\Temp\\Rtmpc17q55/~</code></pre>
 </div>
 <div id="形態素解析" class="section level2">
 <h2>形態素解析</h2>
@@ -216,79 +217,79 @@ m$phi %&gt;%
 </thead>
 <tbody>
 <tr class="odd">
+<td align="left">感情</td>
+<td align="left">因子</td>
 <td align="left">ゴリラ</td>
+</tr>
+<tr class="even">
+<td align="left">ポエジー</td>
+<td align="left">価値</td>
 <td align="left">グループ</td>
+</tr>
+<tr class="odd">
+<td align="left">詩的</td>
+<td align="left">物語</td>
+<td align="left">条例</td>
+</tr>
+<tr class="even">
+<td align="left">行間</td>
+<td align="left">語り</td>
 <td align="left">x</td>
 </tr>
-<tr class="even">
-<td align="left">因子</td>
-<td align="left">条例</td>
-<td align="left">テクスト</td>
-</tr>
 <tr class="odd">
-<td align="left">価値</td>
-<td align="left">ポエジー</td>
-<td align="left">感情</td>
-</tr>
-<tr class="even">
-<td align="left">物語</td>
-<td align="left">文節</td>
-<td align="left">運動会</td>
-</tr>
-<tr class="odd">
-<td align="left">語り</td>
-<td align="left">批評</td>
-<td align="left">中止</td>
-</tr>
-<tr class="even">
-<td align="left">孤独</td>
-<td align="left">詩的</td>
-<td align="left">前件</td>
-</tr>
-<tr class="odd">
+<td align="left">研究</td>
 <td align="left">対</td>
-<td align="left">行間</td>
 <td align="left">文</td>
 </tr>
 <tr class="even">
 <td align="left">さよなら</td>
-<td align="left">研究</td>
-<td align="left">花水木</td>
-</tr>
-<tr class="odd">
-<td align="left">エンゲージメント</td>
-<td align="left">主義</td>
-<td align="left">天気</td>
-</tr>
-<tr class="even">
-<td align="left">文体</td>
-<td align="left">効果</td>
-<td align="left">ルール</td>
-</tr>
-<tr class="odd">
-<td align="left">共同</td>
-<td align="left">v</td>
-<td align="left">並列</td>
-</tr>
-<tr class="even">
-<td align="left">自己</td>
-<td align="left">評</td>
-<td align="left">告げ</td>
-</tr>
-<tr class="odd">
-<td align="left">役割</td>
 <td align="left">加藤</td>
-<td align="left">q</td>
+<td align="left">文節</td>
+</tr>
+<tr class="odd">
+<td align="left">効果</td>
+<td align="left">エンゲージメント</td>
+<td align="left">運動会</td>
+</tr>
+<tr class="even">
+<td align="left">演技</td>
+<td align="left">自己</td>
+<td align="left">中止</td>
+</tr>
+<tr class="odd">
+<td align="left">テクスト</td>
+<td align="left">役割</td>
+<td align="left">批評</td>
 </tr>
 <tr class="even">
 <td align="left">あかね</td>
 <td align="left">治郎</td>
-<td align="left">含意</td>
+<td align="left">前件</td>
 </tr>
 <tr class="odd">
+<td align="left">文体</td>
+<td align="left">共同</td>
+<td align="left">花水木</td>
+</tr>
+<tr class="even">
+<td align="left">泥</td>
+<td align="left">言説</td>
+<td align="left">ルール</td>
+</tr>
+<tr class="odd">
+<td align="left">船</td>
+<td align="left">倫理</td>
+<td align="left">テクスト</td>
+</tr>
+<tr class="even">
 <td align="left">笑う</td>
-<td align="left">文書</td>
-<td align="left">事態</td>
+<td align="left">真理</td>
+<td align="left">天気</td>
+</tr>
+<tr class="odd">
+<td align="left">リズム</td>
+<td align="left">呼びかけ</td>
+<td align="left">解釈</td>
 </tr>
 </tbody>
 </table>
@@ -344,16 +345,16 @@ wv &lt;- glove$fit_transform(
 ) %&gt;%
   as.data.frame(stringsAsFactors = FALSE) %&gt;%
   tibble::as_tibble(.name_repair = &quot;minimal&quot;, rownames = NA)
-#&gt; INFO  [11:08:48.892] epoch 1, loss 0.1955 
-#&gt; INFO  [11:08:49.017] epoch 2, loss 0.0987 
-#&gt; INFO  [11:08:49.127] epoch 3, loss 0.0785 
-#&gt; INFO  [11:08:49.220] epoch 4, loss 0.0663 
-#&gt; INFO  [11:08:49.314] epoch 5, loss 0.0576 
-#&gt; INFO  [11:08:49.392] epoch 6, loss 0.0508 
-#&gt; INFO  [11:08:49.486] epoch 7, loss 0.0455 
-#&gt; INFO  [11:08:49.580] epoch 8, loss 0.0411 
-#&gt; INFO  [11:08:49.658] epoch 9, loss 0.0375 
-#&gt; INFO  [11:08:49.720] epoch 10, loss 0.0344</code></pre>
+#&gt; INFO  [17:28:47.842] epoch 1, loss 0.1997 
+#&gt; INFO  [17:28:48.045] epoch 2, loss 0.0987 
+#&gt; INFO  [17:28:48.170] epoch 3, loss 0.0781 
+#&gt; INFO  [17:28:48.233] epoch 4, loss 0.0659 
+#&gt; INFO  [17:28:48.311] epoch 5, loss 0.0571 
+#&gt; INFO  [17:28:48.389] epoch 6, loss 0.0504 
+#&gt; INFO  [17:28:48.483] epoch 7, loss 0.0451 
+#&gt; INFO  [17:28:48.561] epoch 8, loss 0.0408 
+#&gt; INFO  [17:28:48.639] epoch 9, loss 0.0372 
+#&gt; INFO  [17:28:48.717] epoch 10, loss 0.0343</code></pre>
 <p>{Rtsne}で次元を減らして可視化します。</p>
 <pre class="r"><code>getRtsneAsTbl &lt;- function(tbl, dim = 2, perp = 30) {
   tsn &lt;- tbl %&gt;% Rtsne::Rtsne(dim = dim, perplexity = perp)
@@ -400,19 +401,19 @@ vec %&gt;%
 #&gt;  collate  Japanese_Japan.932          
 #&gt;  ctype    Japanese_Japan.932          
 #&gt;  tz       Asia/Tokyo                  
-#&gt;  date     2020-08-29                  
+#&gt;  date     2020-09-24                  
 #&gt; 
 #&gt; - Packages -------------------------------------------------------------------
 #&gt;  ! package             * version  date       lib source        
 #&gt;    abind                 1.4-5    2016-07-21 [1] CRAN (R 4.0.0)
 #&gt;    askpass               1.1      2019-01-13 [1] CRAN (R 4.0.2)
 #&gt;    assertthat            0.2.1    2019-03-21 [1] CRAN (R 4.0.2)
-#&gt;    backports             1.1.8    2020-06-17 [1] CRAN (R 4.0.2)
+#&gt;    backports             1.1.10   2020-09-15 [1] CRAN (R 4.0.2)
 #&gt;    blob                  1.2.1    2020-01-20 [1] CRAN (R 4.0.2)
 #&gt;    blogdown              0.20     2020-06-23 [1] CRAN (R 4.0.2)
 #&gt;    bookdown              0.20     2020-06-23 [1] CRAN (R 4.0.2)
 #&gt;    broom                 0.7.0    2020-07-09 [1] CRAN (R 4.0.2)
-#&gt;    callr                 3.4.3    2020-03-28 [1] CRAN (R 4.0.2)
+#&gt;    callr                 3.4.4    2020-09-07 [1] CRAN (R 4.0.2)
 #&gt;    car                   3.0-9    2020-08-11 [1] CRAN (R 4.0.2)
 #&gt;    carData               3.0-4    2020-05-22 [1] CRAN (R 4.0.0)
 #&gt;    cellranger            1.1.0    2016-07-27 [1] CRAN (R 4.0.2)
@@ -426,9 +427,9 @@ vec %&gt;%
 #&gt;    DBI                   1.1.0    2019-12-15 [1] CRAN (R 4.0.2)
 #&gt;    dbplyr                1.4.4    2020-05-27 [1] CRAN (R 4.0.2)
 #&gt;    desc                  1.2.0    2018-05-01 [1] CRAN (R 4.0.2)
-#&gt;    devtools              2.3.1    2020-07-21 [1] CRAN (R 4.0.2)
+#&gt;    devtools              2.3.2    2020-09-18 [1] CRAN (R 4.0.2)
 #&gt;    digest                0.6.25   2020-02-23 [1] CRAN (R 4.0.2)
-#&gt;    dplyr               * 1.0.1    2020-07-31 [1] CRAN (R 4.0.2)
+#&gt;    dplyr               * 1.0.2    2020-08-18 [1] CRAN (R 4.0.2)
 #&gt;    ellipsis              0.3.1    2020-05-15 [1] CRAN (R 4.0.2)
 #&gt;    evaluate              0.14     2019-05-28 [1] CRAN (R 4.0.2)
 #&gt;    fansi                 0.4.1    2020-01-08 [1] CRAN (R 4.0.2)
@@ -440,12 +441,12 @@ vec %&gt;%
 #&gt;    fs                    1.5.0    2020-07-31 [1] CRAN (R 4.0.2)
 #&gt;    gargle                0.5.0    2020-05-06 [1] CRAN (R 4.0.2)
 #&gt;    generics              0.0.2    2018-11-29 [1] CRAN (R 4.0.2)
-#&gt;    ggdendro              0.1.21   2020-08-11 [1] CRAN (R 4.0.2)
+#&gt;    ggdendro              0.1.22   2020-09-13 [1] CRAN (R 4.0.2)
 #&gt;    ggplot2             * 3.3.2    2020-06-19 [1] CRAN (R 4.0.2)
 #&gt;    ggpubr                0.4.0    2020-06-27 [1] CRAN (R 4.0.2)
 #&gt;    ggrepel               0.8.2    2020-03-08 [1] CRAN (R 4.0.2)
 #&gt;    ggsignif              0.6.0    2019-08-08 [1] CRAN (R 4.0.2)
-#&gt;    glue                  1.4.1    2020-05-13 [1] CRAN (R 4.0.2)
+#&gt;    glue                  1.4.2    2020-08-27 [1] CRAN (R 4.0.2)
 #&gt;    googledrive           1.0.1    2020-05-05 [1] CRAN (R 4.0.2)
 #&gt;    gridExtra             2.3      2017-09-09 [1] CRAN (R 4.0.2)
 #&gt;    gtable                0.3.0    2019-03-25 [1] CRAN (R 4.0.2)
@@ -455,9 +456,9 @@ vec %&gt;%
 #&gt;    htmltools             0.5.0    2020-06-16 [1] CRAN (R 4.0.2)
 #&gt;    httpuv                1.5.4    2020-06-06 [1] CRAN (R 4.0.2)
 #&gt;    httr                  1.4.2    2020-07-20 [1] CRAN (R 4.0.2)
-#&gt;    jsonlite              1.7.0    2020-06-25 [1] CRAN (R 4.0.2)
+#&gt;    jsonlite              1.7.1    2020-09-07 [1] CRAN (R 4.0.2)
 #&gt;    kernlab               0.9-29   2019-11-12 [1] CRAN (R 4.0.0)
-#&gt;    knitr                 1.29     2020-06-23 [1] CRAN (R 4.0.2)
+#&gt;    knitr                 1.30     2020-09-22 [1] CRAN (R 4.0.2)
 #&gt;    labeling              0.3      2014-08-23 [1] CRAN (R 4.0.0)
 #&gt;    later                 1.1.0.1  2020-06-05 [1] CRAN (R 4.0.2)
 #&gt;    lattice               0.20-41  2020-04-02 [2] CRAN (R 4.0.2)
@@ -474,15 +475,15 @@ vec %&gt;%
 #&gt;    modelr                0.1.8    2020-05-19 [1] CRAN (R 4.0.2)
 #&gt;    munsell               0.5.0    2018-06-12 [1] CRAN (R 4.0.2)
 #&gt;    network               1.16.0   2019-12-01 [1] CRAN (R 4.0.2)
-#&gt;    openssl               1.4.2    2020-06-27 [1] CRAN (R 4.0.2)
-#&gt;    openxlsx              4.1.5    2020-05-06 [1] CRAN (R 4.0.2)
+#&gt;    openssl               1.4.3    2020-09-18 [1] CRAN (R 4.0.2)
+#&gt;    openxlsx              4.2.2    2020-09-17 [1] CRAN (R 4.0.2)
 #&gt;    pillar                1.4.6    2020-07-10 [1] CRAN (R 4.0.2)
 #&gt;    pkgbuild              1.1.0    2020-07-13 [1] CRAN (R 4.0.2)
 #&gt;    pkgconfig             2.0.3    2019-09-22 [1] CRAN (R 4.0.2)
 #&gt;    pkgload               1.1.0    2020-05-29 [1] CRAN (R 4.0.2)
 #&gt;    plyr                  1.8.6    2020-03-03 [1] CRAN (R 4.0.2)
 #&gt;    prettyunits           1.1.1    2020-01-24 [1] CRAN (R 4.0.2)
-#&gt;    processx              3.4.3    2020-07-05 [1] CRAN (R 4.0.2)
+#&gt;    processx              3.4.4    2020-09-03 [1] CRAN (R 4.0.2)
 #&gt;    promises              1.1.1    2020-06-09 [1] CRAN (R 4.0.2)
 #&gt;    proxy                 0.4-24   2020-04-25 [1] CRAN (R 4.0.2)
 #&gt;    proxyC                0.1.5    2019-07-21 [1] CRAN (R 4.0.2)
@@ -492,15 +493,15 @@ vec %&gt;%
 #&gt;    quanteda              2.1.1    2020-07-27 [1] CRAN (R 4.0.2)
 #&gt;    quanteda.textmodels   0.9.1    2020-03-13 [1] CRAN (R 4.0.2)
 #&gt;    R.cache               0.14.0   2019-12-06 [1] CRAN (R 4.0.2)
-#&gt;    R.methodsS3           1.8.0    2020-02-14 [1] CRAN (R 4.0.0)
-#&gt;    R.oo                  1.23.0   2019-11-03 [1] CRAN (R 4.0.0)
-#&gt;    R.utils               2.9.2    2019-12-08 [1] CRAN (R 4.0.2)
+#&gt;    R.methodsS3           1.8.1    2020-08-26 [1] CRAN (R 4.0.2)
+#&gt;    R.oo                  1.24.0   2020-08-26 [1] CRAN (R 4.0.2)
+#&gt;    R.utils               2.10.1   2020-08-26 [1] CRAN (R 4.0.2)
 #&gt;    R6                    2.4.1    2019-11-12 [1] CRAN (R 4.0.2)
 #&gt;    Rcpp                  1.0.5    2020-07-06 [1] CRAN (R 4.0.2)
 #&gt;  D RcppParallel          5.0.2    2020-06-24 [1] CRAN (R 4.0.2)
 #&gt;    RcppProgress          0.4.2    2020-02-06 [1] CRAN (R 4.0.2)
 #&gt;    readr               * 1.3.1    2018-12-21 [1] CRAN (R 4.0.2)
-#&gt;    readtext              0.76     2020-03-04 [1] CRAN (R 4.0.2)
+#&gt;    readtext              0.80     2020-09-22 [1] CRAN (R 4.0.2)
 #&gt;    readxl                1.3.1    2019-03-13 [1] CRAN (R 4.0.2)
 #&gt;    remotes               2.2.0    2020-07-21 [1] CRAN (R 4.0.2)
 #&gt;    reprex                0.3.0    2019-05-16 [1] CRAN (R 4.0.2)
@@ -514,7 +515,7 @@ vec %&gt;%
 #&gt;    rprojroot             1.3-2    2018-01-03 [1] CRAN (R 4.0.2)
 #&gt;    rsparse               0.4.0    2020-04-01 [1] CRAN (R 4.0.2)
 #&gt;    RSpectra              0.16-0   2019-12-01 [1] CRAN (R 4.0.2)
-#&gt;    RSSL                  0.9.1    2020-02-04 [1] CRAN (R 4.0.2)
+#&gt;    RSSL                  0.9.2    2020-09-12 [1] CRAN (R 4.0.2)
 #&gt;    rstatix               0.6.0    2020-06-18 [1] CRAN (R 4.0.2)
 #&gt;    rstudioapi            0.11     2020-02-07 [1] CRAN (R 4.0.2)
 #&gt;    Rtsne                 0.15     2018-11-10 [1] CRAN (R 4.0.2)
@@ -527,7 +528,7 @@ vec %&gt;%
 #&gt;    SparseM               1.78     2019-12-13 [1] CRAN (R 4.0.0)
 #&gt;    statnet.common        4.3.0    2019-06-02 [1] CRAN (R 4.0.2)
 #&gt;    stopwords             2.0      2020-04-14 [1] CRAN (R 4.0.2)
-#&gt;    stringi               1.4.6    2020-02-17 [1] CRAN (R 4.0.0)
+#&gt;    stringi               1.5.3    2020-09-09 [1] CRAN (R 4.0.2)
 #&gt;    stringr             * 1.4.0    2019-02-10 [1] CRAN (R 4.0.2)
 #&gt;    styler                1.3.2    2020-02-23 [1] CRAN (R 4.0.2)
 #&gt;    tangela               0.0.3    2020-07-26 [1] local         
@@ -535,19 +536,19 @@ vec %&gt;%
 #&gt;    text2vec              0.6      2020-02-18 [1] CRAN (R 4.0.2)
 #&gt;    textmineR             3.0.4    2019-04-18 [1] CRAN (R 4.0.2)
 #&gt;    tibble              * 3.0.3    2020-07-10 [1] CRAN (R 4.0.2)
-#&gt;    tidyr               * 1.1.1    2020-07-31 [1] CRAN (R 4.0.2)
+#&gt;    tidyr               * 1.1.2    2020-08-27 [1] CRAN (R 4.0.2)
 #&gt;    tidyselect            1.1.0    2020-05-11 [1] CRAN (R 4.0.2)
 #&gt;    tidyverse           * 1.3.0    2019-11-21 [1] CRAN (R 4.0.2)
-#&gt;    usethis               1.6.1    2020-04-29 [1] CRAN (R 4.0.2)
+#&gt;    usethis               1.6.3    2020-09-17 [1] CRAN (R 4.0.2)
 #&gt;    utf8                  1.1.4    2018-05-24 [1] CRAN (R 4.0.2)
-#&gt;    vctrs                 0.3.2    2020-07-15 [1] CRAN (R 4.0.2)
+#&gt;    vctrs                 0.3.4    2020-08-29 [1] CRAN (R 4.0.2)
 #&gt;    viridis               0.5.1    2018-03-29 [1] CRAN (R 4.0.2)
 #&gt;    viridisLite           0.3.0    2018-02-01 [1] CRAN (R 4.0.2)
-#&gt;    withr                 2.2.0    2020-04-20 [1] CRAN (R 4.0.2)
-#&gt;    xfun                  0.16     2020-07-24 [1] CRAN (R 4.0.2)
+#&gt;    withr                 2.3.0    2020-09-22 [1] CRAN (R 4.0.2)
+#&gt;    xfun                  0.17     2020-09-09 [1] CRAN (R 4.0.2)
 #&gt;    xml2                  1.3.2    2020-04-23 [1] CRAN (R 4.0.2)
 #&gt;    yaml                  2.2.1    2020-02-01 [1] CRAN (R 4.0.0)
-#&gt;    zip                   2.1.0    2020-08-10 [1] CRAN (R 4.0.2)
+#&gt;    zip                   2.1.1    2020-08-27 [1] CRAN (R 4.0.2)
 #&gt; 
 #&gt; [1] C:/Users/user/Documents/R/win-library/4.0
 #&gt; [2] C:/Program Files/R/R-4.0.2/library

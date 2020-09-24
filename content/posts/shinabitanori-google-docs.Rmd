@@ -25,7 +25,7 @@ googledrive::drive_auth(cache = ".secrets")
 
 これまで自分が書いてきた文章について、テキスト解析をしてみます。ここで分析している文章はQrunchにあるブログで読むことができます。
 
-> [あきる野市立希望的観測所](https://shinabitanori.qrunch.io/)
+> [さちこ｜note](https://note.com/shinabitanori)
 
 これまでに書いた文章はいくつかの場所にバックアップを取っていて、Googleドキュメントにもバックアップがあります。今回はそれらを{googledrive}で取得し、{readtext}で読み込みます。
 

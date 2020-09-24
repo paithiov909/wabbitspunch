@@ -20,7 +20,7 @@ description: 'RでRMeCabに依存しないテキストマイニング'
 
 実際のところ、自分でコードを書きながら自然言語処理の真似事をするならPythonのほうが便利なような気もします。テキストを形態素解析する場面だけ見ても、Pythonには[SudachiPy](https://github.com/WorksApplications/SudachiPy)や[janome](https://mocobeta.github.io/janome/)といった選択肢がある一方で、RにはRコンソールからのみで導入が完了する形態素解析の手段が（少なくともCRANには）ありません。
 
-自然言語処理をやる言語としてPythonのほうがメジャーなことにはほかにもいくつかの理由というか経緯があるのでしょうが、Pythonを採用したほうがよいひとつのモチベーションとしては、テキストマイニングして得た特徴量を投入してディープラーニングをしたい場合は事実上Pythonを選択するしかないというのもある気がします。一応、[{keras}](https://keras.rstudio.com/)や[{rTorch}](https://github.com/f0nzie/rTorch)というのもありますが、このあたりのパッケージを使うのはかなり趣味の領域な気がします。
+自然言語処理をやる言語としてPythonのほうがメジャーなことにはほかにもいくつかの理由というか経緯があるのでしょうが、Pythonを採用したほうがよいひとつのモチベーションとしては、テキストマイニングして得た特徴量を投入してディープラーニングをしたい場合は事実上Pythonを選択するしかないというのもある気がします。一応、[{keras}](https://keras.rstudio.com/)や[{torch}](https://github.com/mlverse/torch)というのもありますが、このあたりのパッケージを使うのはかなり趣味の領域な気がします。
 
 ### RにはRMeCabがあった、が……
 
