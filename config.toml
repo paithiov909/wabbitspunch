@@ -8,7 +8,7 @@ enableEmoji = true
 enableRobotsTXT = true
 pluralizeListTitles = false
 disqusShortname = ""
-googleAnalytics = "UA-73417314-20"
+googleAnalytics = ""
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "\\.udpipe$", "\\.csv$", "_files$", "_cache$", "cache$"]
 
 buildFuture = true
@@ -21,8 +21,6 @@ rssLimit = 10
     description = "Rでもにょる自然言語処理"
     author = "paithiov909"
     images = ["image/wabbits.jpg"]
-
-    googleSearch = "000195935875495954044:0i-nojmdwds"
 
     showDate = true # make false if dont want to show date for evergeen articles
     math = false # best to enable this in the front matter of a page

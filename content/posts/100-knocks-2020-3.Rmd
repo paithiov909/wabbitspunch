@@ -22,10 +22,11 @@ stopifnot(require(tidyverse))
 ## 係り受け解析
 
 ```{r}
-temp <- tempfile(fileext = ".txt")
-download.file("https://nlp100.github.io/data/neko.txt", temp)
-neko <- readtext::readtext(temp, encoding = "UTF-8")
-neko$text[1] %>%
+temp <- tempfile(fileext = ".zip")
+download.file("https://nlp100.github.io/data/ai.ja.zip", temp)
+temp <- unzip(temp, exdir = tempdir())
+ai_ja <- readtext::readtext(temp[1], encoding = "UTF-8")
+ai_ja$text[1] %>%
     readr::read_lines(skip_empty_rows = TRUE) %>%
     length()
 ```
@@ -35,10 +36,12 @@ neko$text[1] %>%
 ここでも[オレオレパッケージ](https://paithiov909.github.io/pipian/)を使います。設問の通りにクラスを実装したりはしませんが、だいたい似たような情報を出力できます。ただし、ここでは解析するのはごく一部だけにしています。
 
 ```{r}
-res <- neko$text[1] %>%
+res <- ai_ja$text[1] %>%
     readr::read_lines(skip_empty_rows = TRUE)
-res <- res[1:30] %>%
+res <- res %>%
+    sample(20L) %>%
     iconv(from = "UTF-8", to = "CP932") %>%
+    purrr::discard(~ is.na(.)) %>%
     pipian::cabochaFlatXML()
     
 res <- pipian::CabochaR(res)$as_tibble()
@@ -122,7 +125,7 @@ memo %>%
 そういう関数があるのでサボります。
 
 ```{r}
-graph <- neko$text[1] %>%
+graph <- ai_ja$text[1] %>%
     readr::read_lines(skip_empty_rows = TRUE)
 tbl <- graph[12] %>%
     iconv(from = "UTF-8", to = "CP932") %>%
@@ -151,18 +154,18 @@ pattern <- memo %>%
 pattern
 ```
 
-「する」「見る」「与える」という動詞の格パターン
+「行う」「なる」「与える」という動詞の格パターン
 
 ```{r}
 pattern %>%
-  dplyr::filter(Original %in% c("する", "見る", "与える")) %>%
+  dplyr::filter(Original %in% c("行う", "なる", "与える")) %>%
   dplyr::group_by(Original, collocation) %>%
   dplyr::count()
 ```
 
 ### 46. 動詞の格フレーム情報の抽出
 
-これを見ると「だけは」みたいな助詞の連続が要件通りに表示できていないことがわかりますが、もう疲れたのであきらめます。
+これを見ると助詞の連続が要件通りに表示できていないことがわかりますが、疲れたのであきらめます。
 
 ```{r}
 memo <- res %>%
